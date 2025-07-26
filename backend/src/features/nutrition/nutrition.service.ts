@@ -59,7 +59,10 @@ export class NutritionService {
    */
   async getMealNutrition(mealId: string): Promise<MealSummary> {
     const meal = await this.mealsRepository.findOne({
-      where: { id: mealId },
+      where: { 
+        id: mealId,
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+      },
       relations: ['foods', 'foods.food'],
     });
 
@@ -82,14 +85,14 @@ export class NutritionService {
    * Calculate daily nutrition summary
    */
   async getDailyNutrition(date: string): Promise<DailyNutrition> {
-    const targetDate = new Date(date);
-    const meals = await this.mealsRepository.find({
-      where: {
-        date: Between(startOfDay(targetDate), endOfDay(targetDate)),
-      },
-      relations: ['foods', 'foods.food'],
-      order: { createdAt: 'ASC' },
-    });
+    const meals = await this.mealsRepository
+      .createQueryBuilder('meal')
+      .leftJoinAndSelect('meal.foods', 'foods')
+      .leftJoinAndSelect('foods.food', 'food')
+      .where('meal.date = :date', { date })
+      .andWhere('meal.userId = :userId', { userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242' })
+      .orderBy('meal.createdAt', 'ASC')
+      .getMany();
 
     const mealSummaries: MealSummary[] = meals.map((meal) => {
       const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
@@ -105,7 +108,7 @@ export class NutritionService {
     const dailyTotals = this.aggregateNutrition(mealSummaries);
 
     return {
-      date: format(targetDate, 'yyyy-MM-dd'),
+      date,
       meals: mealSummaries,
       mealCount: meals.length,
       ...dailyTotals,
@@ -122,6 +125,7 @@ export class NutritionService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(startOfDay(start), endOfDay(end)),
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC', createdAt: 'ASC' },
