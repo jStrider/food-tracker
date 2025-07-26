@@ -12,8 +12,8 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ select: false }) // Exclure par défaut des requêtes pour la sécurité
-  password: string;
+  @Column({ select: false, nullable: true }) // Exclure par défaut des requêtes pour la sécurité
+  password?: string;
 
   @Column({ nullable: true })
   timezone?: string;

@@ -28,6 +28,10 @@ export class CreateMealDto {
   notes?: string;
 
   @IsOptional()
+  @IsString()
+  userId?: string; // TODO: Get from auth context
+
+  @IsOptional()
   @Transform(({ value }) => Array.isArray(value) ? value : [])
   foods?: CreateFoodEntryDto[];
 }
