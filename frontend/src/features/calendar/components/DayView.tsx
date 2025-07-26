@@ -1,46 +1,84 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { 
+  ArrowLeft, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nutritionApi } from '@/features/nutrition/api/nutritionApi';
-import { mealsApi } from '@/features/meals/api/mealsApi';
+import { mealsApi, MealType, Meal } from '@/features/meals/api/mealsApi';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
 import EditMealModal from '@/features/meals/components/EditMealModal';
-// import AddFoodToMealModal from '@/features/foods/components/AddFoodToMealModal';
 import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCard';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { formatCalendarDate } from '@/utils/date';
-import { format } from 'date-fns';
-// import { foodsApi, Food } from '@/features/foods/api/foodsApi';
+
+// Update the Meal interface to match the backend
+interface MealWithDetails extends Meal {
+  category?: MealType;
+  foodEntries?: FoodEntry[];
+}
+
+interface FoodEntry {
+  id: string;
+  quantity: number;
+  unit: string;
+  food: {
+    id: string;
+    name: string;
+    brand?: string;
+  };
+  calculatedCalories: number;
+}
+
+// Meal category configuration
+const MEAL_CATEGORIES: { value: MealType; label: string; color: string }[] = [
+  { value: 'breakfast', label: 'Breakfast', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'lunch', label: 'Lunch', color: 'bg-blue-100 text-blue-800' },
+  { value: 'dinner', label: 'Dinner', color: 'bg-purple-100 text-purple-800' },
+  { value: 'snack', label: 'Snack', color: 'bg-green-100 text-green-800' },
+];
+
+// Macro configuration
+const MACRO_CONFIG = [
+  { key: 'calories', label: 'Calories', unit: '', color: 'text-blue-600' },
+  { key: 'protein', label: 'Protein', unit: 'g', color: 'text-green-600' },
+  { key: 'carbs', label: 'Carbs', unit: 'g', color: 'text-orange-600' },
+  { key: 'fat', label: 'Fat', unit: 'g', color: 'text-purple-600' },
+];
 
 const DayView: React.FC = () => {
   const { date } = useParams<{ date: string }>();
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
   const [isEditMealModalOpen, setIsEditMealModalOpen] = useState(false);
-  // const [isAddFoodModalOpen, setIsAddFoodModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
-  // const [selectedMealId, setSelectedMealId] = useState<string>('');
-  // const [selectedFood, setSelectedFood] = useState<Food | null>(null);
-  // const [foodSearchQuery, setFoodSearchQuery] = useState('');
+  const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
+  const [expandedMeals, setExpandedMeals] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: dayData, isLoading } = useQuery({
+  // Fetch daily nutrition data
+  const { data: dayData, isLoading, error } = useQuery({
     queryKey: ['daily-nutrition', date],
     queryFn: () => nutritionApi.getDailyNutrition(date!),
     enabled: !!date,
   });
 
-  // const { data: foodSearchResults } = useQuery({
-  //   queryKey: ['food-search', foodSearchQuery],
-  //   queryFn: () => foodsApi.searchFoods(foodSearchQuery),
-  //   enabled: foodSearchQuery.length > 2,
-  // });
-
+  // Delete meal mutation
   const deleteMealMutation = useMutation({
     mutationFn: (mealId: string) => mealsApi.deleteMeal(mealId),
     onSuccess: () => {
@@ -60,14 +98,60 @@ const DayView: React.FC = () => {
     },
   });
 
-  const handleAddFoodToMeal = (_mealId: string) => {
-    // setSelectedMealId(mealId);
-    navigate('/foods');
+  const handleAddMealClick = (type: MealType) => {
+    setSelectedMealType(type);
+    setIsCreateMealModalOpen(true);
   };
 
   const handleEditMeal = (meal: any) => {
     setSelectedMeal(meal);
     setIsEditMealModalOpen(true);
+  };
+
+  const handleDeleteMeal = (mealId: string) => {
+    if (window.confirm('Are you sure you want to delete this meal?')) {
+      deleteMealMutation.mutate(mealId);
+    }
+  };
+
+  const toggleMealExpanded = (mealId: string) => {
+    setExpandedMeals(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(mealId)) {
+        newSet.delete(mealId);
+      } else {
+        newSet.add(mealId);
+      }
+      return newSet;
+    });
+  };
+
+  const formatTime = (time?: string) => {
+    if (!time) return null;
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Group meals by category
+  const mealsByCategory = React.useMemo(() => {
+    if (!dayData?.meals) return {};
+    
+    return dayData.meals.reduce((acc, meal) => {
+      // Use type for backward compatibility, fall back to category
+      const category = (meal as any).type || meal.category || 'snack';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(meal);
+      return acc;
+    }, {} as Record<MealType, typeof dayData.meals>);
+  }, [dayData?.meals]);
+
+  const handleAddFoodToMeal = (mealId: string) => {
+    navigate(`/meals/${mealId}/foods`);
   };
 
   if (isLoading) {
@@ -78,17 +162,28 @@ const DayView: React.FC = () => {
     );
   }
 
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load daily data. Please try again.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   if (!dayData) {
     return <div>No data found</div>;
   }
 
-
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" asChild>
-            <Link to="/">
+            <Link to="/calendar">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Calendar
             </Link>
@@ -97,122 +192,214 @@ const DayView: React.FC = () => {
             {formatCalendarDate(date!)}
           </h1>
         </div>
-        
-        <Button onClick={() => setIsCreateMealModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Meal
-        </Button>
       </div>
 
-      {/* Daily Summary */}
+      {/* Daily Summary with Enhanced Visuals */}
       <Card>
         <CardHeader>
           <CardTitle>Daily Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{dayData.calories}</div>
-              <div className="text-sm text-gray-500">Calories</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{dayData.protein}g</div>
-              <div className="text-sm text-gray-500">Protein</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">{dayData.carbs}g</div>
-              <div className="text-sm text-gray-500">Carbs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{dayData.fat}g</div>
-              <div className="text-sm text-gray-500">Fat</div>
-            </div>
+            {MACRO_CONFIG.map((macro) => (
+              <div key={macro.key} className="text-center">
+                <div className={cn("text-2xl font-bold", macro.color)}>
+                  {dayData[macro.key as keyof typeof dayData]}{macro.unit}
+                </div>
+                <div className="text-sm text-gray-500">{macro.label}</div>
+              </div>
+            ))}
           </div>
+          
+          {/* Additional nutrients if available */}
+          {(dayData.fiber || dayData.sugar || dayData.sodium) && (
+            <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+              {dayData.fiber !== undefined && (
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-gray-700">{dayData.fiber}g</div>
+                  <div className="text-xs text-gray-500">Fiber</div>
+                </div>
+              )}
+              {dayData.sugar !== undefined && (
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-gray-700">{dayData.sugar}g</div>
+                  <div className="text-xs text-gray-500">Sugar</div>
+                </div>
+              )}
+              {dayData.sodium !== undefined && (
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-gray-700">{dayData.sodium}mg</div>
+                  <div className="text-xs text-gray-500">Sodium</div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Nutrition Goals */}
       <NutritionGoalsCard dailyNutrition={dayData} />
 
-      {/* Meals */}
-      <div className="space-y-4">
-        {dayData.meals.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <div className="text-gray-500">No meals recorded for this day</div>
-              <Button className="mt-4" onClick={() => setIsCreateMealModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Meal
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          dayData.meals.map((meal) => (
-            <Card key={meal.id}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                  <CardTitle className="capitalize">{meal.name}</CardTitle>
-                  {meal.time && (
-                    <p className="text-sm text-gray-500">{meal.time}</p>
-                  )}
+      {/* Meals by Category */}
+      <div className="space-y-6">
+        {MEAL_CATEGORIES.map(category => {
+          const meals = mealsByCategory[category.value] || [];
+          
+          return (
+            <div key={category.value} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-lg font-semibold">{category.label}</h2>
+                  <Badge className={cn(category.color, "font-normal")}>
+                    {meals.length} {meals.length === 1 ? 'meal' : 'meals'}
+                  </Badge>
                 </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEditMeal(meal)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => deleteMealMutation.mutate(meal.id)}
-                    disabled={deleteMealMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <div className="font-medium">{meal.calories}</div>
-                    <div className="text-gray-500">Calories</div>
-                  </div>
-                  <div>
-                    <div className="font-medium">{meal.protein}g</div>
-                    <div className="text-gray-500">Protein</div>
-                  </div>
-                  <div>
-                    <div className="font-medium">{meal.carbs}g</div>
-                    <div className="text-gray-500">Carbs</div>
-                  </div>
-                  <div>
-                    <div className="font-medium">{meal.fat}g</div>
-                    <div className="text-gray-500">Fat</div>
-                  </div>
-                </div>
-                
                 <Button 
-                  variant="outline" 
                   size="sm" 
-                  className="mt-4"
-                  onClick={() => handleAddFoodToMeal(meal.id)}
+                  variant="outline"
+                  onClick={() => handleAddMealClick(category.value)}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Food
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add {category.label}
                 </Button>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              </div>
+
+              {meals.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="text-center py-6">
+                    <div className="text-gray-500 text-sm">
+                      No {category.label.toLowerCase()} recorded
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {meals.map((meal) => {
+                    const isExpanded = expandedMeals.has(meal.id);
+                    const foodEntries = (meal as any).foodEntries || [];
+                    
+                    return (
+                      <Card key={meal.id} className="overflow-hidden">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <CardTitle className="text-base">{meal.name}</CardTitle>
+                                {meal.time && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {formatTime(meal.time)}
+                                  </Badge>
+                                )}
+                              </div>
+                              {foodEntries.length > 0 && (
+                                <button
+                                  onClick={() => toggleMealExpanded(meal.id)}
+                                  className="text-sm text-gray-500 mt-1 flex items-center hover:text-gray-700 transition-colors"
+                                >
+                                  {foodEntries.length} food{foodEntries.length !== 1 ? 's' : ''}
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-4 w-4 ml-1" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4 ml-1" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditMeal(meal)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDeleteMeal(meal.id)}
+                                disabled={deleteMealMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent className="pt-0">
+                          {/* Macro summary */}
+                          <div className="grid grid-cols-4 gap-2 text-sm">
+                            {MACRO_CONFIG.map((macro) => (
+                              <div key={macro.key} className="text-center">
+                                <div className={cn("font-medium", macro.color)}>
+                                  {meal[macro.key as keyof typeof meal]}{macro.unit}
+                                </div>
+                                <div className="text-xs text-gray-500">{macro.label}</div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Food entries (expanded) */}
+                          {isExpanded && foodEntries.length > 0 && (
+                            <div className="mt-4 pt-4 border-t space-y-2">
+                              {foodEntries.map((entry: FoodEntry) => (
+                                <div key={entry.id} className="flex items-center justify-between text-sm">
+                                  <div className="flex-1">
+                                    <span className="font-medium">{entry.food.name}</span>
+                                    {entry.food.brand && (
+                                      <span className="text-gray-500 ml-1">({entry.food.brand})</span>
+                                    )}
+                                    <span className="text-gray-500 ml-2">
+                                      {entry.quantity}{entry.unit}
+                                    </span>
+                                  </div>
+                                  <div className="text-right text-gray-600">
+                                    {Math.round(entry.calculatedCalories)} cal
+                                  </div>
+                                </div>
+                              ))}
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full mt-2"
+                                onClick={() => handleAddFoodToMeal(meal.id)}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Food
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Add food button when collapsed */}
+                          {!isExpanded && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full mt-3"
+                              onClick={() => handleAddFoodToMeal(meal.id)}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Food
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
+      {/* Modals */}
       <CreateMealModal
         open={isCreateMealModalOpen}
         onOpenChange={setIsCreateMealModalOpen}
         defaultDate={date || format(new Date(), 'yyyy-MM-dd')}
+        defaultType={selectedMealType}
       />
 
       <EditMealModal
