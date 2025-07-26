@@ -11,6 +11,7 @@ import CreateMealModal from '@/features/meals/components/CreateMealModal';
 const WeekView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
   const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
@@ -31,6 +32,13 @@ const WeekView: React.FC = () => {
     if (!weekData?.days) return null;
     const dateString = format(date, 'yyyy-MM-dd');
     return weekData.days.find((day: any) => day.date === dateString);
+  };
+
+  const handleAddMealClick = (date: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent Link navigation
+    e.stopPropagation(); // Stop event bubbling
+    setSelectedDate(date);
+    setIsCreateMealModalOpen(true);
   };
 
   if (isLoading) {
@@ -67,7 +75,10 @@ const WeekView: React.FC = () => {
           </Button>
         </div>
         
-        <Button onClick={() => setIsCreateMealModalOpen(true)}>
+        <Button onClick={() => {
+          setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+          setIsCreateMealModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Meal
         </Button>
@@ -85,16 +96,24 @@ const WeekView: React.FC = () => {
                 isToday(date) ? 'ring-2 ring-blue-500' : ''
               }`}
             >
-              <CardContent className="p-3 h-full">
+              <CardContent className="p-3 h-full relative group">
                 <Link to={`/day/${dateString}`} className="block h-full">
                   <div className="flex flex-col h-full">
-                    <div className="text-center border-b pb-2 mb-2">
+                    <div className="text-center border-b pb-2 mb-2 relative">
                       <div className="text-xs text-gray-500 uppercase">
                         {format(date, 'EEE')}
                       </div>
                       <div className="text-lg font-semibold text-gray-900">
                         {format(date, 'd')}
                       </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="absolute top-0 right-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => handleAddMealClick(dateString, e)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                     
                     {dayData?.hasData && (
@@ -132,7 +151,7 @@ const WeekView: React.FC = () => {
       <CreateMealModal
         open={isCreateMealModalOpen}
         onOpenChange={setIsCreateMealModalOpen}
-        defaultDate={format(new Date(), 'yyyy-MM-dd')}
+        defaultDate={selectedDate}
       />
     </div>
   );
