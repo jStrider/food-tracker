@@ -11,7 +11,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Calendar', href: '/', icon: Calendar },
+    { name: 'Calendar', href: '/calendar', icon: Calendar },
     { name: 'Foods', href: '/foods', icon: Search },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   ];
@@ -33,7 +33,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex items-center space-x-4">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.href;
+                const isActive = location.pathname === item.href || 
+                  (item.href === '/calendar' && location.pathname.startsWith('/day/'));
                 
                 return (
                   <Button
