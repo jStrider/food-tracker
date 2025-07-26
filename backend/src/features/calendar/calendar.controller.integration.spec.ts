@@ -18,6 +18,7 @@ import { fixtures } from '../../test/fixtures';
 describe('CalendarController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
+  let user: User;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -44,7 +45,7 @@ describe('CalendarController Integration', () => {
 
     // Seed test data
     const userRepo = dataSource.getRepository(User);
-    const user = await userRepo.save({
+    user = await userRepo.save({
       email: 'test@example.com',
       name: 'Test User',
       password: 'test123',

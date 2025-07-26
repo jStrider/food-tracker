@@ -18,6 +18,8 @@ describe('MealsController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let testUser: User;
+  let chickenBreastFood: Food;
+  let appleFood: Food;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -64,6 +66,8 @@ describe('MealsController Integration', () => {
 
     // Store IDs for later use
     testUser = user;
+    chickenBreastFood = chickenBreast;
+    appleFood = apple;
     fixtures.foods.apple.id = apple.id;
     fixtures.foods.chickenBreast.id = chickenBreast.id;
   });
@@ -294,7 +298,7 @@ describe('MealsController Integration', () => {
 
     it('should add food to meal', async () => {
       const addFoodDto = {
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 2,
         unit: 'servings',
       };
@@ -305,7 +309,7 @@ describe('MealsController Integration', () => {
         .expect(201);
 
       expect(response.body).toMatchObject({
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 2,
         unit: 'servings',
         calculatedCalories: expect.any(Number),
@@ -330,15 +334,10 @@ describe('MealsController Integration', () => {
   describe('PUT /meals/:mealId/foods/:entryId', () => {
     let mealId: string;
     let entryId: string;
-    let chickenBreastId: string;
 
     beforeEach(async () => {
       const mealRepo = dataSource.getRepository(Meal);
-      const foodRepo = dataSource.getRepository(Food);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
-
-      const chickenBreast = await foodRepo.findOne({ where: { name: 'Chicken Breast' } });
-      chickenBreastId = chickenBreast.id;
 
       const meal = await mealRepo.save({
         name: 'Meal with Food',
@@ -351,7 +350,7 @@ describe('MealsController Integration', () => {
 
       const foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: chickenBreastId,
+        foodId: chickenBreastFood.id,
         quantity: 100,
         unit: 'g',
         calculatedCalories: 165,
@@ -380,15 +379,10 @@ describe('MealsController Integration', () => {
   describe('DELETE /meals/:mealId/foods/:entryId', () => {
     let mealId: string;
     let entryId: string;
-    let appleId: string;
 
     beforeEach(async () => {
       const mealRepo = dataSource.getRepository(Meal);
-      const foodRepo = dataSource.getRepository(Food);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
-
-      const apple = await foodRepo.findOne({ where: { name: 'Apple' } });
-      appleId = apple.id;
 
       const meal = await mealRepo.save({
         name: 'Meal with Food to Delete',
@@ -401,7 +395,7 @@ describe('MealsController Integration', () => {
 
       const foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: appleId,
+        foodId: appleFood.id,
         quantity: 1,
         unit: 'serving',
         calculatedCalories: 52,
@@ -431,11 +425,7 @@ describe('MealsController Integration', () => {
 
     beforeEach(async () => {
       const mealRepo = dataSource.getRepository(Meal);
-      const foodRepo = dataSource.getRepository(Food);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
-
-      const chickenBreast = await foodRepo.findOne({ where: { name: 'Chicken Breast' } });
-      const apple = await foodRepo.findOne({ where: { name: 'Apple' } });
 
       const meal = await mealRepo.save({
         name: 'Nutritious Meal',
@@ -448,7 +438,7 @@ describe('MealsController Integration', () => {
 
       await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: chickenBreast.id,
+        foodId: chickenBreastFood.id,
         quantity: 200,
         unit: 'g',
         calculatedCalories: 330,
@@ -458,7 +448,7 @@ describe('MealsController Integration', () => {
       });
       await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: apple.id,
+        foodId: appleFood.id,
         quantity: 1,
         unit: 'serving',
         calculatedCalories: 52,

@@ -1,19 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { format, addDays, subDays, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { 
   ArrowLeft, 
-  ArrowRight,
   Plus, 
   Edit, 
   Trash2, 
   ChevronDown, 
   ChevronUp,
   Clock,
-  AlertCircle,
-  Calendar,
-  LayoutGrid,
-  List
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,7 +24,6 @@ import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCa
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { formatCalendarDate } from '@/utils/date';
-import DayViewTimeline from './DayViewTimeline';
 
 
 interface FoodEntry {
@@ -59,11 +54,8 @@ const MACRO_CONFIG = [
   { key: 'fat', label: 'Fat', unit: 'g', color: 'text-purple-600' },
 ];
 
-type ViewMode = 'category' | 'timeline';
-
 const DayView: React.FC = () => {
   const { date } = useParams<{ date: string }>();
-  const [viewMode, setViewMode] = useState<ViewMode>('category');
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
   const [isEditMealModalOpen, setIsEditMealModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
@@ -139,34 +131,29 @@ const DayView: React.FC = () => {
 
   // Group meals by category
   const mealsByCategory = React.useMemo(() => {
-    if (!dayData?.meals) return {};
+    const defaultCategories: Record<MealType, any[]> = {
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snack: []
+    };
     
-    return dayData.meals.reduce<Record<string, typeof dayData.meals>>((acc, meal) => {
-      // Use category from MealSummary
-      const category = meal.category || 'snack';
+    if (!dayData?.meals) return defaultCategories;
+    
+    return dayData.meals.reduce((acc, meal) => {
+      // Use type for backward compatibility, fall back to category
+      const category = ((meal as any).type || meal.category || 'snack') as MealType;
       if (!acc[category]) {
         acc[category] = [];
       }
       acc[category].push(meal);
       return acc;
-    }, {});
+    }, defaultCategories);
   }, [dayData?.meals]);
 
   const handleAddFoodToMeal = (mealId: string) => {
     navigate(`/meals/${mealId}/foods`);
   };
-
-  // Navigate between days
-  const navigateDay = (direction: 'prev' | 'next') => {
-    const currentDate = parseISO(date!);
-    const newDate = direction === 'prev' ? subDays(currentDate, 1) : addDays(currentDate, 1);
-    navigate(`/day/${format(newDate, 'yyyy-MM-dd')}`);
-  };
-
-  // If timeline view is selected, render the timeline component
-  if (viewMode === 'timeline') {
-    return <DayViewTimeline />;
-  }
 
   if (isLoading) {
     return (
@@ -193,60 +180,18 @@ const DayView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with navigation */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" asChild>
             <Link to="/calendar">
-              <Calendar className="h-4 w-4 mr-2" />
-              Calendar
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Calendar
             </Link>
           </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigateDay('prev')}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            
-            <h1 className="text-2xl font-semibold min-w-[200px] text-center">
-              {formatCalendarDate(date!)}
-            </h1>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigateDay('next')}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center bg-gray-100 rounded-md p-1">
-            <Button
-              variant={viewMode === 'category' ? 'default' : 'ghost'}
-              size="sm"
-              className="h-8"
-              onClick={() => setViewMode('category')}
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Category
-            </Button>
-            <Button
-              variant={viewMode === 'timeline' ? 'default' : 'ghost'}
-              size="sm"
-              className="h-8"
-              onClick={() => setViewMode('timeline')}
-            >
-              <List className="h-4 w-4 mr-2" />
-              Timeline
-            </Button>
-          </div>
+          <h1 className="text-2xl font-semibold">
+            {formatCalendarDate(date!)}
+          </h1>
         </div>
       </div>
 
@@ -260,7 +205,7 @@ const DayView: React.FC = () => {
             {MACRO_CONFIG.map((macro) => (
               <div key={macro.key} className="text-center">
                 <div className={cn("text-2xl font-bold", macro.color)}>
-                  {dayData[macro.key as keyof typeof dayData]}{macro.unit}
+                  {(dayData as any)[macro.key]}{macro.unit}
                 </div>
                 <div className="text-sm text-gray-500">{macro.label}</div>
               </div>
@@ -299,7 +244,7 @@ const DayView: React.FC = () => {
       {/* Meals by Category */}
       <div className="space-y-6">
         {MEAL_CATEGORIES.map(category => {
-          const meals = mealsByCategory[category.value as string] || [];
+          const meals = mealsByCategory[category.value] || [];
           
           return (
             <div key={category.value} className="space-y-3">
@@ -320,7 +265,7 @@ const DayView: React.FC = () => {
                 </Button>
               </div>
 
-              {meals.length === 0 ? (
+              {(!meals || meals.length === 0) ? (
                 <Card className="border-dashed">
                   <CardContent className="text-center py-6">
                     <div className="text-gray-500 text-sm">
@@ -330,7 +275,7 @@ const DayView: React.FC = () => {
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {meals.map((meal) => {
+                  {meals.map((meal: any) => {
                     const isExpanded = expandedMeals.has(meal.id);
                     const foodEntries = (meal as any).foodEntries || [];
                     
@@ -388,7 +333,7 @@ const DayView: React.FC = () => {
                             {MACRO_CONFIG.map((macro) => (
                               <div key={macro.key} className="text-center">
                                 <div className={cn("font-medium", macro.color)}>
-                                  {meal[macro.key as keyof typeof meal]}{macro.unit}
+                                  {(meal as any)[macro.key]}{macro.unit}
                                 </div>
                                 <div className="text-xs text-gray-500">{macro.label}</div>
                               </div>

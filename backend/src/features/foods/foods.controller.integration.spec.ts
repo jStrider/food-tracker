@@ -94,7 +94,7 @@ describe('FoodsController Integration', () => {
           fiber: 2,
           sugar: 10,
           sodium: 1,
-          servingSize: '100',
+          servingSize: '100g',
           isFromCache: false,
         },
       ]);
@@ -324,7 +324,7 @@ describe('FoodsController Integration', () => {
           sugar: 8,
           sodium: 200,
           servingSize: '100',
-          isFromCache: false,
+          servingUnit: 'g',
         },
         {
           name: 'Batch Food 2',
@@ -337,7 +337,7 @@ describe('FoodsController Integration', () => {
           sugar: 10,
           sodium: 250,
           servingSize: '100',
-          isFromCache: false,
+          servingUnit: 'g',
         },
       ];
 

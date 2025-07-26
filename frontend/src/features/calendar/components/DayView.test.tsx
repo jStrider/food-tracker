@@ -11,15 +11,16 @@ vi.mock('@/features/nutrition/api/nutritionApi', () => ({
   },
 }));
 
-// Mock the child components
-vi.mock('@/features/meals/components/MealCard', () => ({
-  default: ({ meal }: any) => (
-    <div data-testid={`meal-${meal.id}`}>
-      <div>{meal.name}</div>
-      <div>{meal.calories} cal</div>
-    </div>
-  ),
-}));
+// Mock React Router
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useParams: () => ({ date: '2024-01-15' }),
+    useNavigate: () => vi.fn(),
+    Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
+  };
+});
 
 vi.mock('@/features/meals/components/CreateMealModal', () => ({
   default: ({ open, onOpenChange }: any) => 
@@ -31,8 +32,21 @@ vi.mock('@/features/meals/components/CreateMealModal', () => ({
     ) : null,
 }));
 
+vi.mock('@/features/meals/components/EditMealModal', () => ({
+  default: ({ open, onOpenChange }: any) => 
+    open ? (
+      <div data-testid="edit-meal-modal">
+        Edit Meal Modal
+        <button onClick={() => onOpenChange(false)}>Close</button>
+      </div>
+    ) : null,
+}));
+
+vi.mock('@/features/nutrition/components/NutritionGoalsCard', () => ({
+  default: () => <div data-testid="nutrition-goals">Nutrition Goals</div>,
+}));
+
 describe('DayView', () => {
-  const mockDate = new Date('2024-01-15');
   const mockNutritionData = {
     date: '2024-01-15',
     totalCalories: 1850,
@@ -66,7 +80,7 @@ describe('DayView', () => {
   });
 
   it('renders date header correctly', () => {
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     expect(screen.getByText('Monday, January 15, 2024')).toBeInTheDocument();
   });
@@ -76,7 +90,7 @@ describe('DayView', () => {
       () => new Promise(() => {}) // Never resolves
     );
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     expect(screen.getByText(/Loading meals/)).toBeInTheDocument();
   });
@@ -86,7 +100,7 @@ describe('DayView', () => {
       new Error('Failed to load')
     );
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     expect(await screen.findByText(/Failed to load meals/)).toBeInTheDocument();
   });
@@ -94,7 +108,7 @@ describe('DayView', () => {
   it('renders meals when loaded', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     await waitFor(() => {
       expect(screen.getByTestId('meal-1')).toBeInTheDocument();
@@ -110,7 +124,7 @@ describe('DayView', () => {
   it('renders nutrition summary', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     await waitFor(() => {
       expect(screen.getByText('Daily Summary')).toBeInTheDocument();
@@ -125,7 +139,7 @@ describe('DayView', () => {
   it('shows add meal button', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     const addButton = await screen.findByRole('button', { name: /add meal/i });
     expect(addButton).toBeInTheDocument();
@@ -135,7 +149,7 @@ describe('DayView', () => {
     const user = userEvent.setup();
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     const addButton = await screen.findByRole('button', { name: /add meal/i });
     await user.click(addButton);
@@ -147,7 +161,7 @@ describe('DayView', () => {
     const user = userEvent.setup();
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     const addButton = await screen.findByRole('button', { name: /add meal/i });
     await user.click(addButton);
@@ -161,7 +175,7 @@ describe('DayView', () => {
   it('groups meals by category', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     await waitFor(() => {
       expect(screen.getByText('Breakfast')).toBeInTheDocument();
@@ -183,7 +197,7 @@ describe('DayView', () => {
       meals: [],
     });
 
-    render(<DayView date={mockDate} />);
+    render(<DayView />);
     
     expect(await screen.findByText(/No meals recorded/)).toBeInTheDocument();
   });
