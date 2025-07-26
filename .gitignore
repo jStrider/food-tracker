@@ -123,4 +123,4 @@ docker-compose.override.yml
 # Test files
 test-results/
 playwright-report/
-playwright/.cache/
+playwright/.cache/foodTracker-*
