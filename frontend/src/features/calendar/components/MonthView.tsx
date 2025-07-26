@@ -28,7 +28,7 @@ const MonthView: React.FC = () => {
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   const getDayData = (date: Date) => {
-    if (!monthData?.days) return null;
+    if (!monthData?.days || monthData.days.length === 0) return null;
     const dateString = format(date, 'yyyy-MM-dd');
     return monthData.days.find(day => day.date === dateString);
   };
