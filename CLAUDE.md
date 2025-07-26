@@ -88,7 +88,37 @@ docker-compose -f docker-compose.dev.yml up
 
 # Production environment
 docker-compose up -d
+
+# IMPORTANT: Test Docker build before committing
+docker-compose up -d --build
+# Verify all services are running
+docker-compose ps
+# Check logs if needed
+docker-compose logs
+# Cleanup after testing
+docker-compose down
 ```
+
+## Pre-Commit Checklist
+
+Before committing any changes, ensure:
+
+1. **TypeScript Compilation**: Both frontend and backend compile without errors
+   - `cd frontend && npm run type-check`
+   - `cd backend && npm run build`
+
+2. **Linting**: Code passes all linting rules
+   - `cd frontend && npm run lint`
+   - `cd backend && npm run lint`
+
+3. **Docker Build**: Application builds and runs correctly in Docker
+   - `docker-compose up -d --build`
+   - Verify all services are healthy: `docker-compose ps`
+   - Test basic functionality (can access frontend, backend responds)
+   - Clean up: `docker-compose down`
+
+4. **Tests**: All tests pass (if applicable)
+   - `cd backend && npm test`
 
 ## Key Business Logic
 
