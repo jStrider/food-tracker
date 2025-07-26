@@ -62,6 +62,11 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
   const editMealMutation = useMutation({
     mutationFn: (data: any) => mealsApi.updateMeal(meal!.id, data),
     onSuccess: () => {
+      // Invalidate the specific date query that DayView uses
+      if (meal?.date) {
+        queryClient.invalidateQueries({ queryKey: ['daily-nutrition', meal.date] });
+      }
+      // Also invalidate the general daily-nutrition queries
       queryClient.invalidateQueries({ queryKey: ['daily-nutrition'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-month'] });
       toast({
