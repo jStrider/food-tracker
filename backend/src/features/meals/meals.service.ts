@@ -251,6 +251,7 @@ export class MealsService {
         date: new Date(createMealDto.date),
         time: createMealDto.time,
         notes: createMealDto.notes,
+        userId: createMealDto.userId, // TODO: Get from auth context
       };
 
       const meal = queryRunner.manager.create(Meal, mealData);
