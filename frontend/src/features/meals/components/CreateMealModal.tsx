@@ -20,7 +20,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mealsApi, MealType, CreateMealRequest } from '@/features/meals/api/mealsApi';
 import { useToast } from '@/hooks/use-toast';
-import { formatDate, toAPIDate, DATE_FORMATS } from '@/utils/date';
+import { formatDate, DATE_FORMATS } from '@/utils/date';
 
 interface CreateMealModalProps {
   open: boolean;

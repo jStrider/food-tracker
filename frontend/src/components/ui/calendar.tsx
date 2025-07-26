@@ -33,7 +33,6 @@ export function Calendar({
   onSelect,
   className,
   disabled,
-  initialFocus,
   fromDate,
   toDate,
 }: CalendarProps) {

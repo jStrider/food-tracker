@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -14,7 +13,6 @@ import {
   toUserTimezone,
   toUTC,
   getUserTimezone,
-  toAPIDate,
   DATE_FORMATS
 } from '@/utils/date';
 
