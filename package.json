@@ -1,0 +1,56 @@
+{
+  "name": "foodtracker",
+  "version": "1.0.0",
+  "description": "Macro-nutrients and calories tracking application with calendar interface",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:shared": "cd shared && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../shared && npm install",
+    "clean": "rm -rf */node_modules */dist */build",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:prod": "docker-compose up -d",
+    "docker:build": "docker-compose build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/foodtracker.git"
+  },
+  "keywords": [
+    "nutrition",
+    "calories",
+    "macro-tracking",
+    "food",
+    "health",
+    "calendar",
+    "nestjs",
+    "react",
+    "typescript",
+    "mcp"
+  ],
+  "author": "FoodTracker Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/username/foodtracker/issues"
+  },
+  "homepage": "https://github.com/username/foodtracker#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "shared"
+  ]
+}

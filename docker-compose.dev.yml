@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile.dev
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_PATH=/app/data/foodtracker.db
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/nest-cli.json:/app/nest-cli.json
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - ./shared:/app/shared
+      - ./data:/app/data
+      - /app/node_modules
+    restart: unless-stopped
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./shared:/app/shared
+      - /app/node_modules
+    restart: unless-stopped
+    command: npm run dev
+    depends_on:
+      - backend
+
+volumes:
+  data:
+    driver: local
+
+networks:
+  default:
+    name: foodtracker-dev
+    driver: bridge

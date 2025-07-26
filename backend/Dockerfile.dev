@@ -1,0 +1,29 @@
+# Development Dockerfile for Backend
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk update && apk add --no-cache dumb-init curl
+
+WORKDIR /app
+
+# Copy package files from context root
+COPY backend/package*.json ./
+COPY shared/package.json ./shared/
+
+# Install dependencies
+RUN npm install
+
+# Copy shared module
+COPY shared ./shared
+
+# Install development tools
+RUN npm install -g @nestjs/cli nodemon ts-node
+
+# Create data directory
+RUN mkdir -p /app/data
+
+# Expose port
+EXPOSE 3001
+
+# Start development server
+CMD ["npm", "run", "start:dev"]

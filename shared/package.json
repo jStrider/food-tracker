@@ -1,0 +1,21 @@
+{
+  "name": "foodtracker-shared",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types and interfaces for FoodTracker",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["foodtracker", "types", "typescript"],
+  "author": "FoodTracker Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.1.3"
+  },
+  "files": [
+    "dist/**/*"
+  ]
+}
