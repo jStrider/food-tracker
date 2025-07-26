@@ -20,7 +20,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mealsApi, MealType, CreateMealRequest } from '@/features/meals/api/mealsApi';
 import { useToast } from '@/hooks/use-toast';
-import { formatDate, toAPIDate } from '@/utils/date';
+import { formatDate, toAPIDate, DATE_FORMATS } from '@/utils/date';
 
 interface CreateMealModalProps {
   open: boolean;
@@ -108,7 +108,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
     }
 
     // Format the date for API submission (YYYY-MM-DD)
-    const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
+    const formattedDate = formatDate(selectedDate, DATE_FORMATS.API_DATE);
 
     createMealMutation.mutate({
       name: name.trim(),
@@ -168,7 +168,6 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
               value={selectedDate}
               onChange={setSelectedDate}
               placeholder="Select a date"
-              displayFormat="PPP"
             />
           </div>
 
