@@ -27,6 +27,7 @@ interface CreateMealModalProps {
   onOpenChange: (open: boolean) => void;
   defaultDate?: string;
   defaultType?: MealType;
+  defaultTime?: string;
 }
 
 const MEAL_TYPES: { value: MealType; label: string }[] = [
@@ -41,13 +42,14 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   onOpenChange,
   defaultDate = new Date().toISOString().split('T')[0],
   defaultType = 'breakfast',
+  defaultTime = '',
 }) => {
   const [name, setName] = useState('');
   const [type, setType] = useState<MealType | ''>(defaultType);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     defaultDate ? new Date(defaultDate) : new Date()
   );
-  const [time, setTime] = useState<string>('');
+  const [time, setTime] = useState<string>(defaultTime);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -55,8 +57,10 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   useEffect(() => {
     if (open && defaultDate) {
       setSelectedDate(new Date(defaultDate));
+      setType(defaultType);
+      setTime(defaultTime);
     }
-  }, [open, defaultDate]);
+  }, [open, defaultDate, defaultType, defaultTime]);
 
   const createMealMutation = useMutation({
     mutationFn: (meal: CreateMealRequest) => mealsApi.createMeal(meal),
@@ -85,7 +89,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   const handleClose = () => {
     setName('');
     setType(defaultType);
-    setTime('');
+    setTime(defaultTime);
     onOpenChange(false);
   };
 
