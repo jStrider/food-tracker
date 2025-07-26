@@ -6,7 +6,7 @@ import { NutritionModule } from './nutrition.module';
 import { MealsModule } from '../meals/meals.module';
 import { FoodsModule } from '../foods/foods.module';
 import { User } from '../users/entities/user.entity';
-import { Meal } from '../meals/entities/meal.entity';
+import { Meal, MealCategory } from '../meals/entities/meal.entity';
 import { Food, FoodSource } from '../foods/entities/food.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { DailyNutrition } from './entities/daily-nutrition.entity';
@@ -17,6 +17,7 @@ import { fixtures } from '../../test/fixtures';
 describe('NutritionController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
+  let user: User;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -42,7 +43,7 @@ describe('NutritionController Integration', () => {
 
     // Seed test data
     const userRepo = dataSource.getRepository(User);
-    const user = await userRepo.save({
+    user = await userRepo.save({
       email: 'test@example.com',
       name: 'Test User',
       password: 'test123',
@@ -68,14 +69,14 @@ describe('NutritionController Integration', () => {
     const mealRepo = dataSource.getRepository(Meal);
     const breakfast = await mealRepo.save({
       name: 'Breakfast',
-      category: 'breakfast',
+      category: MealCategory.BREAKFAST,
       date: new Date('2024-01-15'),
       time: '08:00',
       userId: user.id,
     });
     const lunch = await mealRepo.save({
       name: 'Lunch',
-      category: 'lunch',
+      category: MealCategory.LUNCH,
       date: new Date('2024-01-15'),
       time: '12:30',
       userId: user.id,
@@ -272,7 +273,7 @@ describe('NutritionController Integration', () => {
       for (let i = 1; i <= 7; i++) {
         const meal = await mealRepo.save({
           name: `Day ${i} Breakfast`,
-          category: 'breakfast',
+          category: MealCategory.BREAKFAST,
           date: new Date(`2024-01-${10 + i}`),
           time: '08:00',
           userId: user.id,

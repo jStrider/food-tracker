@@ -8,6 +8,13 @@ export interface CalendarDay {
   totalFat: number;
   mealCount: number;
   hasData: boolean;
+  meals?: {
+    id: string;
+    name: string;
+    category: string;
+    time?: string;
+    calories: number;
+  }[];
 }
 
 export interface MonthData {

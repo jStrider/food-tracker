@@ -15,10 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nutritionApi } from '@/features/nutrition/api/nutritionApi';
-import { mealsApi, MealType, Meal } from '@/features/meals/api/mealsApi';
+import { mealsApi, MealType } from '@/features/meals/api/mealsApi';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
 import EditMealModal from '@/features/meals/components/EditMealModal';
 import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCard';
@@ -26,11 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { formatCalendarDate } from '@/utils/date';
 
-// Update the Meal interface to match the backend
-interface MealWithDetails extends Meal {
-  category?: MealType;
-  foodEntries?: FoodEntry[];
-}
 
 interface FoodEntry {
   id: string;
@@ -137,17 +131,24 @@ const DayView: React.FC = () => {
 
   // Group meals by category
   const mealsByCategory = React.useMemo(() => {
-    if (!dayData?.meals) return {};
+    const defaultCategories: Record<MealType, any[]> = {
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snack: []
+    };
+    
+    if (!dayData?.meals) return defaultCategories;
     
     return dayData.meals.reduce((acc, meal) => {
       // Use type for backward compatibility, fall back to category
-      const category = (meal as any).type || meal.category || 'snack';
+      const category = ((meal as any).type || meal.category || 'snack') as MealType;
       if (!acc[category]) {
         acc[category] = [];
       }
       acc[category].push(meal);
       return acc;
-    }, {} as Record<MealType, typeof dayData.meals>);
+    }, defaultCategories);
   }, [dayData?.meals]);
 
   const handleAddFoodToMeal = (mealId: string) => {
@@ -204,7 +205,7 @@ const DayView: React.FC = () => {
             {MACRO_CONFIG.map((macro) => (
               <div key={macro.key} className="text-center">
                 <div className={cn("text-2xl font-bold", macro.color)}>
-                  {dayData[macro.key as keyof typeof dayData]}{macro.unit}
+                  {(dayData as any)[macro.key]}{macro.unit}
                 </div>
                 <div className="text-sm text-gray-500">{macro.label}</div>
               </div>
@@ -264,7 +265,7 @@ const DayView: React.FC = () => {
                 </Button>
               </div>
 
-              {meals.length === 0 ? (
+              {(!meals || meals.length === 0) ? (
                 <Card className="border-dashed">
                   <CardContent className="text-center py-6">
                     <div className="text-gray-500 text-sm">
@@ -274,7 +275,7 @@ const DayView: React.FC = () => {
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {meals.map((meal) => {
+                  {meals.map((meal: any) => {
                     const isExpanded = expandedMeals.has(meal.id);
                     const foodEntries = (meal as any).foodEntries || [];
                     
@@ -332,7 +333,7 @@ const DayView: React.FC = () => {
                             {MACRO_CONFIG.map((macro) => (
                               <div key={macro.key} className="text-center">
                                 <div className={cn("font-medium", macro.color)}>
-                                  {meal[macro.key as keyof typeof meal]}{macro.unit}
+                                  {(meal as any)[macro.key]}{macro.unit}
                                 </div>
                                 <div className="text-xs text-gray-500">{macro.label}</div>
                               </div>
