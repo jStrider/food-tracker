@@ -7,6 +7,8 @@ export interface Meal {
   name: string;
   type: MealType;
   date: string;
+  time?: string; // HH:MM format
+  isCustomCategory: boolean;
   calories: number;
   protein: number;
   carbs: number;
@@ -16,14 +18,17 @@ export interface Meal {
 
 export interface CreateMealRequest {
   name: string;
-  category: MealType;
+  category?: MealType; // Optional - will auto-categorize based on time if not provided
   date: string;
+  time?: string; // HH:MM format
   userId?: string;
 }
 
 export interface UpdateMealRequest {
   name?: string;
-  type?: MealType;
+  category?: MealType;
+  date?: string;
+  time?: string; // HH:MM format
 }
 
 export const mealsApi = {

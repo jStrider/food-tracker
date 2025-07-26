@@ -16,9 +16,11 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mealsApi, MealType, CreateMealRequest } from '@/features/meals/api/mealsApi';
 import { useToast } from '@/hooks/use-toast';
+import { formatDate, DATE_FORMATS } from '@/utils/date';
 
 interface CreateMealModalProps {
   open: boolean;
@@ -41,15 +43,18 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   defaultType = 'breakfast',
 }) => {
   const [name, setName] = useState('');
-  const [type, setType] = useState<MealType>(defaultType);
-  const [date, setDate] = useState(defaultDate);
+  const [type, setType] = useState<MealType | ''>(defaultType);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    defaultDate ? new Date(defaultDate) : new Date()
+  );
+  const [time, setTime] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Update date when modal opens with new defaultDate
   useEffect(() => {
     if (open && defaultDate) {
-      setDate(defaultDate);
+      setSelectedDate(new Date(defaultDate));
     }
   }, [open, defaultDate]);
 
@@ -80,6 +85,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   const handleClose = () => {
     setName('');
     setType(defaultType);
+    setTime('');
     onOpenChange(false);
   };
 
@@ -94,11 +100,24 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       return;
     }
 
+    if (!selectedDate) {
+      toast({
+        title: 'Error',
+        description: 'Please select a date',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Format the date for API submission (YYYY-MM-DD)
+    const formattedDate = formatDate(selectedDate, DATE_FORMATS.API_DATE);
+
     createMealMutation.mutate({
       name: name.trim(),
-      category: type,
-      date,
-      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032', // TODO: Get from auth context
+      ...(type && { category: type }), // Only include category if selected
+      date: formattedDate,
+      ...(time && { time }), // Only include time if provided
+      userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // TODO: Get from auth context
     });
   };
 
@@ -127,14 +146,31 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="meal-type" className="text-sm font-medium">
-              Meal Type
+            <label htmlFor="meal-time" className="text-sm font-medium">
+              Time (Optional)
             </label>
-            <Select value={type} onValueChange={(value: MealType) => setType(value)}>
+            <Input
+              id="meal-time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              placeholder="HH:MM"
+            />
+            <p className="text-xs text-gray-500">
+              If no meal type is selected, it will be auto-categorized based on time
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="meal-type" className="text-sm font-medium">
+              Meal Type (Optional)
+            </label>
+            <Select value={type} onValueChange={(value: MealType | '') => setType(value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select meal type" />
+                <SelectValue placeholder="Auto-categorize based on time" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">Auto-categorize based on time</SelectItem>
                 {MEAL_TYPES.map((mealType) => (
                   <SelectItem key={mealType.value} value={mealType.value}>
                     {mealType.label}
@@ -148,12 +184,11 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
             <label htmlFor="meal-date" className="text-sm font-medium">
               Date
             </label>
-            <Input
+            <DatePicker
               id="meal-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
+              value={selectedDate}
+              onChange={setSelectedDate}
+              placeholder="Select a date"
             />
           </div>
 

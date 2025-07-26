@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +12,8 @@ import EditMealModal from '@/features/meals/components/EditMealModal';
 // import AddFoodToMealModal from '@/features/foods/components/AddFoodToMealModal';
 import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCard';
 import { useToast } from '@/hooks/use-toast';
+import { formatCalendarDate } from '@/utils/date';
+import { format } from 'date-fns';
 // import { foodsApi, Food } from '@/features/foods/api/foodsApi';
 
 const DayView: React.FC = () => {
@@ -80,9 +82,6 @@ const DayView: React.FC = () => {
     return <div>No data found</div>;
   }
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'EEEE, MMMM d, yyyy');
-  };
 
   return (
     <div className="space-y-6">
@@ -95,7 +94,7 @@ const DayView: React.FC = () => {
             </Link>
           </Button>
           <h1 className="text-2xl font-semibold">
-            {formatDate(date!)}
+            {formatCalendarDate(date!)}
           </h1>
         </div>
         
@@ -151,7 +150,12 @@ const DayView: React.FC = () => {
           dayData.meals.map((meal) => (
             <Card key={meal.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="capitalize">{meal.name}</CardTitle>
+                <div>
+                  <CardTitle className="capitalize">{meal.name}</CardTitle>
+                  {meal.time && (
+                    <p className="text-sm text-gray-500">{meal.time}</p>
+                  )}
+                </div>
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
