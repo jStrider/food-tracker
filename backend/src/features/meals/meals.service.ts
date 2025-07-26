@@ -251,6 +251,7 @@ export class MealsService {
         date: new Date(createMealDto.date),
         time: createMealDto.time,
         notes: createMealDto.notes,
+        isCustomCategory: !!createMealDto.category, // Track if category was manually set
       };
 
       const meal = queryRunner.manager.create(Meal, mealData);
@@ -289,13 +290,16 @@ export class MealsService {
       // Prepare update data
       const updateData: any = {};
       if (updateMealDto.name !== undefined) updateData.name = updateMealDto.name;
-      if (updateMealDto.category !== undefined) updateData.category = updateMealDto.category;
+      if (updateMealDto.category !== undefined) {
+        updateData.category = updateMealDto.category;
+        updateData.isCustomCategory = true; // Mark as manually set
+      }
       if (updateMealDto.date !== undefined) updateData.date = new Date(updateMealDto.date);
       if (updateMealDto.time !== undefined) updateData.time = updateMealDto.time;
       if (updateMealDto.notes !== undefined) updateData.notes = updateMealDto.notes;
 
-      // Auto-categorize if time changed but category not provided
-      if (updateMealDto.time && !updateMealDto.category) {
+      // Auto-categorize if time changed but category not provided and not custom
+      if (updateMealDto.time && !updateMealDto.category && !existingMeal.isCustomCategory) {
         updateData.category = this.autoCategorizeByTime(updateMealDto.time);
       }
 
