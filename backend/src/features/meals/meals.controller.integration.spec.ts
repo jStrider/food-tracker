@@ -18,6 +18,8 @@ describe('MealsController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let testUser: User;
+  let chickenBreastFood: Food;
+  let appleFood: Food;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -64,6 +66,8 @@ describe('MealsController Integration', () => {
 
     // Store IDs for later use
     testUser = user;
+    chickenBreastFood = chickenBreast;
+    appleFood = apple;
     fixtures.foods.apple.id = apple.id;
     fixtures.foods.chickenBreast.id = chickenBreast.id;
   });
@@ -294,7 +298,7 @@ describe('MealsController Integration', () => {
 
     it('should add food to meal', async () => {
       const addFoodDto = {
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 2,
         unit: 'servings',
       };
@@ -305,7 +309,7 @@ describe('MealsController Integration', () => {
         .expect(201);
 
       expect(response.body).toMatchObject({
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 2,
         unit: 'servings',
         calculatedCalories: expect.any(Number),
@@ -346,7 +350,7 @@ describe('MealsController Integration', () => {
 
       const foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: fixtures.foods.chickenBreast.id,
+        foodId: chickenBreastFood.id,
         quantity: 100,
         unit: 'g',
         calculatedCalories: 165,
@@ -391,7 +395,7 @@ describe('MealsController Integration', () => {
 
       const foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 1,
         unit: 'serving',
         calculatedCalories: 52,
@@ -434,7 +438,7 @@ describe('MealsController Integration', () => {
 
       await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: fixtures.foods.chickenBreast.id,
+        foodId: chickenBreastFood.id,
         quantity: 200,
         unit: 'g',
         calculatedCalories: 330,
@@ -444,7 +448,7 @@ describe('MealsController Integration', () => {
       });
       await foodEntryRepo.save({
         mealId: meal.id,
-        foodId: fixtures.foods.apple.id,
+        foodId: appleFood.id,
         quantity: 1,
         unit: 'serving',
         calculatedCalories: 52,

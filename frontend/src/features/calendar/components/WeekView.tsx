@@ -117,20 +117,34 @@ const WeekView: React.FC = () => {
                     </div>
                     
                     {dayData?.hasData && (
-                      <div className="space-y-1 flex-1">
+                      <div className="space-y-1 flex-1 overflow-hidden">
                         <div className="text-xs text-center">
                           <div className="text-blue-600 font-medium">
                             {dayData.totalCalories} cal
                           </div>
-                          <div className="text-gray-500">
-                            {dayData.mealCount} meals
-                          </div>
                         </div>
                         
-                        <div className="grid grid-cols-1 gap-1 text-xs text-gray-500">
-                          <div>P: {dayData.totalProtein}g</div>
-                          <div>C: {dayData.totalCarbs}g</div>
-                          <div>F: {dayData.totalFat}g</div>
+                        {/* Display meals */}
+                        {dayData.meals && dayData.meals.length > 0 && (
+                          <div className="space-y-0.5 max-h-20 overflow-y-auto">
+                            {dayData.meals.slice(0, 3).map((meal: any) => (
+                              <div key={meal.id} className="text-xs px-1 py-0.5 bg-gray-50 rounded truncate">
+                                {meal.time && (
+                                  <span className="text-gray-500 mr-1">{meal.time.slice(0, 5)}</span>
+                                )}
+                                <span className="font-medium">{meal.name}</span>
+                              </div>
+                            ))}
+                            {dayData.meals.length > 3 && (
+                              <div className="text-xs text-gray-400 text-center">
+                                +{dayData.meals.length - 3} more
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="text-xs text-gray-400 text-center pt-1">
+                          {dayData.mealCount} meals
                         </div>
                       </div>
                     )}

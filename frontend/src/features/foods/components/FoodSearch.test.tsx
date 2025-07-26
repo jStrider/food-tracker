@@ -35,7 +35,6 @@ vi.mock('./AddFoodToMealModal', () => ({
 // Import mocked functions
 import { foodsApi } from '@/features/foods/api/foodsApi';
 import { mealsApi } from '@/features/meals/api/mealsApi';
-import { within } from '@testing-library/react';
 
 describe('FoodSearch', () => {
   const mockFoods = [

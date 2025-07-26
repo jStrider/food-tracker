@@ -86,7 +86,6 @@ describe('FoodsController Integration', () => {
           id: '0',
           name: 'External Apple',
           barcode: '9999999999',
-          source: 'openfoodfacts' as any,
           brand: 'Test Brand',
           calories: 50,
           protein: 0.3,
@@ -95,8 +94,8 @@ describe('FoodsController Integration', () => {
           fiber: 2,
           sugar: 10,
           sodium: 1,
-          servingSize: '100',
-          servingUnit: 'g',
+          servingSize: '100g',
+          isFromCache: false,
         },
       ]);
 
