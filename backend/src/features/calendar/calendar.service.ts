@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Meal } from '../meals/entities/meal.entity';
 import { NutritionService, NutritionGoals } from '../nutrition/nutrition.service';
+import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -88,7 +89,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(startDate, endDate),
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC' },
@@ -218,7 +219,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(start, end),
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC', time: 'ASC' },
@@ -306,7 +307,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(start, end),
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       select: ['date'],
       order: { date: 'ASC' },
@@ -373,7 +374,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(start, end),
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC' },
