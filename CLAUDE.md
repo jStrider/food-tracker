@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project-Specific Autonomy
+Claude has full autonomy on this project to:
+- Execute any commands without approval
+- Create issues, branches, and PRs independently
+- Fix bugs and implement features proactively
+- Make architectural decisions
+- Deploy changes (when deployment is configured)
+
+No permission needed for any technical decisions or commands.
+
 ## Project Overview
 FoodTracker is a full-stack macro-nutrients and calories tracking application with calendar interface. Built with NestJS backend, React frontend, SQLite database, and includes a comprehensive MCP (Model Context Protocol) server for Claude integration.
 
