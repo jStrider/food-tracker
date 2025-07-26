@@ -32,6 +32,13 @@ export interface CalendarDay {
     carbs: number;
     fat: number;
   };
+  meals?: {
+    id: string;
+    name: string;
+    category: string;
+    time?: string;
+    calories: number;
+  }[];
 }
 
 export interface MonthData {
@@ -147,6 +154,13 @@ export class CalendarService {
         hasData: dayMeals.length > 0,
         isCurrentMonth: isSameMonth(day, new Date(year, month - 1)),
         dayOfWeek: day.getDay(),
+        meals: dayMeals.map(meal => ({
+          id: meal.id,
+          name: meal.name,
+          category: meal.category,
+          time: meal.time,
+          calories: meal.totalCalories,
+        })),
       };
 
       // Add goal progress if goals are provided
@@ -200,9 +214,31 @@ export class CalendarService {
     const start = startOfWeek(new Date(startDate));
     const end = endOfWeek(new Date(startDate));
 
+    // Fetch meals for the week to include meal details
+    const meals = await this.mealsRepository.find({
+      where: {
+        date: Between(start, end),
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+      },
+      relations: ['foods', 'foods.food'],
+      order: { date: 'ASC', time: 'ASC' },
+    });
+
+    // Group meals by date
+    const mealsByDate = new Map<string, Meal[]>();
+    meals.forEach(meal => {
+      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      if (!mealsByDate.has(dateKey)) {
+        mealsByDate.set(dateKey, []);
+      }
+      mealsByDate.get(dateKey)!.push(meal);
+    });
+
     const weeklyNutrition = await this.nutritionService.getWeeklyNutrition(format(start, 'yyyy-MM-dd'));
     
     const calendarDays: CalendarDay[] = weeklyNutrition.days.map(day => {
+      const dayMeals = mealsByDate.get(day.date) || [];
+      
       const calendarDay: CalendarDay = {
         date: day.date,
         totalCalories: Math.round(day.calories),
@@ -213,6 +249,13 @@ export class CalendarService {
         mealCount: day.mealCount,
         hasData: day.mealCount > 0,
         dayOfWeek: new Date(day.date).getDay(),
+        meals: dayMeals.map(meal => ({
+          id: meal.id,
+          name: meal.name,
+          category: meal.category,
+          time: meal.time,
+          calories: meal.totalCalories,
+        })),
       };
 
       // Add goal progress if goals are provided
