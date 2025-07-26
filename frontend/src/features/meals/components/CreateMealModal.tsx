@@ -16,9 +16,11 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mealsApi, MealType, CreateMealRequest } from '@/features/meals/api/mealsApi';
 import { useToast } from '@/hooks/use-toast';
+import { formatDate, toAPIDate } from '@/utils/date';
 
 interface CreateMealModalProps {
   open: boolean;
@@ -42,14 +44,16 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [type, setType] = useState<MealType>(defaultType);
-  const [date, setDate] = useState(defaultDate);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    defaultDate ? new Date(defaultDate) : new Date()
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Update date when modal opens with new defaultDate
   useEffect(() => {
     if (open && defaultDate) {
-      setDate(defaultDate);
+      setSelectedDate(new Date(defaultDate));
     }
   }, [open, defaultDate]);
 
@@ -94,10 +98,22 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       return;
     }
 
+    if (!selectedDate) {
+      toast({
+        title: 'Error',
+        description: 'Please select a date',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Format the date for API submission (YYYY-MM-DD)
+    const formattedDate = formatDate(selectedDate, 'yyyy-MM-dd');
+
     createMealMutation.mutate({
       name: name.trim(),
       type,
-      date,
+      date: formattedDate,
     });
   };
 
@@ -147,12 +163,12 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
             <label htmlFor="meal-date" className="text-sm font-medium">
               Date
             </label>
-            <Input
+            <DatePicker
               id="meal-date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
+              value={selectedDate}
+              onChange={setSelectedDate}
+              placeholder="Select a date"
+              displayFormat="PPP"
             />
           </div>
 
