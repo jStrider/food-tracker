@@ -82,10 +82,18 @@ export class NutritionService {
    * Calculate daily nutrition summary
    */
   async getDailyNutrition(date: string): Promise<DailyNutrition> {
+    // Validate input date
     const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      throw new Error(`Invalid date format: ${date}`);
+    }
+    
+    // For date-only columns, we need to format the date as a string
+    const formattedDate = format(targetDate, 'yyyy-MM-dd');
+    
     const meals = await this.mealsRepository.find({
       where: {
-        date: Between(startOfDay(targetDate), endOfDay(targetDate)),
+        date: formattedDate as any, // Cast to any because TypeORM expects Date but we're using string
       },
       relations: ['foods', 'foods.food'],
       order: { createdAt: 'ASC' },
@@ -116,21 +124,40 @@ export class NutritionService {
    * Calculate weekly nutrition summary
    */
   async getWeeklyNutrition(startDate: string): Promise<WeeklyNutrition> {
-    const start = startOfWeek(new Date(startDate));
-    const end = endOfWeek(new Date(startDate));
+    // Validate input date
+    const inputDate = new Date(startDate);
+    if (isNaN(inputDate.getTime())) {
+      throw new Error(`Invalid date format: ${startDate}`);
+    }
+    
+    const start = startOfWeek(inputDate);
+    const end = endOfWeek(inputDate);
 
-    const meals = await this.mealsRepository.find({
-      where: {
-        date: Between(startOfDay(start), endOfDay(end)),
-      },
-      relations: ['foods', 'foods.food'],
-      order: { date: 'ASC', createdAt: 'ASC' },
-    });
+    // Get all dates in the week as strings
+    const dates = eachDayOfInterval({ start, end }).map(d => format(d, 'yyyy-MM-dd'));
+    
+    const meals = await this.mealsRepository
+      .createQueryBuilder('meal')
+      .leftJoinAndSelect('meal.foods', 'foods')
+      .leftJoinAndSelect('foods.food', 'food')
+      .where('meal.date IN (:...dates)', { dates })
+      .orderBy('meal.date', 'ASC')
+      .addOrderBy('meal.createdAt', 'ASC')
+      .getMany();
 
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
     meals.forEach((meal) => {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      // Ensure meal.date is a valid Date object
+      const mealDate = meal.date instanceof Date ? meal.date : new Date(meal.date);
+      
+      // Validate the date before formatting
+      if (isNaN(mealDate.getTime())) {
+        console.warn(`Invalid meal date found: ${meal.date}, skipping meal ID: ${meal.id}`);
+        return; // Skip this meal
+      }
+      
+      const dateKey = format(mealDate, 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }

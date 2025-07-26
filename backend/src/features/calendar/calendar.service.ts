@@ -91,7 +91,16 @@ export class CalendarService {
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
     meals.forEach(meal => {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      // Ensure meal.date is a valid Date object
+      const mealDate = meal.date instanceof Date ? meal.date : new Date(meal.date);
+      
+      // Validate the date before formatting
+      if (isNaN(mealDate.getTime())) {
+        console.warn(`Invalid meal date found: ${meal.date}, skipping meal ID: ${meal.id}`);
+        return; // Skip this meal
+      }
+      
+      const dateKey = format(mealDate, 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
@@ -271,7 +280,20 @@ export class CalendarService {
 
     // Get unique dates with meals
     const datesWithMeals = new Set(
-      meals.map(meal => format(meal.date, 'yyyy-MM-dd'))
+      meals
+        .map(meal => {
+          // Ensure meal.date is a valid Date object
+          const mealDate = meal.date instanceof Date ? meal.date : new Date(meal.date);
+          
+          // Validate the date before formatting
+          if (isNaN(mealDate.getTime())) {
+            console.warn(`Invalid meal date found: ${meal.date}, skipping meal ID: ${meal.id}`);
+            return null; // Skip this meal
+          }
+          
+          return format(mealDate, 'yyyy-MM-dd');
+        })
+        .filter(date => date !== null) // Remove null values
     );
 
     // Calculate streaks
@@ -341,7 +363,16 @@ export class CalendarService {
     let totalMeals = 0;
 
     for (const meal of meals) {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      // Ensure meal.date is a valid Date object
+      const mealDate = meal.date instanceof Date ? meal.date : new Date(meal.date);
+      
+      // Validate the date before formatting
+      if (isNaN(mealDate.getTime())) {
+        console.warn(`Invalid meal date found: ${meal.date}, skipping meal ID: ${meal.id}`);
+        continue; // Skip this meal
+      }
+      
+      const dateKey = format(mealDate, 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }

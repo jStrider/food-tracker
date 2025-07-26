@@ -6,9 +6,10 @@ import { NutritionIntegrationService } from './nutrition-integration.service';
 import { Meal } from './entities/meal.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { Food } from '../foods/entities/food.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Meal, FoodEntry, Food])],
+  imports: [TypeOrmModule.forFeature([Meal, FoodEntry, Food, User])],
   controllers: [MealsController],
   providers: [MealsService, NutritionIntegrationService],
   exports: [MealsService, NutritionIntegrationService],

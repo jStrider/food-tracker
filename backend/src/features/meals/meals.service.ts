@@ -4,6 +4,7 @@ import { Repository, Between, DataSource, QueryRunner } from 'typeorm';
 import { Meal, MealCategory } from './entities/meal.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { Food } from '../foods/entities/food.entity';
+import { User } from '../users/entities/user.entity';
 import { 
   CreateMealDto, 
   UpdateMealDto, 
@@ -69,8 +70,33 @@ export class MealsService {
     private foodEntriesRepository: Repository<FoodEntry>,
     @InjectRepository(Food)
     private foodsRepository: Repository<Food>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private dataSource: DataSource,
   ) {}
+
+  /**
+   * Get default user or create one if none exists
+   */
+  private async getDefaultUser(): Promise<User> {
+    try {
+      const users = await this.userRepository.find();
+      if (users.length === 0) {
+        // Create a default user if none exists
+        const defaultUser = this.userRepository.create({
+          name: 'Default User',
+          email: 'default@example.com',
+          password: 'defaultpassword',
+        });
+        return await this.userRepository.save(defaultUser);
+      }
+      return users[0]; // Return the first user
+    } catch (error) {
+      this.logger.error('Error getting default user:', error);
+      // Fallback to hardcoded user ID if repository fails
+      return { id: '09e8ed36-5d28-4ab7-8032-be759f965c84' } as User;
+    }
+  }
 
   /**
    * Find meals with pagination and filtering
@@ -231,6 +257,18 @@ export class MealsService {
    * Create a new meal with optional food entries
    */
   async create(createMealDto: CreateMealDto): Promise<Meal> {
+    // Use the existing user ID directly
+    const userId = '09e8ed36-5d28-4ab7-8032-be759f965c84';
+    this.logger.log(`Creating meal for user ID: ${userId}`);
+
+    // Verify user exists
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      this.logger.error(`User with ID ${userId} not found`);
+      throw new BadRequestException(`User with ID ${userId} not found`);
+    }
+    this.logger.log(`User found: ${user.name} (${user.email})`);
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -250,12 +288,16 @@ export class MealsService {
         category,
         date: new Date(createMealDto.date),
         time: createMealDto.time,
-        notes: createMealDto.notes,
-        userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032', // TODO: Get from auth context
+        userId: userId,
+        isCustomCategory: !!createMealDto.category // Mark if category was explicitly provided
       };
 
+      this.logger.log(`Creating meal with data:`, JSON.stringify(mealData));
+
       const meal = queryRunner.manager.create(Meal, mealData);
+      this.logger.log(`Saving meal...`);
       const savedMeal = await queryRunner.manager.save(meal);
+      this.logger.log(`Meal saved with ID: ${savedMeal.id}`);
 
       // Add food entries if provided
       if (createMealDto.foods && createMealDto.foods.length > 0) {
@@ -293,7 +335,6 @@ export class MealsService {
       if (updateMealDto.category !== undefined) updateData.category = updateMealDto.category;
       if (updateMealDto.date !== undefined) updateData.date = new Date(updateMealDto.date);
       if (updateMealDto.time !== undefined) updateData.time = updateMealDto.time;
-      if (updateMealDto.notes !== undefined) updateData.notes = updateMealDto.notes;
 
       // Auto-categorize if time changed but category not provided
       if (updateMealDto.time && !updateMealDto.category) {
