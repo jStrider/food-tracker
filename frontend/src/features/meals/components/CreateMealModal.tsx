@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,13 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Update date when modal opens with new defaultDate
+  useEffect(() => {
+    if (open && defaultDate) {
+      setDate(defaultDate);
+    }
+  }, [open, defaultDate]);
+
   const createMealMutation = useMutation({
     mutationFn: (meal: CreateMealRequest) => mealsApi.createMeal(meal),
     onSuccess: () => {
@@ -70,7 +77,6 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   const handleClose = () => {
     setName('');
     setType(defaultType);
-    setDate(defaultDate);
     onOpenChange(false);
   };
 
