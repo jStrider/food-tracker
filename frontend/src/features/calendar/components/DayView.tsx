@@ -1,36 +1,35 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { 
   ArrowLeft, 
+  ArrowRight,
   Plus, 
   Edit, 
   Trash2, 
   ChevronDown, 
   ChevronUp,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Calendar,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nutritionApi } from '@/features/nutrition/api/nutritionApi';
-import { mealsApi, MealType, Meal } from '@/features/meals/api/mealsApi';
+import { mealsApi, MealType } from '@/features/meals/api/mealsApi';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
 import EditMealModal from '@/features/meals/components/EditMealModal';
 import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { formatCalendarDate } from '@/utils/date';
+import DayViewTimeline from './DayViewTimeline';
 
-// Update the Meal interface to match the backend
-interface MealWithDetails extends Meal {
-  category?: MealType;
-  foodEntries?: FoodEntry[];
-}
 
 interface FoodEntry {
   id: string;
@@ -60,8 +59,11 @@ const MACRO_CONFIG = [
   { key: 'fat', label: 'Fat', unit: 'g', color: 'text-purple-600' },
 ];
 
+type ViewMode = 'category' | 'timeline';
+
 const DayView: React.FC = () => {
   const { date } = useParams<{ date: string }>();
+  const [viewMode, setViewMode] = useState<ViewMode>('category');
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
   const [isEditMealModalOpen, setIsEditMealModalOpen] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<any>(null);
@@ -139,20 +141,32 @@ const DayView: React.FC = () => {
   const mealsByCategory = React.useMemo(() => {
     if (!dayData?.meals) return {};
     
-    return dayData.meals.reduce((acc, meal) => {
-      // Use type for backward compatibility, fall back to category
-      const category = (meal as any).type || meal.category || 'snack';
+    return dayData.meals.reduce<Record<string, typeof dayData.meals>>((acc, meal) => {
+      // Use category from MealSummary
+      const category = meal.category || 'snack';
       if (!acc[category]) {
         acc[category] = [];
       }
       acc[category].push(meal);
       return acc;
-    }, {} as Record<MealType, typeof dayData.meals>);
+    }, {});
   }, [dayData?.meals]);
 
   const handleAddFoodToMeal = (mealId: string) => {
     navigate(`/meals/${mealId}/foods`);
   };
+
+  // Navigate between days
+  const navigateDay = (direction: 'prev' | 'next') => {
+    const currentDate = parseISO(date!);
+    const newDate = direction === 'prev' ? subDays(currentDate, 1) : addDays(currentDate, 1);
+    navigate(`/day/${format(newDate, 'yyyy-MM-dd')}`);
+  };
+
+  // If timeline view is selected, render the timeline component
+  if (viewMode === 'timeline') {
+    return <DayViewTimeline />;
+  }
 
   if (isLoading) {
     return (
@@ -179,18 +193,60 @@ const DayView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="sm" asChild>
             <Link to="/calendar">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Calendar
+              <Calendar className="h-4 w-4 mr-2" />
+              Calendar
             </Link>
           </Button>
-          <h1 className="text-2xl font-semibold">
-            {formatCalendarDate(date!)}
-          </h1>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDay('prev')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            
+            <h1 className="text-2xl font-semibold min-w-[200px] text-center">
+              {formatCalendarDate(date!)}
+            </h1>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDay('next')}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center bg-gray-100 rounded-md p-1">
+            <Button
+              variant={viewMode === 'category' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-8"
+              onClick={() => setViewMode('category')}
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Category
+            </Button>
+            <Button
+              variant={viewMode === 'timeline' ? 'default' : 'ghost'}
+              size="sm"
+              className="h-8"
+              onClick={() => setViewMode('timeline')}
+            >
+              <List className="h-4 w-4 mr-2" />
+              Timeline
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -243,7 +299,7 @@ const DayView: React.FC = () => {
       {/* Meals by Category */}
       <div className="space-y-6">
         {MEAL_CATEGORIES.map(category => {
-          const meals = mealsByCategory[category.value] || [];
+          const meals = mealsByCategory[category.value as string] || [];
           
           return (
             <div key={category.value} className="space-y-3">
