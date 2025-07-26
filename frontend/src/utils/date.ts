@@ -1,4 +1,4 @@
-import { format, parse, parseISO, isValid } from 'date-fns';
+import { parse, parseISO, isValid } from 'date-fns';
 import { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 /**
