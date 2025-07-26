@@ -12,7 +12,6 @@ services:
       - FRONTEND_URL=http://localhost:3000
     volumes:
       - ./data:/app/data
-      - ./backend/.env:/app/.env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]

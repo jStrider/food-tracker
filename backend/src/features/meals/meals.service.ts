@@ -252,6 +252,7 @@ export class MealsService {
         time: createMealDto.time,
         notes: createMealDto.notes,
         isCustomCategory: !!createMealDto.category, // Track if category was manually set
+        userId: createMealDto.userId, // TODO: Get from auth context
       };
 
       const meal = queryRunner.manager.create(Meal, mealData);

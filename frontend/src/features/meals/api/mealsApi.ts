@@ -18,14 +18,15 @@ export interface Meal {
 
 export interface CreateMealRequest {
   name: string;
-  type?: MealType; // Optional - will auto-categorize based on time if not provided
+  category?: MealType; // Optional - will auto-categorize based on time if not provided
   date: string;
   time?: string; // HH:MM format
+  userId?: string;
 }
 
 export interface UpdateMealRequest {
   name?: string;
-  type?: MealType;
+  category?: MealType;
   date?: string;
   time?: string; // HH:MM format
 }
