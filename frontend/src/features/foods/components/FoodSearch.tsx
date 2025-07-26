@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +12,12 @@ import {
 } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { foodsApi, Food } from '@/features/foods/api/foodsApi';
-import { mealsApi } from '@/features/meals/api/mealsApi';
+import { mealsApi, Meal } from '@/features/meals/api/mealsApi';
 import AddFoodToMealModal from './AddFoodToMealModal';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
-const FoodSearch: React.FC = () => {
+const FoodSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [barcode, setBarcode] = useState('');
   const [selectedMealId, setSelectedMealId] = useState<string>('');
@@ -26,19 +26,19 @@ const FoodSearch: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const { toast } = useToast();
 
-  const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery({
+  const { data: searchResults, isLoading: isSearching, error: searchError } = useQuery<Food[], Error>({
     queryKey: ['food-search', searchQuery],
     queryFn: () => foodsApi.searchFoods(searchQuery),
     enabled: searchQuery.length > 2,
   });
 
-  const { data: barcodeResult, isLoading: isScanningBarcode, error: barcodeError } = useQuery({
+  const { data: barcodeResult, isLoading: isScanningBarcode, error: barcodeError } = useQuery<Food | null, Error>({
     queryKey: ['food-barcode', barcode],
     queryFn: () => foodsApi.searchByBarcode(barcode),
     enabled: barcode.length > 0,
   });
 
-  const { data: meals, error: mealsError } = useQuery({
+  const { data: meals, error: mealsError } = useQuery<Meal[], Error>({
     queryKey: ['meals', selectedDate],
     queryFn: () => mealsApi.getMeals(selectedDate),
   });
