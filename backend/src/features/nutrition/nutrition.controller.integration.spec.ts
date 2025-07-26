@@ -265,6 +265,8 @@ describe('NutritionController Integration', () => {
   describe('GET /nutrition/trends', () => {
     beforeEach(async () => {
       // Add more meals for trend analysis
+      const userRepo = dataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { email: 'test@example.com' } });
       const mealRepo = dataSource.getRepository(Meal);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
       const foodRepo = dataSource.getRepository(Food);
