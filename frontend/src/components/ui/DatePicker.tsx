@@ -14,7 +14,8 @@ import {
   toUserTimezone,
   toUTC,
   getUserTimezone,
-  toAPIDate
+  toAPIDate,
+  DATE_FORMATS
 } from '@/utils/date';
 
 export interface DatePickerProps {
@@ -38,7 +39,7 @@ export function DatePicker({
   className,
   disabled = false,
   timezone,
-  displayFormat = 'PPP',
+  displayFormat = DATE_FORMATS.PICKER_DATE,
   min,
   max,
   id,

@@ -2,6 +2,20 @@ import { format, parse, parseISO, isValid } from 'date-fns';
 import { zonedTimeToUtc, utcToZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 /**
+ * Date format constants
+ * Using European date format (DD/MM/YYYY) as default
+ */
+export const DATE_FORMATS = {
+  DISPLAY_DATE: 'dd/MM/yyyy',
+  DISPLAY_DATETIME: 'dd/MM/yyyy HH:mm',
+  API_DATE: 'yyyy-MM-dd',
+  API_DATETIME: "yyyy-MM-dd'T'HH:mm:ss'Z'",
+  PICKER_DATE: 'dd/MM/yyyy',
+  CALENDAR_HEADER: 'd MMMM yyyy',
+  TIME_ONLY: 'HH:mm'
+} as const;
+
+/**
  * Get the user's current timezone
  */
 export function getUserTimezone(): string {
@@ -13,7 +27,7 @@ export function getUserTimezone(): string {
  */
 export function formatDate(
   date: Date | string,
-  formatStr: string = 'yyyy-MM-dd',
+  formatStr: string = 'dd/MM/yyyy',
   timezone?: string
 ): string {
   const tz = timezone || getUserTimezone();
@@ -34,7 +48,7 @@ export function formatDateTime(
   date: Date | string,
   timezone?: string
 ): string {
-  return formatDate(date, 'yyyy-MM-dd HH:mm', timezone);
+  return formatDate(date, 'dd/MM/yyyy HH:mm', timezone);
 }
 
 /**
@@ -44,7 +58,7 @@ export function formatCalendarDate(
   date: Date | string,
   timezone?: string
 ): string {
-  return formatDate(date, 'EEEE, MMMM d, yyyy', timezone);
+  return formatDate(date, 'EEEE, d MMMM yyyy', timezone);
 }
 
 /**
@@ -62,7 +76,7 @@ export function formatTime(
  */
 export function parseDate(
   dateString: string,
-  formatStr: string = 'yyyy-MM-dd',
+  formatStr: string = 'dd/MM/yyyy',
   timezone?: string
 ): Date {
   const tz = timezone || getUserTimezone();
@@ -170,7 +184,7 @@ export function isToday(
  */
 export function formatISODate(
   isoString: string,
-  formatStr: string = 'yyyy-MM-dd',
+  formatStr: string = 'dd/MM/yyyy',
   timezone?: string
 ): string {
   const date = parseISO(isoString);
