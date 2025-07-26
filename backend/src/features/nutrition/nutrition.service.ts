@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Meal } from '../meals/entities/meal.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
+import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
 import { startOfDay, endOfDay, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 export interface NutritionSummary {
@@ -61,7 +62,7 @@ export class NutritionService {
     const meal = await this.mealsRepository.findOne({
       where: { 
         id: mealId,
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       relations: ['foods', 'foods.food'],
     });
@@ -90,7 +91,7 @@ export class NutritionService {
       .leftJoinAndSelect('meal.foods', 'foods')
       .leftJoinAndSelect('foods.food', 'food')
       .where('meal.date = :date', { date })
-      .andWhere('meal.userId = :userId', { userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242' })
+      .andWhere('meal.userId = :userId', { userId: TEMP_USER_ID })
       .orderBy('meal.createdAt', 'ASC')
       .getMany();
 
@@ -125,7 +126,7 @@ export class NutritionService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(startOfDay(start), endOfDay(end)),
-        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
+        userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC', createdAt: 'ASC' },
