@@ -11,6 +11,7 @@ import CreateMealModal from '@/features/meals/components/CreateMealModal';
 const MonthView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
 
   const { data: monthData, isLoading, error } = useQuery({
     queryKey: ['calendar-month', currentDate.getMonth() + 1, currentDate.getFullYear()],
@@ -31,6 +32,13 @@ const MonthView: React.FC = () => {
     if (!monthData?.days || monthData.days.length === 0) return null;
     const dateString = format(date, 'yyyy-MM-dd');
     return monthData.days.find(day => day.date === dateString);
+  };
+
+  const handleAddMealClick = (date: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent Link navigation
+    e.stopPropagation(); // Stop event bubbling
+    setSelectedDate(date);
+    setIsCreateMealModalOpen(true);
   };
 
   if (isLoading) {
@@ -67,7 +75,10 @@ const MonthView: React.FC = () => {
           </Button>
         </div>
         
-        <Button onClick={() => setIsCreateMealModalOpen(true)}>
+        <Button onClick={() => {
+          setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+          setIsCreateMealModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Meal
         </Button>
@@ -117,11 +128,21 @@ const MonthView: React.FC = () => {
                 isToday(date) ? 'ring-2 ring-blue-500' : ''
               } ${!isSameMonth(date, currentDate) ? 'opacity-50' : ''}`}
             >
-              <CardContent className="p-2 sm:p-3 h-full">
+              <CardContent className="p-2 sm:p-3 h-full relative group">
                 <Link to={`/day/${dateString}`} className="block h-full">
                   <div className="flex flex-col h-full">
-                    <div className="text-sm font-medium text-gray-900 mb-1">
-                      {format(date, 'd')}
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="text-sm font-medium text-gray-900">
+                        {format(date, 'd')}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => handleAddMealClick(dateString, e)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                     
                     {dayData?.hasData && (
@@ -157,7 +178,7 @@ const MonthView: React.FC = () => {
       <CreateMealModal
         open={isCreateMealModalOpen}
         onOpenChange={setIsCreateMealModalOpen}
-        defaultDate={format(new Date(), 'yyyy-MM-dd')}
+        defaultDate={selectedDate}
       />
     </div>
   );

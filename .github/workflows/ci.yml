@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    name: Tests & Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm run install:all
+        
+      - name: Lint backend
+        run: npm run lint:backend
+        
+      - name: Lint frontend  
+        run: npm run lint:frontend
+        
+      - name: Test backend
+        run: npm run test:backend
+        env:
+          NODE_ENV: test
+          
+      - name: Test frontend
+        run: npm run test:frontend
+        
+      - name: Build shared
+        run: npm run build:shared
+        
+      - name: Build backend
+        run: npm run build:backend
+        
+      - name: Build frontend
+        run: npm run build:frontend
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Audit dependencies
+        run: |
+          cd backend && npm audit --audit-level moderate
+          cd ../frontend && npm audit --audit-level moderate
+          cd ../shared && npm audit --audit-level moderate
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [test]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Build Docker images
+        run: docker-compose build
+        
+      - name: Test Docker stack
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30
+          docker-compose -f docker-compose.test.yml down
