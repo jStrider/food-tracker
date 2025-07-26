@@ -98,7 +98,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       name: name.trim(),
       category: type,
       date,
-      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032', // TODO: Get from auth context
+      userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // TODO: Get from auth context
     });
   };
 
