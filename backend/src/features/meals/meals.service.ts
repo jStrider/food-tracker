@@ -4,6 +4,7 @@ import { Repository, Between, DataSource, QueryRunner } from 'typeorm';
 import { Meal, MealCategory } from './entities/meal.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { Food } from '../foods/entities/food.entity';
+import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
 import { 
   CreateMealDto, 
   UpdateMealDto, 
@@ -252,7 +253,7 @@ export class MealsService {
         time: createMealDto.time,
         notes: createMealDto.notes,
         isCustomCategory: !!createMealDto.category, // Track if category was manually set
-        userId: createMealDto.userId, // TODO: Get from auth context
+        userId: createMealDto.userId || TEMP_USER_ID, // TODO: Get from auth context
       };
 
       const meal = queryRunner.manager.create(Meal, mealData);
