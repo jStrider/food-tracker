@@ -16,8 +16,9 @@ export interface Meal {
 
 export interface CreateMealRequest {
   name: string;
-  type: MealType;
+  category: MealType;
   date: string;
+  userId?: string;
 }
 
 export interface UpdateMealRequest {

@@ -93,8 +93,9 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
 
     createMealMutation.mutate({
       name: name.trim(),
-      type,
+      category: type,
       date,
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032', // TODO: Get from auth context
     });
   };
 
