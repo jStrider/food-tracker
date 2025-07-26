@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -14,7 +13,6 @@ import {
   toUserTimezone,
   toUTC,
   getUserTimezone,
-  toAPIDate,
   DATE_FORMATS
 } from '@/utils/date';
 
@@ -112,7 +110,6 @@ export function DatePicker({
           disabled={disabledDays}
           fromDate={min ? new Date(min) : undefined}
           toDate={max ? new Date(max) : undefined}
-          initialFocus
         />
         <div className="p-3 text-xs text-muted-foreground border-t">
           Timezone: {tz}
