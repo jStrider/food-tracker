@@ -272,6 +272,8 @@ describe('CalendarController Integration', () => {
   describe('GET /calendar/streaks', () => {
     beforeEach(async () => {
       // Add more consecutive days for streak testing
+      const userRepo = dataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { email: 'test@example.com' } });
       const mealRepo = dataSource.getRepository(Meal);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
       const foodRepo = dataSource.getRepository(Food);
