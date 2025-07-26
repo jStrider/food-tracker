@@ -1,0 +1,81 @@
+name: ✨ Demande de Fonctionnalité
+description: Proposer une nouvelle fonctionnalité pour FoodTracker
+title: "[FEATURE] "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de proposer une nouvelle fonctionnalité ! Vos idées aident à faire évoluer FoodTracker.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème ou besoin
+      description: Quel problème cette fonctionnalité résoudrait-elle ?
+      placeholder: |
+        Exemple: Il est difficile de suivre mes apports en vitamines car...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: Décrivez la fonctionnalité que vous aimeriez voir
+      placeholder: |
+        Exemple: Ajouter un graphique de suivi des vitamines dans le tableau de bord...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considérées
+      description: Avez-vous pensé à d'autres solutions ?
+      placeholder: |
+        Exemple: J'ai pensé à utiliser des couleurs dans le calendrier, mais...
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Composant concerné
+      description: Dans quelle partie de l'application cette fonctionnalité s'intégrerait-elle ?
+      options:
+        - Frontend (Interface utilisateur)
+        - Backend (API/Logique métier)
+        - Base de données
+        - MCP Server (Intégration Claude)
+        - Documentation
+        - Autre
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorité
+      description: Quelle est l'importance de cette fonctionnalité ?
+      options:
+        - Critique (bloque l'utilisation)
+        - Haute (améliorerait significativement l'expérience)
+        - Moyenne (serait agréable à avoir)
+        - Basse (idée pour plus tard)
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: Maquettes ou exemples
+      description: Ajoutez des captures d'écran, maquettes ou liens vers des exemples
+      placeholder: |
+        Glissez-déposez des images ici ou décrivez l'interface...
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: Je serais intéressé(e) pour contribuer à l'implémentation de cette fonctionnalité
+        - label: J'ai vérifié qu'il n'y a pas déjà une demande similaire
