@@ -43,8 +43,8 @@ export function Calendar({
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(monthStart)
-  const startDate = startOfWeek(monthStart)
-  const endDate = endOfWeek(monthEnd)
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
   const previousMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1))
@@ -110,7 +110,7 @@ export function Calendar({
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1">
           {/* Day headers */}
-          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((dayName) => (
+          {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((dayName) => (
             <div
               key={dayName}
               className="text-xs text-center text-muted-foreground font-medium p-1"
