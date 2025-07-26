@@ -5,16 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { mealsApi } from '@/features/meals/api/mealsApi';
-
-interface Meal {
-  id: string;
-  name: string;
-  date: string;
-  time: string;
-  category: string;
-  description?: string;
-}
+import { mealsApi, Meal, MealType } from '@/features/meals/api/mealsApi';
 
 interface EditMealModalProps {
   open: boolean;
@@ -31,8 +22,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     name: '',
     date: '',
     time: '',
-    category: '',
-    description: ''
+    category: '' as MealType | '',
   });
 
   const { toast } = useToast();
@@ -46,7 +36,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         date: meal.date || '',
         time: meal.time || '',
         category: meal.category || '',
-        description: meal.description || ''
       });
     } else {
       setFormData({
@@ -54,7 +43,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         date: '',
         time: '',
         category: '',
-        description: ''
       });
     }
   }, [meal]);
@@ -65,6 +53,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
       // Invalidate the specific date query that DayView uses
       if (meal?.date) {
         queryClient.invalidateQueries({ queryKey: ['daily-nutrition', meal.date] });
+        queryClient.invalidateQueries({ queryKey: ['meals-detailed', meal.date] });
       }
       // Also invalidate the general daily-nutrition queries
       queryClient.invalidateQueries({ queryKey: ['daily-nutrition'] });
@@ -87,7 +76,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.date || !formData.time) {
+    if (!formData.name.trim() || !formData.date) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
@@ -99,9 +88,8 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     editMealMutation.mutate({
       name: formData.name.trim(),
       date: formData.date,
-      time: formData.time,
-      category: formData.category || undefined,
-      description: formData.description.trim() || undefined,
+      time: formData.time || undefined,
+      category: formData.category as MealType || undefined,
     });
   };
 
@@ -149,14 +137,13 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
 
             <div>
               <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
-                Time *
+                Time
               </label>
               <Input
                 id="time"
                 type="time"
                 value={formData.time}
                 onChange={(e) => handleChange('time', e.target.value)}
-                required
               />
             </div>
           </div>
@@ -178,17 +165,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
             </Select>
           </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Optional description"
-            />
-          </div>
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button 

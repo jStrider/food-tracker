@@ -2,16 +2,47 @@ import { apiClient } from '@/utils/apiClient';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
-export interface Meal {
+export interface Food {
   id: string;
   name: string;
-  type: MealType;
-  date: string;
+  brand?: string;
+  barcode?: string;
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
-  foodEntries: any[]; // Will be properly typed when we implement food entries
+  fiber: number;
+  sugar: number;
+  sodium: number;
+  servingSize: string;
+  imageUrl?: string;
+}
+
+export interface FoodEntry {
+  id: string;
+  quantity: number;
+  unit: string;
+  food: Food;
+  calculatedCalories: number;
+  calculatedProtein: number;
+  calculatedCarbs: number;
+  calculatedFat: number;
+}
+
+export interface Meal {
+  id: string;
+  name: string;
+  category: MealType;
+  date: string;
+  time?: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  foodEntries: FoodEntry[];
 }
 
 export interface CreateMealRequest {
@@ -23,7 +54,9 @@ export interface CreateMealRequest {
 
 export interface UpdateMealRequest {
   name?: string;
-  type?: MealType;
+  category?: MealType;
+  date?: string;
+  time?: string;
 }
 
 export const mealsApi = {
@@ -32,8 +65,8 @@ export const mealsApi = {
     return response.data;
   },
 
-  getMeal: async (id: string): Promise<Meal> => {
-    const response = await apiClient.get(`/meals/${id}`);
+  getMeal: async (id: string, includeFoods: boolean = true): Promise<Meal> => {
+    const response = await apiClient.get(`/meals/${id}?includeFoods=${includeFoods}`);
     return response.data;
   },
 

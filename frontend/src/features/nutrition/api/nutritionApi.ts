@@ -4,10 +4,15 @@ export interface MealSummary {
   id: string;
   name: string;
   category: string;
+  time?: string;
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  foodCount?: number;
 }
 
 export interface DailyNutrition {
