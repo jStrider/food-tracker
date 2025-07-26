@@ -86,7 +86,6 @@ describe('FoodsController Integration', () => {
           id: '0',
           name: 'External Apple',
           barcode: '9999999999',
-          source: 'openfoodfacts' as any,
           brand: 'Test Brand',
           calories: 50,
           protein: 0.3,
@@ -96,7 +95,7 @@ describe('FoodsController Integration', () => {
           sugar: 10,
           sodium: 1,
           servingSize: '100',
-          servingUnit: 'g',
+          isFromCache: false,
         },
       ]);
 
@@ -325,7 +324,7 @@ describe('FoodsController Integration', () => {
           sugar: 8,
           sodium: 200,
           servingSize: '100',
-          servingUnit: 'g',
+          isFromCache: false,
         },
         {
           name: 'Batch Food 2',
@@ -338,7 +337,7 @@ describe('FoodsController Integration', () => {
           sugar: 10,
           sodium: 250,
           servingSize: '100',
-          servingUnit: 'g',
+          isFromCache: false,
         },
       ];
 

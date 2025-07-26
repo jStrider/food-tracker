@@ -7,7 +7,7 @@ import { MealsModule } from '../meals/meals.module';
 import { FoodsModule } from '../foods/foods.module';
 import { NutritionModule } from '../nutrition/nutrition.module';
 import { User } from '../users/entities/user.entity';
-import { Meal } from '../meals/entities/meal.entity';
+import { Meal, MealCategory } from '../meals/entities/meal.entity';
 import { Food, FoodSource } from '../foods/entities/food.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { DailyNutrition } from '../nutrition/entities/daily-nutrition.entity';
@@ -69,14 +69,14 @@ describe('CalendarController Integration', () => {
     // Day 1 - Two meals
     const breakfast1 = await mealRepo.save({
       name: 'Breakfast Day 1',
-      category: 'breakfast',
+      category: MealCategory.BREAKFAST,
       date: new Date('2024-01-15'),
       time: '08:00',
       userId: user.id,
     });
     const lunch1 = await mealRepo.save({
       name: 'Lunch Day 1',
-      category: 'lunch',
+      category: MealCategory.LUNCH,
       date: new Date('2024-01-15'),
       time: '12:30',
       userId: user.id,
@@ -85,7 +85,7 @@ describe('CalendarController Integration', () => {
     // Day 2 - One meal
     const dinner2 = await mealRepo.save({
       name: 'Dinner Day 2',
-      category: 'dinner',
+      category: MealCategory.DINNER,
       date: new Date('2024-01-16'),
       time: '19:00',
       userId: user.id,
@@ -271,6 +271,8 @@ describe('CalendarController Integration', () => {
   describe('GET /calendar/streaks', () => {
     beforeEach(async () => {
       // Add more consecutive days for streak testing
+      const userRepo = dataSource.getRepository(User);
+      const user = await userRepo.findOne({ where: { email: 'test@example.com' } });
       const mealRepo = dataSource.getRepository(Meal);
       const foodEntryRepo = dataSource.getRepository(FoodEntry);
       const foodRepo = dataSource.getRepository(Food);
@@ -280,7 +282,7 @@ describe('CalendarController Integration', () => {
       for (let i = 17; i <= 21; i++) {
         const meal = await mealRepo.save({
           name: `Streak Day ${i}`,
-          category: 'breakfast',
+          category: MealCategory.BREAKFAST,
           date: new Date(`2024-01-${i}`),
           time: '08:00',
           userId: user.id,
