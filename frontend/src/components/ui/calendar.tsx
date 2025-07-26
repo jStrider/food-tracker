@@ -22,7 +22,6 @@ export interface CalendarProps {
   onSelect?: (date: Date | undefined) => void
   className?: string
   disabled?: (date: Date) => boolean
-  initialFocus?: boolean
   fromDate?: Date
   toDate?: Date
 }
@@ -33,7 +32,6 @@ export function Calendar({
   onSelect,
   className,
   disabled,
-  initialFocus,
   fromDate,
   toDate,
 }: CalendarProps) {
