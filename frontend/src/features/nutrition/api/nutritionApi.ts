@@ -4,6 +4,7 @@ export interface MealSummary {
   id: string;
   name: string;
   category: string;
+  time?: string; // HH:MM format
   calories: number;
   protein: number;
   carbs: number;

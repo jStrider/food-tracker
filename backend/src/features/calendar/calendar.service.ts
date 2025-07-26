@@ -81,8 +81,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(startDate, endDate),
-        // Temporarily commented to fix calendar loading
-        // userId: 'default-user-id', // This should come from auth context
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC' },
@@ -264,6 +263,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(start, end),
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
       },
       select: ['date'],
       order: { date: 'ASC' },
@@ -330,6 +330,7 @@ export class CalendarService {
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(start, end),
+        userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // This should come from auth context
       },
       relations: ['foods', 'foods.food'],
       order: { date: 'ASC' },
