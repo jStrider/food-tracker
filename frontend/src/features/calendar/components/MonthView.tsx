@@ -106,6 +106,26 @@ const MonthView: React.FC = () => {
                 <div className="text-sm text-gray-500">Days Tracked</div>
               </div>
             </div>
+            
+            {/* Meal category legend */}
+            <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t">
+              <div className="flex items-center gap-1 text-xs">
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="text-gray-600">Breakfast</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="text-gray-600">Lunch</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <div className="w-2 h-2 rounded-full bg-purple-500" />
+                <span className="text-gray-600">Dinner</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-gray-600">Snack</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -146,18 +166,36 @@ const MonthView: React.FC = () => {
                     </div>
                     
                     {dayData?.hasData && (
-                      <div className="space-y-1 flex-1 text-xs">
+                      <div className="space-y-0.5 flex-1 text-xs overflow-hidden">
                         <div className="text-blue-600 font-medium">
                           {dayData.totalCalories} cal
                         </div>
-                        <div className="text-gray-500">
-                          {dayData.mealCount} meals
-                        </div>
                         
-                        <div className="hidden sm:grid grid-cols-3 gap-1 text-xs text-gray-500">
-                          <div>P: {dayData.totalProtein}g</div>
-                          <div>C: {dayData.totalCarbs}g</div>
-                          <div>F: {dayData.totalFat}g</div>
+                        {/* Meal indicators */}
+                        {dayData.meals && dayData.meals.length > 0 && (
+                          <div className="flex flex-wrap gap-0.5">
+                            {['breakfast', 'lunch', 'dinner', 'snack'].map((category) => {
+                              const mealsInCategory = dayData.meals?.filter(m => m.category === category) || [];
+                              if (mealsInCategory.length === 0) return null;
+                              
+                              return (
+                                <div
+                                  key={category}
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    category === 'breakfast' ? 'bg-yellow-500' :
+                                    category === 'lunch' ? 'bg-blue-500' :
+                                    category === 'dinner' ? 'bg-purple-500' :
+                                    'bg-green-500'
+                                  }`}
+                                  title={`${category}: ${mealsInCategory.length}`}
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        <div className="text-gray-400 hidden sm:block">
+                          {dayData.mealCount} meals
                         </div>
                       </div>
                     )}
