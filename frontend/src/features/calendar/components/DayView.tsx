@@ -12,6 +12,7 @@ import EditMealModal from '@/features/meals/components/EditMealModal';
 import NutritionGoalsCard from '@/features/nutrition/components/NutritionGoalsCard';
 import { useToast } from '@/hooks/use-toast';
 import { formatCalendarDate } from '@/utils/date';
+import { format } from 'date-fns';
 // import { foodsApi, Food } from '@/features/foods/api/foodsApi';
 
 const DayView: React.FC = () => {
@@ -148,7 +149,12 @@ const DayView: React.FC = () => {
           dayData.meals.map((meal) => (
             <Card key={meal.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="capitalize">{meal.name}</CardTitle>
+                <div>
+                  <CardTitle className="capitalize">{meal.name}</CardTitle>
+                  {meal.time && (
+                    <p className="text-sm text-gray-500">{meal.time}</p>
+                  )}
+                </div>
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
