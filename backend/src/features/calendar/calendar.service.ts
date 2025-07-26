@@ -98,7 +98,7 @@ export class CalendarService {
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
     meals.forEach(meal => {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
@@ -228,7 +228,7 @@ export class CalendarService {
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
     meals.forEach(meal => {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
@@ -386,7 +386,7 @@ export class CalendarService {
     let totalMeals = 0;
 
     for (const meal of meals) {
-      const dateKey = format(meal.date, 'yyyy-MM-dd');
+      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
