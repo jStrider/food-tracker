@@ -17,7 +17,7 @@ import { DailyNutrition } from '../features/nutrition/entities/daily-nutrition.e
         entities: [User, Meal, Food, FoodEntry, DailyNutrition],
         migrations: ['dist/database/migrations/*.js'],
         migrationsTableName: 'migrations',
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        synchronize: true, // TODO: Use migrations in production
         logging: configService.get('NODE_ENV') === 'development',
         // Ensure foreign key constraints are enabled in SQLite
         foreign_keys: true,
