@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+
+// Configuration
+import { AppConfigModule } from './config/config.module';
 
 // Feature modules
 import { UsersModule } from './features/users/users.module';
@@ -20,9 +22,7 @@ import { HealthController } from './common/health.controller';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    AppConfigModule,
     ThrottlerModule.forRoot([
       {
         name: 'short',
