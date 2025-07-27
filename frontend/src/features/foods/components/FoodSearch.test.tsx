@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import FoodSearch from './FoodSearch';
 import { createMockFood, createMockMeal } from '@/test/test-utils';
+import '@/test/mocks/ui-components';
 
 // Mock axios for AuthContext
 vi.mock('axios', () => {
@@ -215,10 +216,16 @@ describe('FoodSearch', () => {
     
     render(<FoodSearch />);
     
+    // Wait for meals to load
+    await waitFor(() => {
+      expect(mealsApi.getMeals).toHaveBeenCalled();
+    });
+    
     // Select a meal first
     const selectTrigger = screen.getByRole('combobox');
     await user.click(selectTrigger);
-    await user.click(await screen.findByText('Breakfast (breakfast)'));
+    const breakfastOption = await screen.findByText('Breakfast (breakfast)');
+    await user.click(breakfastOption);
     
     // Search for food
     const searchInput = screen.getByPlaceholderText('Enter food name...');
@@ -246,10 +253,18 @@ describe('FoodSearch', () => {
     
     render(<FoodSearch />);
     
+    // Wait for meals to load
+    await waitFor(() => {
+      expect(mealsApi.getMeals).toHaveBeenCalled();
+    });
+    
     // Select a meal and add food to open modal
     const selectTrigger = screen.getByRole('combobox');
     await user.click(selectTrigger);
-    await user.click(await screen.findByText('Breakfast (breakfast)'));
+    
+    // Wait for the dropdown items to appear
+    const breakfastOption = await screen.findByText('Breakfast (breakfast)');
+    await user.click(breakfastOption);
     
     const searchInput = screen.getByPlaceholderText('Enter food name...');
     await user.type(searchInput, 'app');

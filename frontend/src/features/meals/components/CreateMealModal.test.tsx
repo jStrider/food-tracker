@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import CreateMealModal from './CreateMealModal';
 import { mealsApi } from '@/features/meals/api/mealsApi';
+import '@/test/mocks/ui-components';
 
 // Mock the API module
 vi.mock('@/features/meals/api/mealsApi', () => ({
@@ -42,9 +43,9 @@ describe('CreateMealModal', () => {
     expect(screen.getByPlaceholderText('e.g., Chicken salad')).toBeInTheDocument();
     // Check that the select shows 'Breakfast' as default
     const typeSelects = screen.getAllByRole('combobox');
-    // Find the meal type selector by looking for the one with meal type content
-    const typeSelect = typeSelects.find(el => el.textContent?.includes('Breakfast'));
-    expect(typeSelect).toBeTruthy();
+    // Find the meal type selector - it should show "Breakfast" by default
+    const typeSelect = typeSelects[0];
+    expect(typeSelect).toHaveTextContent('Breakfast');
     // Date picker shows formatted date, not in an input
     const dateButton = screen.getByLabelText('Date picker');
     expect(dateButton).toBeInTheDocument();
@@ -60,9 +61,9 @@ describe('CreateMealModal', () => {
     );
     
     const typeSelects = screen.getAllByRole('combobox');
-    // Find the meal type selector by looking for the one with meal type content
-    const typeSelect = typeSelects.find(el => el.textContent?.includes('Lunch'));
-    expect(typeSelect).toBeTruthy();
+    // The meal type selector should show "Lunch"
+    const typeSelect = typeSelects[0];
+    expect(typeSelect).toHaveTextContent('Lunch');
     // Date picker shows formatted date in dd/MM/yyyy format
     const dateButton = screen.getByLabelText('Date picker');
     expect(dateButton).toHaveTextContent('15/01/2024');
@@ -82,13 +83,15 @@ describe('CreateMealModal', () => {
     const user = userEvent.setup();
     render(<CreateMealModal {...defaultProps} />);
     
-    // Find the meal type select by its initial content
+    // Find the meal type select
     const typeSelects = screen.getAllByRole('combobox');
-    const typeSelect = typeSelects.find(el => el.textContent?.includes('Breakfast'));
-    expect(typeSelect).toBeTruthy();
+    const typeSelect = typeSelects[0];
+    expect(typeSelect).toHaveTextContent('Breakfast');
     
-    await user.click(typeSelect!);
+    // Click to open the dropdown
+    await user.click(typeSelect);
     
+    // Wait for the dropdown to be visible and click Dinner
     const dinnerOption = await screen.findByText('Dinner');
     await user.click(dinnerOption);
     
