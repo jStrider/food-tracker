@@ -186,7 +186,7 @@ describe('FoodsController Integration', () => {
 
     it('should return 404 for non-existent food', async () => {
       await request(app.getHttpServer())
-        .get('/foods/99999')
+        .get('/foods/00000000-0000-0000-0000-000000000000')
         .expect(404);
     });
   });
@@ -283,7 +283,7 @@ describe('FoodsController Integration', () => {
       // This would require creating a meal with food entries
       // For now, we'll test the endpoint exists and returns proper format
       const response = await request(app.getHttpServer())
-        .get('/foods/meal/1')
+        .get('/foods/meal/00000000-0000-0000-0000-000000000000')
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);

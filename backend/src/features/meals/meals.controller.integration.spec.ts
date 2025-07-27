@@ -210,7 +210,7 @@ describe('MealsController Integration', () => {
 
     it('should return 404 for non-existent meal', async () => {
       await request(app.getHttpServer())
-        .get('/meals/99999')
+        .get('/meals/00000000-0000-0000-0000-000000000000')
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(404);
     });
@@ -317,7 +317,7 @@ describe('MealsController Integration', () => {
 
     it('should validate food existence', async () => {
       const addFoodDto = {
-        foodId: 99999,
+        foodId: '00000000-0000-0000-0000-000000000000',
         quantity: 1,
         unit: 'g',
       };
