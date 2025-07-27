@@ -11,6 +11,10 @@
 - ✅ Bash: ALL commands grouped
 - ✅ Memory: ALL operations concurrent
 
+### 🐝 Swarm Execution Guidelines
+- When swarm is active, always try to use all instances available
+- When swarm is active, always try to use all instances available, use availables mcp as much as possible
+
 ## 🎯 Project Context: FoodTracker
 
 **Status**: ✅ Backend COMPLETE (NestJS, OpenFoodFacts, MCP server)  
@@ -216,9 +220,11 @@ Performance, consensus, security, memory management, and more...
 ## 📚 References
 
 - SPARC Guide: https://github.com/ruvnet/claude-code-flow/docs/sparc.md
-- Claude Flow Docs: https://github.com/ruvnet/claude-flow
 - FoodTracker Backend: Check Swagger docs at `/api/docs`
 
 ---
+
+### Memory & Guidelines
+- explique TOUJOURS lorsque l'utilisateur fait une demande pourquoi tu décide d'utiliser ou non les mcp swarm
 
 **Remember**: Claude Flow coordinates, Claude Code creates! Always batch operations for maximum efficiency.

@@ -4,9 +4,9 @@ import {
   ExecutionContext,
   CallHandler,
   Logger,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { tap } from "rxjs/operators";
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -16,14 +16,12 @@ export class LoggingInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest();
     const method = req.method;
     const url = req.url;
-    const userAgent = req.get('User-Agent') || '';
-    const userId = req.user?.id || 'anonymous';
+    const userAgent = req.get("User-Agent") || "";
+    const userId = req.user?.id || "anonymous";
 
     const now = Date.now();
-    
-    this.logger.log(
-      `🔄 ${method} ${url} - User: ${userId} - ${userAgent}`,
-    );
+
+    this.logger.log(`🔄 ${method} ${url} - User: ${userId} - ${userAgent}`);
 
     return next.handle().pipe(
       tap(() => {

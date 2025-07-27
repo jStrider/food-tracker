@@ -1,16 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Meal } from '../../meals/entities/meal.entity';
-import { Food } from './food.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { Meal } from "../../meals/entities/meal.entity";
+import { Food } from "./food.entity";
 
-@Entity('food_entries')
+@Entity("food_entries")
 export class FoodEntry {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column("decimal", { precision: 10, scale: 2 })
   quantity: number; // in grams
 
-  @Column({ default: 'g' })
+  @Column({ default: "g" })
   unit: string;
 
   @Column()
@@ -19,12 +27,12 @@ export class FoodEntry {
   @Column()
   foodId: string;
 
-  @ManyToOne(() => Meal, (meal) => meal.foods, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'mealId' })
+  @ManyToOne(() => Meal, (meal) => meal.foods, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "mealId" })
   meal: Meal;
 
   @ManyToOne(() => Food, { eager: true })
-  @JoinColumn({ name: 'foodId' })
+  @JoinColumn({ name: "foodId" })
   food: Food;
 
   @CreateDateColumn()

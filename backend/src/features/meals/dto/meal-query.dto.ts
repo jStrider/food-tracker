@@ -1,6 +1,13 @@
-import { IsOptional, IsDateString, IsEnum, IsInt, Min, Max } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { MealCategory } from '../entities/meal.entity';
+import {
+  IsOptional,
+  IsDateString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+} from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { MealCategory } from "../entities/meal.entity";
 
 export class MealQueryDto {
   @IsOptional()
@@ -33,7 +40,7 @@ export class MealQueryDto {
   page?: number = 1;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => value === "true")
   includeFoods?: boolean = false;
 }
 
@@ -42,7 +49,7 @@ export class DailyMealsQueryDto {
   date: string;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => value === "true")
   includeFoods?: boolean = true;
 }
 

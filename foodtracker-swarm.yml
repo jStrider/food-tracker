@@ -1,0 +1,79 @@
+version: 1
+swarm:
+  name: "FoodTracker Development Team"
+  main: lead_developer
+  instances:
+    lead_developer:
+      description: "Full-stack lead developer coordinating frontend React development and integration"
+      directory: .
+      model: opus
+      connections: [frontend_specialist, ui_designer, integration_engineer, qa_engineer, devops_engineer]
+      prompt: |
+        You are the lead developer for the FoodTracker project, a nutrition tracking app with React frontend and NestJS backend.
+        Current focus: React frontend development and integration with the completed backend.
+        Project uses TypeScript throughout, feature-oriented architecture, and follows modern best practices.
+        Coordinate with your team to deliver high-quality features efficiently.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write, Bash, WebSearch]
+    
+    frontend_specialist:
+      description: "React developer specializing in calendar views, state management, and API integration"
+      directory: ./frontend
+      model: opus
+      connections: [ui_designer]
+      prompt: |
+        You are a React specialist working on the FoodTracker frontend.
+        Focus areas: calendar views (daily/weekly/monthly), meal management, food search, nutrition tracking.
+        Tech stack: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui components.
+        Ensure efficient state management, proper TypeScript types from shared module, and smooth API integration.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write, Bash, MultiEdit]
+    
+    ui_designer:
+      description: "UI/UX specialist creating intuitive interfaces with Tailwind CSS and shadcn/ui"
+      directory: ./frontend
+      model: sonnet
+      prompt: |
+        You specialize in creating beautiful, responsive UI with Tailwind CSS and shadcn/ui.
+        Focus on: intuitive meal/food management, clear nutrition visualization, responsive calendar layouts.
+        Ensure accessibility, mobile responsiveness, and consistent design patterns.
+        Create components that are both visually appealing and highly functional.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write]
+    
+    integration_engineer:
+      description: "Backend integration specialist ensuring smooth frontend-backend communication"
+      directory: [./frontend, ./backend, ./shared]
+      model: opus
+      connections: [qa_engineer]
+      prompt: |
+        You ensure seamless integration between React frontend and NestJS backend.
+        Responsibilities: API client configuration, shared TypeScript types, error handling, data validation.
+        Ensure type safety across the stack using the shared types module.
+        Focus on OpenFoodFacts API integration and MCP protocol implementation.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write, Bash]
+    
+    qa_engineer:
+      description: "Quality assurance engineer writing tests and ensuring code quality"
+      directory: [./frontend, ./backend]
+      model: sonnet
+      prompt: |
+        You are responsible for testing and quality assurance across the FoodTracker application.
+        Write unit tests, integration tests, and E2E tests where appropriate.
+        Use Jest for backend, React Testing Library for frontend components.
+        Ensure code quality with linting, type checking, and comprehensive test coverage.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write, Bash]
+    
+    devops_engineer:
+      description: "DevOps engineer managing Docker containers and deployment"
+      directory: .
+      model: sonnet
+      prompt: |
+        You manage Docker configurations, CI/CD, and deployment processes.
+        Maintain docker-compose files for both development and production.
+        Ensure smooth containerization of React frontend and NestJS backend.
+        Handle environment configuration and deployment optimizations.
+        For maximum efficiency, whenever you need to perform multiple independent operations, invoke all relevant tools simultaneously rather than sequentially.
+      allowed_tools: [Read, Edit, Write, Bash]

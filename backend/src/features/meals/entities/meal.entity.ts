@@ -1,46 +1,57 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
-import { FoodEntry } from '../../foods/entities/food-entry.entity';
-import { User } from '../../users/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from "typeorm";
+import { FoodEntry } from "../../foods/entities/food-entry.entity";
+import { User } from "../../users/entities/user.entity";
 
 export enum MealCategory {
-  BREAKFAST = 'breakfast',
-  LUNCH = 'lunch',
-  DINNER = 'dinner',
-  SNACK = 'snack',
+  BREAKFAST = "breakfast",
+  LUNCH = "lunch",
+  DINNER = "dinner",
+  SNACK = "snack",
 }
 
-@Entity('meals')
+@Entity("meals")
 export class Meal {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
   name: string;
 
   @Column({
-    type: 'varchar',
+    type: "varchar",
     enum: MealCategory,
-    default: MealCategory.SNACK
+    default: MealCategory.SNACK,
   })
   category: MealCategory;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   date: Date;
 
-  @Column({ type: 'time', nullable: true })
+  @Column({ type: "time", nullable: true })
   time?: string; // HH:MM format for auto-categorization
 
   @Column({ default: false })
   isCustomCategory: boolean; // If true, category was manually set
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes?: string;
 
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.meals, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, (user) => user.meals, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   @OneToMany(() => FoodEntry, (foodEntry) => foodEntry.meal, { cascade: true })
@@ -62,8 +73,8 @@ export class Meal {
   }
 
   private determineCategoryByTime(time: string): MealCategory {
-    const [hours] = time.split(':').map(Number);
-    
+    const [hours] = time.split(":").map(Number);
+
     // Default time ranges - can be customized per user
     if (hours >= 5 && hours < 11) {
       return MealCategory.BREAKFAST;
@@ -78,30 +89,68 @@ export class Meal {
 
   // Calculate total nutrition for this meal
   get totalCalories(): number {
-    return this.foods?.reduce((total, foodEntry) => total + foodEntry.calculatedCalories, 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) => total + foodEntry.calculatedCalories,
+        0,
+      ) || 0
+    );
   }
 
   get totalProtein(): number {
-    return this.foods?.reduce((total, foodEntry) => total + foodEntry.calculatedProtein, 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) => total + foodEntry.calculatedProtein,
+        0,
+      ) || 0
+    );
   }
 
   get totalCarbs(): number {
-    return this.foods?.reduce((total, foodEntry) => total + foodEntry.calculatedCarbs, 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) => total + foodEntry.calculatedCarbs,
+        0,
+      ) || 0
+    );
   }
 
   get totalFat(): number {
-    return this.foods?.reduce((total, foodEntry) => total + foodEntry.calculatedFat, 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) => total + foodEntry.calculatedFat,
+        0,
+      ) || 0
+    );
   }
 
   get totalFiber(): number {
-    return this.foods?.reduce((total, foodEntry) => total + (foodEntry.food.fiber * foodEntry.quantity / 100), 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) =>
+          total + (foodEntry.food.fiber * foodEntry.quantity) / 100,
+        0,
+      ) || 0
+    );
   }
 
   get totalSugar(): number {
-    return this.foods?.reduce((total, foodEntry) => total + (foodEntry.food.sugar * foodEntry.quantity / 100), 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) =>
+          total + (foodEntry.food.sugar * foodEntry.quantity) / 100,
+        0,
+      ) || 0
+    );
   }
 
   get totalSodium(): number {
-    return this.foods?.reduce((total, foodEntry) => total + (foodEntry.food.sodium * foodEntry.quantity / 100), 0) || 0;
+    return (
+      this.foods?.reduce(
+        (total, foodEntry) =>
+          total + (foodEntry.food.sodium * foodEntry.quantity) / 100,
+        0,
+      ) || 0
+    );
   }
 }

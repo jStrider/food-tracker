@@ -1,18 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { DataSource } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { TestAppModule } from '../../test/test-app.module';
-import { TestAuthHelper } from '../../test/test-auth.helper';
-import { User } from '../users/entities/user.entity';
-import { Meal, MealCategory } from '../meals/entities/meal.entity';
-import { Food, FoodSource } from '../foods/entities/food.entity';
-import { FoodEntry } from '../foods/entities/food-entry.entity';
-import { DailyNutrition } from '../nutrition/entities/daily-nutrition.entity';
-import { fixtures } from '../../test/fixtures';
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import * as request from "supertest";
+import { DataSource } from "typeorm";
+import { JwtService } from "@nestjs/jwt";
+import { TestAppModule } from "../../test/test-app.module";
+import { TestAuthHelper } from "../../test/test-auth.helper";
+import { User } from "../users/entities/user.entity";
+import { Meal, MealCategory } from "../meals/entities/meal.entity";
+import { Food, FoodSource } from "../foods/entities/food.entity";
+import { FoodEntry } from "../foods/entities/food-entry.entity";
+import { fixtures } from "../../test/fixtures";
 
-describe.skip('CalendarController Integration', () => {
+describe.skip("CalendarController Integration", () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let jwtService: JwtService;
@@ -34,44 +33,44 @@ describe.skip('CalendarController Integration', () => {
     testUser = await TestAuthHelper.createTestUser(dataSource);
     authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
-    const foodRepo = dataSource.getRepository(Food);
-    const apple = await foodRepo.save({
+    const _foodRepo = dataSource.getRepository(Food);
+    const _apple = await foodRepo.save({
       ...fixtures.foods.apple,
       id: undefined,
       source: FoodSource.MANUAL,
     });
-    const chickenBreast = await foodRepo.save({
+    const _chickenBreast = await foodRepo.save({
       ...fixtures.foods.chickenBreast,
       id: undefined,
       source: FoodSource.MANUAL,
     });
 
     // Create meals across different days
-    const mealRepo = dataSource.getRepository(Meal);
-    const foodEntryRepo = dataSource.getRepository(FoodEntry);
+    const _mealRepo = dataSource.getRepository(Meal);
+    const _foodEntryRepo = dataSource.getRepository(FoodEntry);
 
     // Day 1 - Two meals
     const breakfast1 = await mealRepo.save({
-      name: 'Breakfast Day 1',
+      name: "Breakfast Day 1",
       category: MealCategory.BREAKFAST,
-      date: new Date('2024-01-15'),
-      time: '08:00',
+      date: new Date("2024-01-15"),
+      time: "08:00",
       userId: testUser.id,
     });
     const lunch1 = await mealRepo.save({
-      name: 'Lunch Day 1',
+      name: "Lunch Day 1",
       category: MealCategory.LUNCH,
-      date: new Date('2024-01-15'),
-      time: '12:30',
+      date: new Date("2024-01-15"),
+      time: "12:30",
       userId: testUser.id,
     });
 
     // Day 2 - One meal
     const dinner2 = await mealRepo.save({
-      name: 'Dinner Day 2',
+      name: "Dinner Day 2",
       category: MealCategory.DINNER,
-      date: new Date('2024-01-16'),
-      time: '19:00',
+      date: new Date("2024-01-16"),
+      time: "19:00",
       userId: testUser.id,
     });
 
@@ -81,7 +80,7 @@ describe.skip('CalendarController Integration', () => {
         mealId: breakfast1.id,
         foodId: apple.id,
         quantity: 2,
-        unit: 'servings',
+        unit: "servings",
         calculatedCalories: 104,
         calculatedProtein: 0.6,
         calculatedCarbs: 28,
@@ -91,7 +90,7 @@ describe.skip('CalendarController Integration', () => {
         mealId: lunch1.id,
         foodId: chickenBreast.id,
         quantity: 200,
-        unit: 'g',
+        unit: "g",
         calculatedCalories: 330,
         calculatedProtein: 62,
         calculatedCarbs: 0,
@@ -101,7 +100,7 @@ describe.skip('CalendarController Integration', () => {
         mealId: dinner2.id,
         foodId: chickenBreast.id,
         quantity: 150,
-        unit: 'g',
+        unit: "g",
         calculatedCalories: 247.5,
         calculatedProtein: 46.5,
         calculatedCarbs: 0,
@@ -114,10 +113,10 @@ describe.skip('CalendarController Integration', () => {
     await app.close();
   });
 
-  describe('GET /calendar/month', () => {
-    it('should return month view with nutrition data', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/month?month=1&year=2024')
+  describe("GET /calendar/month", () => {
+    it("should return month view with nutrition data", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/month?month=1&year=2024")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -136,16 +135,16 @@ describe.skip('CalendarController Integration', () => {
       expect(response.body.days).toHaveLength(31);
 
       // Check specific day with data
-      const day15 = response.body.days.find(day => day.date === '2024-01-15');
+      const day15 = response.body.days.find((day) => day.date === "2024-01-15");
       expect(day15).toBeDefined();
       expect(day15.mealCount).toBe(2);
       expect(day15.totalCalories).toBe(434);
       expect(day15.hasData).toBe(true);
     });
 
-    it('should handle empty month', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/month?month=2&year=2024')
+    it("should handle empty month", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/month?month=2&year=2024")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -155,17 +154,17 @@ describe.skip('CalendarController Integration', () => {
     });
   });
 
-  describe('POST /calendar/month/with-goals', () => {
-    it('should return month view with goal progress', async () => {
-      const goals = {
+  describe("POST /calendar/month/with-goals", () => {
+    it("should return month view with goal progress", async () => {
+      const _goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/calendar/month/with-goals?month=1&year=2024')
+      const _response = await request(app.getHttpServer())
+        .post("/calendar/month/with-goals?month=1&year=2024")
         .send(goals)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(201);
@@ -174,22 +173,22 @@ describe.skip('CalendarController Integration', () => {
       expect(response.body.year).toBe(2024);
 
       // Check day with goal progress
-      const day15 = response.body.days.find(day => day.date === '2024-01-15');
+      const day15 = response.body.days.find((day) => day.date === "2024-01-15");
       expect(day15.goalProgress).toBeDefined();
       expect(day15.goalProgress.calories).toBe(22); // 434/2000 * 100
     });
   });
 
-  describe('GET /calendar/week', () => {
-    it('should return week view with nutrition data', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/week?startDate=2024-01-15')
+  describe("GET /calendar/week", () => {
+    it("should return week view with nutrition data", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/week?startDate=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
-        startDate: '2024-01-14', // Start of week
-        endDate: '2024-01-20', // End of week
+        startDate: "2024-01-14", // Start of week
+        endDate: "2024-01-20", // End of week
         days: expect.any(Array),
         summary: {
           totalCalories: expect.any(Number),
@@ -199,43 +198,43 @@ describe.skip('CalendarController Integration', () => {
       });
 
       // Should have data for at least 2 days
-      const daysWithData = response.body.days.filter(day => day.hasData);
+      const _daysWithData = response.body.days.filter((day) => day.hasData);
       expect(daysWithData.length).toBeGreaterThanOrEqual(2);
     });
   });
 
-  describe('POST /calendar/week/with-goals', () => {
-    it('should return week view with goal progress', async () => {
-      const goals = {
+  describe("POST /calendar/week/with-goals", () => {
+    it("should return week view with goal progress", async () => {
+      const _goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/calendar/week/with-goals?startDate=2024-01-15')
+      const _response = await request(app.getHttpServer())
+        .post("/calendar/week/with-goals?startDate=2024-01-15")
         .send(goals)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(201);
 
-      const daysWithData = response.body.days.filter(day => day.hasData);
-      daysWithData.forEach(day => {
+      const _daysWithData = response.body.days.filter((day) => day.hasData);
+      daysWithData.forEach((day) => {
         expect(day.goalProgress).toBeDefined();
         expect(day.goalProgress.calories).toBeGreaterThan(0);
       });
     });
   });
 
-  describe('GET /calendar/day', () => {
-    it('should return detailed day view', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/day?date=2024-01-15')
+  describe("GET /calendar/day", () => {
+    it("should return detailed day view", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/day?date=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
-        date: '2024-01-15',
+        date: "2024-01-15",
         mealCount: 2,
         calories: 434,
         protein: expect.closeTo(62.6, 1),
@@ -244,13 +243,13 @@ describe.skip('CalendarController Integration', () => {
       });
 
       expect(response.body.meals).toHaveLength(2);
-      expect(response.body.meals[0]).toHaveProperty('name');
-      expect(response.body.meals[0]).toHaveProperty('category');
+      expect(response.body.meals[0]).toHaveProperty("name");
+      expect(response.body.meals[0]).toHaveProperty("category");
     });
 
-    it('should return empty day data', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/day?date=2024-01-20')
+    it("should return empty day data", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/day?date=2024-01-20")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -259,23 +258,25 @@ describe.skip('CalendarController Integration', () => {
     });
   });
 
-  describe('GET /calendar/streaks', () => {
+  describe("GET /calendar/streaks", () => {
     beforeEach(async () => {
       // Add more consecutive days for streak testing
-      const userRepo = dataSource.getRepository(User);
-      const user = await userRepo.findOne({ where: { email: 'test@example.com' } });
-      const mealRepo = dataSource.getRepository(Meal);
-      const foodEntryRepo = dataSource.getRepository(FoodEntry);
-      const foodRepo = dataSource.getRepository(Food);
-      const apple = await foodRepo.findOne({ where: { name: 'Apple' } });
+      const _userRepo = dataSource.getRepository(User);
+      const _user = await userRepo.findOne({
+        where: { email: "test@example.com" },
+      });
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _foodEntryRepo = dataSource.getRepository(FoodEntry);
+      const _foodRepo = dataSource.getRepository(Food);
+      const _apple = await foodRepo.findOne({ where: { name: "Apple" } });
 
       // Create 5 consecutive days
-      for (let i = 17; i <= 21; i++) {
-        const meal = await mealRepo.save({
+      for (let _i = 17; i <= 21; i++) {
+        const _meal = await mealRepo.save({
           name: `Streak Day ${i}`,
           category: MealCategory.BREAKFAST,
           date: new Date(`2024-01-${i}`),
-          time: '08:00',
+          time: "08:00",
           userId: testUser.id,
         });
 
@@ -283,7 +284,7 @@ describe.skip('CalendarController Integration', () => {
           mealId: meal.id,
           foodId: apple.id,
           quantity: 1,
-          unit: 'serving',
+          unit: "serving",
           calculatedCalories: 52,
           calculatedProtein: 0.3,
           calculatedCarbs: 14,
@@ -292,9 +293,9 @@ describe.skip('CalendarController Integration', () => {
       }
     });
 
-    it('should calculate nutrition streaks', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/streaks?endDate=2024-01-21')
+    it("should calculate nutrition streaks", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/streaks?endDate=2024-01-21")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -305,13 +306,13 @@ describe.skip('CalendarController Integration', () => {
       });
 
       expect(response.body.streakDates).toHaveLength(5);
-      expect(response.body.streakDates[0]).toBe('2024-01-17');
-      expect(response.body.streakDates[4]).toBe('2024-01-21');
+      expect(response.body.streakDates[0]).toBe("2024-01-17");
+      expect(response.body.streakDates[4]).toBe("2024-01-21");
     });
 
-    it('should handle no streaks', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/streaks?endDate=2023-12-31')
+    it("should handle no streaks", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/streaks?endDate=2023-12-31")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -320,10 +321,10 @@ describe.skip('CalendarController Integration', () => {
     });
   });
 
-  describe('GET /calendar/stats', () => {
-    it('should return calendar statistics', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/stats?startDate=2024-01-01&endDate=2024-01-31')
+  describe("GET /calendar/stats", () => {
+    it("should return calendar statistics", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/stats?startDate=2024-01-01&endDate=2024-01-31")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
@@ -341,9 +342,9 @@ describe.skip('CalendarController Integration', () => {
       expect(response.body.completionRate).toBeGreaterThan(0);
     });
 
-    it('should handle empty date range', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/calendar/stats?startDate=2023-01-01&endDate=2023-01-31')
+    it("should handle empty date range", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/calendar/stats?startDate=2023-01-01&endDate=2023-01-31")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 

@@ -1,6 +1,14 @@
-import { IsString, IsDateString, IsEnum, IsOptional, IsNotEmpty, Length, Matches } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { MealCategory } from '../entities/meal.entity';
+import {
+  IsString,
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsNotEmpty,
+  Length,
+  Matches,
+} from "class-validator";
+import { Transform } from "class-transformer";
+import { MealCategory } from "../entities/meal.entity";
 
 export class CreateMealDto {
   @IsNotEmpty()
@@ -18,7 +26,7 @@ export class CreateMealDto {
   @IsOptional()
   @IsString()
   @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: 'Time must be in HH:MM format (24-hour)',
+    message: "Time must be in HH:MM format (24-hour)",
   })
   time?: string;
 
@@ -32,7 +40,7 @@ export class CreateMealDto {
   userId?: string; // TODO: Get from auth context
 
   @IsOptional()
-  @Transform(({ value }) => Array.isArray(value) ? value : [])
+  @Transform(({ value }) => (Array.isArray(value) ? value : []))
   foods?: CreateFoodEntryDto[];
 }
 
@@ -48,5 +56,5 @@ export class CreateFoodEntryDto {
   @IsOptional()
   @IsString()
   @Length(1, 10)
-  unit?: string = 'g';
+  unit?: string = "g";
 }

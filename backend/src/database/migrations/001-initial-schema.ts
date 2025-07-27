@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class InitialSchema1640000000000 implements MigrationInterface {
-  name = 'InitialSchema1640000000000';
+  name = "InitialSchema1640000000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create users table
@@ -125,11 +125,21 @@ export class InitialSchema1640000000000 implements MigrationInterface {
     `);
 
     // Create indexes for better performance
-    await queryRunner.query(`CREATE INDEX "IDX_foods_barcode_source" ON "foods" ("barcode", "source")`);
-    await queryRunner.query(`CREATE INDEX "IDX_foods_name" ON "foods" ("name")`);
-    await queryRunner.query(`CREATE INDEX "IDX_daily_nutrition_user_date" ON "daily_nutrition" ("userId", "date")`);
-    await queryRunner.query(`CREATE INDEX "IDX_meals_user_date" ON "meals" ("userId", "date")`);
-    await queryRunner.query(`CREATE INDEX "IDX_meals_date" ON "meals" ("date")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_foods_barcode_source" ON "foods" ("barcode", "source")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_foods_name" ON "foods" ("name")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_daily_nutrition_user_date" ON "daily_nutrition" ("userId", "date")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_meals_user_date" ON "meals" ("userId", "date")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_meals_date" ON "meals" ("date")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

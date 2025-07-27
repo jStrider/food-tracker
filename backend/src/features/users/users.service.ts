@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User } from "./entities/user.entity";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
 
 @Injectable()
 export class UsersService {
@@ -20,14 +20,14 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
-      relations: ['meals'],
+      relations: ["meals"],
     });
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['meals'],
+      relations: ["meals"],
     });
 
     if (!user) {
@@ -40,15 +40,24 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'name', 'password', 'timezone', 'preferences', 'createdAt', 'updatedAt'], // Inclure password pour l'auth
-      relations: ['meals'],
+      select: [
+        "id",
+        "email",
+        "name",
+        "password",
+        "timezone",
+        "preferences",
+        "createdAt",
+        "updatedAt",
+      ], // Inclure password pour l'auth
+      relations: ["meals"],
     });
   }
 
   async findByEmailWithoutPassword(email: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['meals'],
+      relations: ["meals"],
     });
 
     if (!user) {
@@ -78,28 +87,28 @@ export class UsersService {
   async initDefaultUser(): Promise<{ message: string; user?: User }> {
     // Check if default user already exists
     const existingUser = await this.userRepository.findOne({
-      where: { id: TEMP_USER_ID }
+      where: { id: TEMP_USER_ID },
     });
 
     if (existingUser) {
-      return { message: 'Default user already exists', user: existingUser };
+      return { message: "Default user already exists", user: existingUser };
     }
 
     // Create default user
     const defaultUser = this.userRepository.create({
       id: TEMP_USER_ID,
-      email: 'default@foodtracker.com',
-      name: 'Default User',
-      timezone: 'Europe/Paris',
+      email: "default@foodtracker.com",
+      name: "Default User",
+      timezone: "Europe/Paris",
       preferences: {
         dailyCalorieGoal: 2000,
         dailyProteinGoal: 150,
         dailyCarbGoal: 250,
         dailyFatGoal: 65,
-      }
+      },
     });
 
     const savedUser = await this.userRepository.save(defaultUser);
-    return { message: 'Default user created successfully', user: savedUser };
+    return { message: "Default user created successfully", user: savedUser };
   }
 }

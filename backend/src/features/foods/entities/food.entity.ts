@@ -1,16 +1,23 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from "typeorm";
 
 export enum FoodSource {
-  MANUAL = 'manual',
-  OPENFOODFACTS = 'openfoodfacts',
-  USDA = 'usda',
+  MANUAL = "manual",
+  OPENFOODFACTS = "openfoodfacts",
+  USDA = "usda",
 }
 
-@Entity('foods')
-@Index(['barcode', 'source']) // Composite index for efficient barcode searches
-@Index(['name']) // Index for name searches
+@Entity("foods")
+@Index(["barcode", "source"]) // Composite index for efficient barcode searches
+@Index(["name"]) // Index for name searches
 export class Food {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
@@ -23,9 +30,9 @@ export class Food {
   barcode?: string;
 
   @Column({
-    type: 'varchar',
+    type: "varchar",
     enum: FoodSource,
-    default: FoodSource.MANUAL
+    default: FoodSource.MANUAL,
   })
   source: FoodSource;
 
@@ -33,7 +40,7 @@ export class Food {
   @Column({ nullable: true })
   openFoodFactsId?: string; // Original OFF product ID
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: "json", nullable: true })
   openFoodFactsData?: {
     code: string;
     product_name?: string;
@@ -51,72 +58,72 @@ export class Food {
   };
 
   // Nutrition per 100g
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   calories: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   protein: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   carbs: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   fat: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   fiber: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   sugar: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   sodium: number;
 
   // Additional nutritional info from OpenFoodFacts
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   saturatedFat?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   transFat?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   cholesterol?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   potassium?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   vitaminA?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   vitaminC?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   calcium?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, default: 0, nullable: true })
   iron?: number;
 
-  @Column({ default: '100g' })
+  @Column({ default: "100g" })
   servingSize: string;
 
   @Column({ nullable: true })
   imageUrl?: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   ingredients?: string;
 
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   allergens?: string[];
 
-  @Column({ type: 'simple-array', nullable: true })
+  @Column({ type: "simple-array", nullable: true })
   categories?: string[];
 
   // Cache and sync tracking
   @Column({ default: false })
   isCached: boolean; // True if this is a frequently used food cached locally
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: "timestamp", nullable: true })
   lastSyncedAt?: Date; // Last time data was synced from OpenFoodFacts
 
   @Column({ default: 0 })
@@ -131,7 +138,7 @@ export class Food {
   // Calculate nutritional quality score
   get nutritionScore(): number {
     const scores = [];
-    
+
     // Protein score (higher is better)
     if (this.protein > 20) scores.push(5);
     else if (this.protein > 10) scores.push(4);
@@ -163,8 +170,9 @@ export class Food {
   get needsSync(): boolean {
     if (this.source !== FoodSource.OPENFOODFACTS) return false;
     if (!this.lastSyncedAt) return true;
-    
-    const daysSinceSync = (Date.now() - this.lastSyncedAt.getTime()) / (1000 * 60 * 60 * 24);
+
+    const daysSinceSync =
+      (Date.now() - this.lastSyncedAt.getTime()) / (1000 * 60 * 60 * 24);
     return daysSinceSync > 30; // Sync monthly
   }
 

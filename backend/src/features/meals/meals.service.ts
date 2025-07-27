@@ -1,19 +1,24 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, DataSource, QueryRunner } from 'typeorm';
-import { Meal, MealCategory } from './entities/meal.entity';
-import { FoodEntry } from '../foods/entities/food-entry.entity';
-import { Food } from '../foods/entities/food.entity';
-import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
-import { 
-  CreateMealDto, 
-  UpdateMealDto, 
-  MealQueryDto, 
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource, QueryRunner } from "typeorm";
+import { Meal, MealCategory } from "./entities/meal.entity";
+import { FoodEntry } from "../foods/entities/food-entry.entity";
+import { Food } from "../foods/entities/food.entity";
+import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
+import {
+  CreateMealDto,
+  UpdateMealDto,
+  MealQueryDto,
   DailyMealsQueryDto,
   MealStatsQueryDto,
   CreateFoodEntryDto,
-  UpdateFoodEntryDto 
-} from './dto';
+  UpdateFoodEntryDto,
+} from "./dto";
 
 export interface PaginatedMeals {
   data: Meal[];
@@ -77,46 +82,46 @@ export class MealsService {
    * Find meals with pagination and filtering
    */
   async findAll(query: MealQueryDto): Promise<PaginatedMeals> {
-    const { 
-      date, 
-      startDate, 
-      endDate, 
-      category, 
-      limit = 20, 
-      page = 1, 
-      includeFoods = false 
+    const {
+      date,
+      startDate,
+      endDate,
+      category,
+      limit = 20,
+      page = 1,
+      includeFoods = false,
     } = query;
 
-    const queryBuilder = this.mealsRepository.createQueryBuilder('meal');
+    const queryBuilder = this.mealsRepository.createQueryBuilder("meal");
 
     if (includeFoods) {
       queryBuilder
-        .leftJoinAndSelect('meal.foods', 'foods')
-        .leftJoinAndSelect('foods.food', 'food');
+        .leftJoinAndSelect("meal.foods", "foods")
+        .leftJoinAndSelect("foods.food", "food");
     }
 
     // Apply filters
     if (date) {
-      queryBuilder.andWhere('meal.date = :date', { date });
+      queryBuilder.andWhere("meal.date = :date", { date });
     }
 
     if (startDate && endDate) {
-      queryBuilder.andWhere('meal.date BETWEEN :startDate AND :endDate', {
+      queryBuilder.andWhere("meal.date BETWEEN :startDate AND :endDate", {
         startDate,
         endDate,
       });
     }
 
     if (category) {
-      queryBuilder.andWhere('meal.category = :category', { category });
+      queryBuilder.andWhere("meal.category = :category", { category });
     }
 
     // Apply pagination
     const skip = (page - 1) * limit;
     queryBuilder
-      .orderBy('meal.date', 'DESC')
-      .addOrderBy('meal.time', 'ASC')
-      .addOrderBy('meal.createdAt', 'ASC')
+      .orderBy("meal.date", "DESC")
+      .addOrderBy("meal.time", "ASC")
+      .addOrderBy("meal.createdAt", "ASC")
       .skip(skip)
       .take(limit);
 
@@ -136,13 +141,14 @@ export class MealsService {
    * Find a single meal by ID
    */
   async findOne(id: string, includeFoods: boolean = true): Promise<Meal> {
-    const queryBuilder = this.mealsRepository.createQueryBuilder('meal')
-      .where('meal.id = :id', { id });
+    const queryBuilder = this.mealsRepository
+      .createQueryBuilder("meal")
+      .where("meal.id = :id", { id });
 
     if (includeFoods) {
       queryBuilder
-        .leftJoinAndSelect('meal.foods', 'foods')
-        .leftJoinAndSelect('foods.food', 'food');
+        .leftJoinAndSelect("meal.foods", "foods")
+        .leftJoinAndSelect("foods.food", "food");
     }
 
     const meal = await queryBuilder.getOne();
@@ -160,18 +166,19 @@ export class MealsService {
   async findByDate(query: DailyMealsQueryDto): Promise<Meal[]> {
     const { date, includeFoods = true } = query;
 
-    const queryBuilder = this.mealsRepository.createQueryBuilder('meal')
-      .where('meal.date = :date', { date });
+    const queryBuilder = this.mealsRepository
+      .createQueryBuilder("meal")
+      .where("meal.date = :date", { date });
 
     if (includeFoods) {
       queryBuilder
-        .leftJoinAndSelect('meal.foods', 'foods')
-        .leftJoinAndSelect('foods.food', 'food');
+        .leftJoinAndSelect("meal.foods", "foods")
+        .leftJoinAndSelect("foods.food", "food");
     }
 
     return queryBuilder
-      .orderBy('meal.time', 'ASC')
-      .addOrderBy('meal.createdAt', 'ASC')
+      .orderBy("meal.time", "ASC")
+      .addOrderBy("meal.createdAt", "ASC")
       .getMany();
   }
 
@@ -211,20 +218,28 @@ export class MealsService {
   /**
    * Find meals by date range
    */
-  async findByDateRange(startDate: string, endDate: string, includeFoods: boolean = true): Promise<Meal[]> {
-    const queryBuilder = this.mealsRepository.createQueryBuilder('meal')
-      .where('meal.date BETWEEN :startDate AND :endDate', { startDate, endDate });
+  async findByDateRange(
+    startDate: string,
+    endDate: string,
+    includeFoods: boolean = true,
+  ): Promise<Meal[]> {
+    const queryBuilder = this.mealsRepository
+      .createQueryBuilder("meal")
+      .where("meal.date BETWEEN :startDate AND :endDate", {
+        startDate,
+        endDate,
+      });
 
     if (includeFoods) {
       queryBuilder
-        .leftJoinAndSelect('meal.foods', 'foods')
-        .leftJoinAndSelect('foods.food', 'food');
+        .leftJoinAndSelect("meal.foods", "foods")
+        .leftJoinAndSelect("foods.food", "food");
     }
 
     return queryBuilder
-      .orderBy('meal.date', 'DESC')
-      .addOrderBy('meal.time', 'ASC')
-      .addOrderBy('meal.createdAt', 'ASC')
+      .orderBy("meal.date", "DESC")
+      .addOrderBy("meal.time", "ASC")
+      .addOrderBy("meal.createdAt", "ASC")
       .getMany();
   }
 
@@ -242,7 +257,9 @@ export class MealsService {
       if (!category && createMealDto.time) {
         category = this.autoCategorizeByTime(createMealDto.time);
       } else if (!category) {
-        category = this.autoCategorizeByTime(new Date().toTimeString().slice(0, 5));
+        category = this.autoCategorizeByTime(
+          new Date().toTimeString().slice(0, 5),
+        );
       }
 
       // Create meal
@@ -261,7 +278,11 @@ export class MealsService {
 
       // Add food entries if provided
       if (createMealDto.foods && createMealDto.foods.length > 0) {
-        await this.createFoodEntries(queryRunner, savedMeal.id, createMealDto.foods);
+        await this.createFoodEntries(
+          queryRunner,
+          savedMeal.id,
+          createMealDto.foods,
+        );
       }
 
       await queryRunner.commitTransaction();
@@ -270,7 +291,7 @@ export class MealsService {
       return this.findOne(savedMeal.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      this.logger.error('Failed to create meal', error.stack);
+      this.logger.error("Failed to create meal", error.stack);
       throw error;
     } finally {
       await queryRunner.release();
@@ -291,17 +312,25 @@ export class MealsService {
 
       // Prepare update data
       const updateData: any = {};
-      if (updateMealDto.name !== undefined) updateData.name = updateMealDto.name;
+      if (updateMealDto.name !== undefined)
+        updateData.name = updateMealDto.name;
       if (updateMealDto.category !== undefined) {
         updateData.category = updateMealDto.category;
         updateData.isCustomCategory = true; // Mark as manually set
       }
-      if (updateMealDto.date !== undefined) updateData.date = new Date(updateMealDto.date);
-      if (updateMealDto.time !== undefined) updateData.time = updateMealDto.time;
-      if (updateMealDto.notes !== undefined) updateData.notes = updateMealDto.notes;
+      if (updateMealDto.date !== undefined)
+        updateData.date = new Date(updateMealDto.date);
+      if (updateMealDto.time !== undefined)
+        updateData.time = updateMealDto.time;
+      if (updateMealDto.notes !== undefined)
+        updateData.notes = updateMealDto.notes;
 
       // Auto-categorize if time changed but category not provided and not custom
-      if (updateMealDto.time && !updateMealDto.category && !existingMeal.isCustomCategory) {
+      if (
+        updateMealDto.time &&
+        !updateMealDto.category &&
+        !existingMeal.isCustomCategory
+      ) {
         updateData.category = this.autoCategorizeByTime(updateMealDto.time);
       }
 
@@ -343,19 +372,20 @@ export class MealsService {
   async getStats(query: MealStatsQueryDto): Promise<MealStats> {
     const { startDate, endDate, category } = query;
 
-    const queryBuilder = this.mealsRepository.createQueryBuilder('meal')
-      .leftJoinAndSelect('meal.foods', 'foods')
-      .leftJoinAndSelect('foods.food', 'food');
+    const queryBuilder = this.mealsRepository
+      .createQueryBuilder("meal")
+      .leftJoinAndSelect("meal.foods", "foods")
+      .leftJoinAndSelect("foods.food", "food");
 
     if (startDate && endDate) {
-      queryBuilder.andWhere('meal.date BETWEEN :startDate AND :endDate', {
+      queryBuilder.andWhere("meal.date BETWEEN :startDate AND :endDate", {
         startDate,
         endDate,
       });
     }
 
     if (category) {
-      queryBuilder.andWhere('meal.category = :category', { category });
+      queryBuilder.andWhere("meal.category = :category", { category });
     }
 
     const meals = await queryBuilder.getMany();
@@ -369,26 +399,37 @@ export class MealsService {
         averageFat: 0,
         mostCommonCategory: MealCategory.SNACK,
         dateRange: {
-          start: startDate || '',
-          end: endDate || '',
+          start: startDate || "",
+          end: endDate || "",
         },
       };
     }
 
     // Calculate averages
-    const totalCalories = meals.reduce((sum, meal) => sum + meal.totalCalories, 0);
-    const totalProtein = meals.reduce((sum, meal) => sum + meal.totalProtein, 0);
+    const totalCalories = meals.reduce(
+      (sum, meal) => sum + meal.totalCalories,
+      0,
+    );
+    const totalProtein = meals.reduce(
+      (sum, meal) => sum + meal.totalProtein,
+      0,
+    );
     const totalCarbs = meals.reduce((sum, meal) => sum + meal.totalCarbs, 0);
     const totalFat = meals.reduce((sum, meal) => sum + meal.totalFat, 0);
 
     // Find most common category
-    const categoryCount = meals.reduce((acc, meal) => {
-      acc[meal.category] = (acc[meal.category] || 0) + 1;
-      return acc;
-    }, {} as Record<MealCategory, number>);
+    const categoryCount = meals.reduce(
+      (acc, meal) => {
+        acc[meal.category] = (acc[meal.category] || 0) + 1;
+        return acc;
+      },
+      {} as Record<MealCategory, number>,
+    );
 
     const mostCommonCategory = Object.entries(categoryCount).reduce((a, b) =>
-      categoryCount[a[0] as MealCategory] > categoryCount[b[0] as MealCategory] ? a : b
+      categoryCount[a[0] as MealCategory] > categoryCount[b[0] as MealCategory]
+        ? a
+        : b,
     )[0] as MealCategory;
 
     return {
@@ -399,8 +440,8 @@ export class MealsService {
       averageFat: Math.round(totalFat / meals.length),
       mostCommonCategory,
       dateRange: {
-        start: startDate || '',
-        end: endDate || '',
+        start: startDate || "",
+        end: endDate || "",
       },
     };
   }
@@ -409,21 +450,30 @@ export class MealsService {
    * Auto-categorize meal by time
    */
   private autoCategorizeByTime(time: string): MealCategory {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes;
 
     // Default time ranges (customizable in future)
     const ranges = {
       breakfast: { start: 5 * 60, end: 11 * 60 }, // 5:00 - 11:00
-      lunch: { start: 11 * 60, end: 16 * 60 },     // 11:00 - 16:00
-      dinner: { start: 16 * 60, end: 22 * 60 },    // 16:00 - 22:00
+      lunch: { start: 11 * 60, end: 16 * 60 }, // 11:00 - 16:00
+      dinner: { start: 16 * 60, end: 22 * 60 }, // 16:00 - 22:00
     };
 
-    if (totalMinutes >= ranges.breakfast.start && totalMinutes < ranges.breakfast.end) {
+    if (
+      totalMinutes >= ranges.breakfast.start &&
+      totalMinutes < ranges.breakfast.end
+    ) {
       return MealCategory.BREAKFAST;
-    } else if (totalMinutes >= ranges.lunch.start && totalMinutes < ranges.lunch.end) {
+    } else if (
+      totalMinutes >= ranges.lunch.start &&
+      totalMinutes < ranges.lunch.end
+    ) {
       return MealCategory.LUNCH;
-    } else if (totalMinutes >= ranges.dinner.start && totalMinutes < ranges.dinner.end) {
+    } else if (
+      totalMinutes >= ranges.dinner.start &&
+      totalMinutes < ranges.dinner.end
+    ) {
       return MealCategory.DINNER;
     } else {
       return MealCategory.SNACK;
@@ -436,20 +486,24 @@ export class MealsService {
   private async createFoodEntries(
     queryRunner: QueryRunner,
     mealId: string,
-    foodDtos: CreateFoodEntryDto[]
+    foodDtos: CreateFoodEntryDto[],
   ): Promise<void> {
     for (const foodDto of foodDtos) {
       // Verify food exists
-      const food = await queryRunner.manager.findOne(Food, { where: { id: foodDto.foodId } });
+      const food = await queryRunner.manager.findOne(Food, {
+        where: { id: foodDto.foodId },
+      });
       if (!food) {
-        throw new BadRequestException(`Food with ID ${foodDto.foodId} not found`);
+        throw new BadRequestException(
+          `Food with ID ${foodDto.foodId} not found`,
+        );
       }
 
       const foodEntry = queryRunner.manager.create(FoodEntry, {
         mealId,
         foodId: foodDto.foodId,
         quantity: foodDto.quantity,
-        unit: foodDto.unit || 'g',
+        unit: foodDto.unit || "g",
       });
 
       await queryRunner.manager.save(foodEntry);
@@ -462,28 +516,29 @@ export class MealsService {
   private async updateFoodEntries(
     queryRunner: QueryRunner,
     mealId: string,
-    foodDtos: UpdateFoodEntryDto[]
+    foodDtos: UpdateFoodEntryDto[],
   ): Promise<void> {
     // Get existing food entries
     const existingEntries = await queryRunner.manager.find(FoodEntry, {
       where: { mealId },
     });
 
-    const existingIds = existingEntries.map(entry => entry.id);
-    const updateIds = foodDtos.filter(dto => dto.id).map(dto => dto.id);
-    const newEntries = foodDtos.filter(dto => !dto.id);
+    const existingIds = existingEntries.map((entry) => entry.id);
+    const updateIds = foodDtos.filter((dto) => dto.id).map((dto) => dto.id);
+    const newEntries = foodDtos.filter((dto) => !dto.id);
 
     // Remove entries not in update list
-    const toRemove = existingIds.filter(id => !updateIds.includes(id));
+    const toRemove = existingIds.filter((id) => !updateIds.includes(id));
     if (toRemove.length > 0) {
       await queryRunner.manager.delete(FoodEntry, toRemove);
     }
 
     // Update existing entries
-    for (const foodDto of foodDtos.filter(dto => dto.id)) {
+    for (const foodDto of foodDtos.filter((dto) => dto.id)) {
       const updateData: any = {};
       if (foodDto.foodId !== undefined) updateData.foodId = foodDto.foodId;
-      if (foodDto.quantity !== undefined) updateData.quantity = foodDto.quantity;
+      if (foodDto.quantity !== undefined)
+        updateData.quantity = foodDto.quantity;
       if (foodDto.unit !== undefined) updateData.unit = foodDto.unit;
 
       if (Object.keys(updateData).length > 0) {
@@ -494,20 +549,26 @@ export class MealsService {
     // Create new entries
     for (const foodDto of newEntries) {
       if (!foodDto.foodId || foodDto.quantity === undefined) {
-        throw new BadRequestException('New food entries must have foodId and quantity');
+        throw new BadRequestException(
+          "New food entries must have foodId and quantity",
+        );
       }
 
       // Verify food exists
-      const food = await queryRunner.manager.findOne(Food, { where: { id: foodDto.foodId } });
+      const food = await queryRunner.manager.findOne(Food, {
+        where: { id: foodDto.foodId },
+      });
       if (!food) {
-        throw new BadRequestException(`Food with ID ${foodDto.foodId} not found`);
+        throw new BadRequestException(
+          `Food with ID ${foodDto.foodId} not found`,
+        );
       }
 
       const foodEntry = queryRunner.manager.create(FoodEntry, {
         mealId,
         foodId: foodDto.foodId,
         quantity: foodDto.quantity,
-        unit: foodDto.unit || 'g',
+        unit: foodDto.unit || "g",
       });
 
       await queryRunner.manager.save(foodEntry);
@@ -526,13 +587,14 @@ export class MealsService {
       breakfast: { start: "05:00", end: "11:00" },
       lunch: { start: "11:00", end: "16:00" },
       dinner: { start: "16:00", end: "22:00" },
-      snack: "Other times"
+      snack: "Other times",
     };
 
     return {
       defaultRanges: customRanges || defaultRanges,
       categories: Object.values(MealCategory),
-      logic: "Meals are auto-categorized based on time: Breakfast (5:00-11:00), Lunch (11:00-16:00), Dinner (16:00-22:00), Snack (other times)"
+      logic:
+        "Meals are auto-categorized based on time: Breakfast (5:00-11:00), Lunch (11:00-16:00), Dinner (16:00-22:00), Snack (other times)",
     };
   }
 }
