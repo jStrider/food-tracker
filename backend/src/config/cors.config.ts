@@ -10,9 +10,22 @@ export const getCorsConfig = (): CorsOptions => {
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
     : [];
 
+  // Add frontend URL if provided
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (frontendUrl && !allowedOrigins.includes(frontendUrl)) {
+    allowedOrigins.push(frontendUrl);
+  }
+
   // Add default development origins
   if (isDevelopment) {
-    allowedOrigins.push('http://localhost:3000', 'http://localhost:5173');
+    // Get development ports from environment or use defaults
+    const devPorts = process.env.DEV_PORTS ? process.env.DEV_PORTS.split(',') : ['3000', '3003', '5173'];
+    devPorts.forEach(port => {
+      const origin = `http://localhost:${port.trim()}`;
+      if (!allowedOrigins.includes(origin)) {
+        allowedOrigins.push(origin);
+      }
+    });
   }
 
   // CORS configuration
