@@ -39,6 +39,12 @@ export class User {
     };
   };
 
+  @Column({ type: "json", default: '["user"]' })
+  roles: string[];
+
+  @Column({ type: "json", default: '[]' })
+  permissions: string[];
+
   @OneToMany(() => Meal, (meal) => meal.user)
   meals: Meal[];
 

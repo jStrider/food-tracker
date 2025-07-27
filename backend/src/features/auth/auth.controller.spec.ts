@@ -3,6 +3,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
+import { RefreshTokenDto } from "./dto/refresh-token.dto";
 
 describe("AuthController", () => {
   let controller: AuthController;
@@ -12,6 +13,8 @@ describe("AuthController", () => {
     login: jest.fn(),
     register: jest.fn(),
     getProfile: jest.fn(),
+    refreshTokens: jest.fn(),
+    logout: jest.fn(),
   };
 
   const mockUser = {
@@ -54,6 +57,7 @@ describe("AuthController", () => {
       };
       const expectedResponse = {
         access_token: "jwt-token",
+        refresh_token: "refresh-token",
         user: mockUser,
       };
 
@@ -87,6 +91,7 @@ describe("AuthController", () => {
       };
       const expectedResponse = {
         access_token: "jwt-token",
+        refresh_token: "refresh-token",
         user: {
           ...mockUser,
           email: registerDto.email,
@@ -110,6 +115,7 @@ describe("AuthController", () => {
       };
       const expectedResponse = {
         access_token: "jwt-token",
+        refresh_token: "refresh-token",
         user: {
           ...mockUser,
           email: registerDto.email,
@@ -167,6 +173,68 @@ describe("AuthController", () => {
       mockAuthService.getProfile.mockRejectedValue(new Error("User not found"));
 
       await expect(controller.getProfile(req)).rejects.toThrow("User not found");
+    });
+  });
+
+  describe("refreshTokens", () => {
+    it("should return new tokens on successful refresh", async () => {
+      const refreshTokenDto = {
+        refresh_token: "valid-refresh-token",
+      };
+      const expectedResponse = {
+        access_token: "new-jwt-token",
+        refresh_token: "new-refresh-token",
+        user: mockUser,
+      };
+
+      mockAuthService.refreshTokens.mockResolvedValue(expectedResponse);
+
+      const result = await controller.refreshTokens(refreshTokenDto);
+
+      expect(result).toEqual(expectedResponse);
+      expect(authService.refreshTokens).toHaveBeenCalledWith(refreshTokenDto.refresh_token);
+    });
+
+    it("should propagate error when refresh token is invalid", async () => {
+      const refreshTokenDto = {
+        refresh_token: "invalid-refresh-token",
+      };
+
+      mockAuthService.refreshTokens.mockRejectedValue(new Error("Invalid refresh token"));
+
+      await expect(controller.refreshTokens(refreshTokenDto)).rejects.toThrow("Invalid refresh token");
+    });
+  });
+
+  describe("logout", () => {
+    it("should successfully logout user", async () => {
+      const req = {
+        user: {
+          userId: mockUser.id,
+          email: mockUser.email,
+        },
+      };
+      const expectedResponse = { message: "Logout successful" };
+
+      mockAuthService.logout.mockResolvedValue(expectedResponse);
+
+      const result = await controller.logout(req);
+
+      expect(result).toEqual(expectedResponse);
+      expect(authService.logout).toHaveBeenCalledWith(req.user.userId);
+    });
+
+    it("should propagate error from service", async () => {
+      const req = {
+        user: {
+          userId: "invalid-id",
+          email: "test@example.com",
+        },
+      };
+
+      mockAuthService.logout.mockRejectedValue(new Error("Logout failed"));
+
+      await expect(controller.logout(req)).rejects.toThrow("Logout failed");
     });
   });
 });

@@ -9,32 +9,9 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor
-apiClient.interceptors.request.use(
-  (config) => {
-    // Add auth token if available
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// Note: Token handling is managed by the AuthContext interceptors
+// This ensures consistency across the application
+// The AuthContext sets up global axios interceptors that:
+// 1. Add the access token to all requests
+// 2. Handle 401 errors by refreshing the token
+// 3. Retry failed requests after token refresh

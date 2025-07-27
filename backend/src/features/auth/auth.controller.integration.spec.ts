@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import * as request from "supertest";
-import { AppModule } from "../../app.module";
+import { TestAppModule } from "../../test/test-app.module";
 import { DataSource } from "typeorm";
 import { User } from "../users/entities/user.entity";
 import * as bcrypt from "bcrypt";
@@ -12,7 +12,7 @@ describe("AuthController (e2e)", () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [TestAppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -32,8 +32,12 @@ describe("AuthController (e2e)", () => {
   });
 
   beforeEach(async () => {
-    // Clean up database
-    await dataSource.getRepository(User).delete({});
+    // Clean up database - delete all users
+    const userRepository = dataSource.getRepository(User);
+    const users = await userRepository.find();
+    if (users.length > 0) {
+      await userRepository.remove(users);
+    }
   });
 
   describe("/auth/register (POST)", () => {
@@ -51,6 +55,7 @@ describe("AuthController (e2e)", () => {
         .expect(201);
 
       expect(response.body).toHaveProperty("access_token");
+      expect(response.body).toHaveProperty("refresh_token");
       expect(response.body.user).toMatchObject({
         email: registerDto.email,
         name: registerDto.name,
@@ -102,7 +107,7 @@ describe("AuthController (e2e)", () => {
         .send(registerDto)
         .expect(400);
 
-      expect(response.body.message).toContain("email");
+      expect(response.body.message[0]).toContain("email");
     });
 
     it("should fail with short password", async () => {
@@ -117,7 +122,7 @@ describe("AuthController (e2e)", () => {
         .send(registerDto)
         .expect(400);
 
-      expect(response.body.message).toContain("password");
+      expect(response.body.message[0]).toContain("password");
     });
 
     it("should fail with missing required fields", async () => {
@@ -149,6 +154,7 @@ describe("AuthController (e2e)", () => {
         .expect(201);
 
       expect(response.body).toHaveProperty("access_token");
+      expect(response.body).toHaveProperty("refresh_token");
       expect(response.body.user.email).toBe(registerDto.email);
     });
   });
@@ -174,9 +180,10 @@ describe("AuthController (e2e)", () => {
       const response = await request(app.getHttpServer())
         .post("/auth/login")
         .send(loginDto)
-        .expect(201);
+        .expect(200);
 
       expect(response.body).toHaveProperty("access_token");
+      expect(response.body).toHaveProperty("refresh_token");
       expect(response.body.user).toMatchObject({
         email: loginDto.email,
         name: "Test User",
@@ -257,6 +264,150 @@ describe("AuthController (e2e)", () => {
     it("should fail with invalid token", async () => {
       await request(app.getHttpServer())
         .get("/auth/me")
+        .set("Authorization", "Bearer invalid-token")
+        .expect(401);
+    });
+  });
+
+  describe("/auth/refresh (POST)", () => {
+    let refreshToken: string;
+    let userId: string;
+
+    beforeEach(async () => {
+      // Create and login a test user to get refresh token
+      const hashedPassword = await bcrypt.hash("password123", 10);
+      const user = await dataSource.getRepository(User).save({
+        email: "test@example.com",
+        name: "Test User",
+        password: hashedPassword,
+        timezone: "UTC",
+      });
+      userId = user.id;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email: "test@example.com",
+          password: "password123",
+        });
+
+      refreshToken = loginResponse.body.refresh_token;
+    });
+
+    it("should refresh tokens successfully", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: refreshToken,
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty("access_token");
+      expect(response.body).toHaveProperty("refresh_token");
+      expect(response.body.refresh_token).not.toBe(refreshToken); // Token rotation
+      expect(response.body.user).toMatchObject({
+        id: userId,
+        email: "test@example.com",
+        name: "Test User",
+      });
+    });
+
+    it("should fail with invalid refresh token", async () => {
+      await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: "invalid-refresh-token",
+        })
+        .expect(403);
+    });
+
+    it("should fail with missing refresh token", async () => {
+      await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({})
+        .expect(400);
+    });
+
+    it("should fail with previously used refresh token after rotation", async () => {
+      // First refresh
+      const firstRefresh = await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: refreshToken,
+        });
+
+      // Try to use the old refresh token again
+      await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: refreshToken,
+        })
+        .expect(403);
+
+      // New token should still work
+      const secondRefresh = await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: firstRefresh.body.refresh_token,
+        })
+        .expect(200);
+
+      expect(secondRefresh.body).toHaveProperty("access_token");
+      expect(secondRefresh.body).toHaveProperty("refresh_token");
+    });
+  });
+
+  describe("/auth/logout (POST)", () => {
+    let authToken: string;
+    let refreshToken: string;
+
+    beforeEach(async () => {
+      // Create and login a test user
+      const hashedPassword = await bcrypt.hash("password123", 10);
+      await dataSource.getRepository(User).save({
+        email: "test@example.com",
+        name: "Test User",
+        password: hashedPassword,
+        timezone: "UTC",
+      });
+
+      const loginResponse = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({
+          email: "test@example.com",
+          password: "password123",
+        });
+
+      authToken = loginResponse.body.access_token;
+      refreshToken = loginResponse.body.refresh_token;
+    });
+
+    it("should logout successfully", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/auth/logout")
+        .set("Authorization", `Bearer ${authToken}`)
+        .expect(200);
+
+      expect(response.body).toEqual({ message: "Logout successful" });
+
+      // Refresh token should no longer work
+      await request(app.getHttpServer())
+        .post("/auth/refresh")
+        .send({
+          refresh_token: refreshToken,
+        })
+        .expect(403);
+    });
+
+    it("should fail without authentication", async () => {
+      await request(app.getHttpServer())
+        .post("/auth/logout")
+        .expect(401);
+    });
+
+    it("should fail with invalid token", async () => {
+      await request(app.getHttpServer())
+        .post("/auth/logout")
         .set("Authorization", "Bearer invalid-token")
         .expect(401);
     });

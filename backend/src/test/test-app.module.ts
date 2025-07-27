@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
@@ -14,6 +15,7 @@ import { Meal } from "../features/meals/entities/meal.entity";
 import { Food } from "../features/foods/entities/food.entity";
 import { FoodEntry } from "../features/foods/entities/food-entry.entity";
 import { DailyNutrition } from "../features/nutrition/entities/daily-nutrition.entity";
+import { JwtAuthGuard } from "../features/auth/guards/jwt-auth.guard";
 
 @Module({
   imports: [
@@ -30,11 +32,16 @@ import { DailyNutrition } from "../features/nutrition/entities/daily-nutrition.e
       ],
     }),
     TypeOrmModule.forRoot({
-      type: "sqlite",
-      database: ":memory:",
+      type: "postgres",
+      host: process.env.TEST_DB_HOST || "localhost",
+      port: parseInt(process.env.TEST_DB_PORT || "5432"),
+      username: process.env.TEST_DB_USERNAME || "foodtracker_test",
+      password: process.env.TEST_DB_PASSWORD || "testpass",
+      database: process.env.TEST_DB_NAME || "foodtracker_test",
       entities: [User, Meal, Food, FoodEntry, DailyNutrition],
       synchronize: true,
       logging: false,
+      dropSchema: true, // Drop schema on each test run
     }),
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.register({
@@ -47,6 +54,12 @@ import { DailyNutrition } from "../features/nutrition/entities/daily-nutrition.e
     FoodsModule,
     NutritionModule,
     CalendarModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class TestAppModule {}
