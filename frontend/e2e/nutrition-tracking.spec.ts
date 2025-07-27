@@ -1,8 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/authenticated-test';
 
 test.describe('Nutrition Tracking', () => {
-  test('displays daily nutrition summary', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    // Already authenticated via context
+    // Navigate to homepage
     await page.goto('/');
+    
+    // Wait for the page to be ready
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('displays daily nutrition summary', async ({ page }) => {
     
     // Click on today's date
     const today = new Date().getDate().toString();
@@ -19,8 +27,6 @@ test.describe('Nutrition Tracking', () => {
   });
 
   test('updates nutrition when adding food to meal', async ({ page }) => {
-    // Navigate to today's view
-    await page.goto('/');
     const today = new Date().getDate().toString();
     await page.getByText(today, { exact: true }).first().click();
     
@@ -33,7 +39,7 @@ test.describe('Nutrition Tracking', () => {
     await page.getByRole('button', { name: 'Create Meal' }).click();
     
     // Go to food search
-    await page.getByRole('link', { name: 'Food Search' }).click();
+    await page.goto('/foods');
     
     // Select the meal we just created
     await page.getByRole('combobox').click();
@@ -61,7 +67,6 @@ test.describe('Nutrition Tracking', () => {
   });
 
   test('shows nutrition goals progress', async ({ page }) => {
-    await page.goto('/');
     
     // Click on today
     const today = new Date().getDate().toString();
@@ -75,7 +80,6 @@ test.describe('Nutrition Tracking', () => {
   });
 
   test('displays weekly nutrition summary', async ({ page }) => {
-    await page.goto('/');
     
     // Switch to week view
     await page.getByRole('button', { name: 'Week' }).click();
@@ -91,7 +95,6 @@ test.describe('Nutrition Tracking', () => {
   });
 
   test('shows meal breakdown by category', async ({ page }) => {
-    await page.goto('/');
     
     // Click on a date
     await page.getByText('15', { exact: true }).first().click();

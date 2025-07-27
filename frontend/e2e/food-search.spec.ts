@@ -1,8 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/authenticated-test';
 
 test.describe('Food Search', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/food-search');
+    // Already authenticated via context
+    // Navigate to food search page
+    await page.goto('/foods');
+    
+    // Wait for the page to load
+    await page.waitForLoadState('networkidle');
   });
 
   test('displays food search page', async ({ page }) => {
