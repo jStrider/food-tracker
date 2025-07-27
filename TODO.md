@@ -16,7 +16,7 @@
 - [ ] Remove hardcoded userId from frontend and backend - [#48](https://github.com/jStrider/food-tracker/issues/48)
 - [ ] Add user context/session management - [#47](https://github.com/jStrider/food-tracker/issues/47)
 - [ ] Implement login/logout functionality - [#47](https://github.com/jStrider/food-tracker/issues/47)
-- [ ] Add user registration flow - [#issue]()
+- [x] Add user registration flow - [#64](https://github.com/jStrider/food-tracker/issues/64) ✅ Completed 2025-01-27 (PR #78)
 
 #### Database Migration Setup
 - [ ] Set up proper database migrations - [#49](https://github.com/jStrider/food-tracker/issues/49)
@@ -37,6 +37,7 @@
 - [ ] Fix date picker format consistency - [#issue]()
 - [ ] Standardize API error responses - [#53](https://github.com/jStrider/food-tracker/issues/53)
 - [ ] Add proper error logging and monitoring - [#issue]()
+- [ ] Fix stray '0' displayed at bottom of Daily Summary block - [#75](https://github.com/jStrider/food-tracker/issues/75)
 
 ### 🏗️ Core Features
 #### DatePicker Implementation
@@ -74,6 +75,7 @@
 - [ ] Improve mobile responsiveness - [#issue]()
 - [ ] Add keyboard navigation support - [#issue]()
 - [ ] Implement ARIA labels for accessibility - [#issue]()
+- [ ] Reorganize Day view layout: Daily Summary and Nutrition Goals in left column, meals in right column - [#74](https://github.com/jStrider/food-tracker/issues/74)
 
 ---
 
