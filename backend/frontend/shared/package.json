@@ -13,4 +13,3 @@
     "typescript": "^5.0.0"
   }
 }
-EOF < /dev/null
