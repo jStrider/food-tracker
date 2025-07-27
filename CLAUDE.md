@@ -40,6 +40,7 @@ The TODO.md file is the single source of truth for project tasks and should be k
 
 ### Version Control & Code Management
 - Aucun commit ne doit être fait directement sur main. Toute modification du code doit passer par une PR (Crée une Issue lorsque c'est necessaire)
+- Si une PR créé ne touche pas a la logique du projet (exemple: documentation etc...) tu peux auto-merger
 
 ### Tech Stack
 - **Frontend**: React + Tailwind + shadcn/ui + Calendar views
