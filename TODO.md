@@ -15,7 +15,7 @@
 - [ ] Implement JWT authentication system - [#47](https://github.com/jStrider/food-tracker/issues/47)
 - [ ] Remove hardcoded userId from frontend and backend - [#48](https://github.com/jStrider/food-tracker/issues/48)
 - [ ] Add user context/session management - [#47](https://github.com/jStrider/food-tracker/issues/47)
-- [ ] Implement login/logout functionality - [#47](https://github.com/jStrider/food-tracker/issues/47)
+- [x] Implement login/logout functionality - [#47](https://github.com/jStrider/food-tracker/issues/47) ✅ Completed 2025-01-27
 - [x] Add user registration flow - [#64](https://github.com/jStrider/food-tracker/issues/64) ✅ Completed 2025-01-27 (PR #78)
 
 #### Database Migration Setup
