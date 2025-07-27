@@ -7,6 +7,10 @@ RUN apk update && apk upgrade && \
     apk add --no-cache \
     dumb-init \
     curl \
+    python3 \
+    py3-setuptools \
+    make \
+    g++ \
     && rm -rf /var/cache/apk/*
 
 # Install dependencies only when needed
@@ -18,7 +22,9 @@ COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
 # Install production dependencies only (ignore prepare script for husky)
+# Force rebuild of bcrypt to ensure native bindings are compiled for Alpine
 RUN npm install --only=production --ignore-scripts && \
+    npm rebuild bcrypt --build-from-source && \
     npm cache clean --force && \
     rm -rf ~/.npm
 
@@ -40,15 +46,16 @@ COPY backend/tsconfig*.json ./
 
 # Build application with optimizations
 RUN npm run build && \
-    npm prune --production
+    npm prune --production && \
+    npm rebuild bcrypt --build-from-source
 
 # Production runtime image
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Install security updates
+# Install security updates and build dependencies for sqlite3
 RUN apk update && apk upgrade && \
-    apk add --no-cache dumb-init curl && \
+    apk add --no-cache dumb-init curl python3 py3-setuptools make g++ && \
     rm -rf /var/cache/apk/*
 
 # Create non-root user for security
@@ -59,6 +66,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+
+# Rebuild native dependencies for the runtime environment
+RUN npm rebuild bcrypt --build-from-source
 
 # Create data directory with proper permissions
 RUN mkdir -p /app/data /app/logs && \

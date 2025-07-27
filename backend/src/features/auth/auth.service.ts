@@ -1,10 +1,14 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import * as bcrypt from 'bcrypt';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { User } from '../users/entities/user.entity';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import * as bcrypt from "bcrypt";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
+import { User } from "../users/entities/user.entity";
 
 @Injectable()
 export class AuthService {
@@ -15,8 +19,12 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
-    if (user && user.password && await bcrypt.compare(password, user.password)) {
-      const { password, ...result } = user;
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      const { password: _, ...result } = user;
       return result as User;
     }
     return null;
@@ -25,7 +33,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     const payload = { email: user.email, sub: user.id };
@@ -45,7 +53,7 @@ export class AuthService {
     // Check if user already exists
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException("User with this email already exists");
     }
 
     // Hash password
@@ -73,7 +81,7 @@ export class AuthService {
 
   async getProfile(userId: string) {
     const user = await this.usersService.findOne(userId);
-    const { password, ...result } = user as any;
+    const { password: _, ...result } = user as any;
     return result;
   }
 }

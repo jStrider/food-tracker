@@ -1,81 +1,91 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index, Unique } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+  Unique,
+} from "typeorm";
+import { User } from "../../users/entities/user.entity";
 
-@Entity('daily_nutrition')
-@Unique(['userId', 'date']) // One record per user per day
-@Index(['userId', 'date']) // Fast lookups by user and date
+@Entity("daily_nutrition")
+@Unique(["userId", "date"]) // One record per user per day
+@Index(["userId", "date"]) // Fast lookups by user and date
 export class DailyNutrition {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: "date" })
   date: Date;
 
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "userId" })
   user: User;
 
   // Actual consumed nutrition (calculated from meals)
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalCalories: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalProtein: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalCarbs: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalFat: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalFiber: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalSugar: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalSodium: number;
 
   // Extended nutrition tracking
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalSaturatedFat: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalTransFat: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalCholesterol: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalPotassium: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalVitaminA: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalVitaminC: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalCalcium: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   totalIron: number;
 
   // Daily goals (can override user defaults)
-  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, nullable: true })
   calorieGoal?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, nullable: true })
   proteinGoal?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, nullable: true })
   carbGoal?: number;
 
-  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  @Column("decimal", { precision: 10, scale: 2, nullable: true })
   fatGoal?: number;
 
   // Meal count for the day
@@ -83,18 +93,18 @@ export class DailyNutrition {
   mealCount: number;
 
   // Water tracking (in ml)
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   waterIntake: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 2000 })
+  @Column("decimal", { precision: 10, scale: 2, default: 2000 })
   waterGoal: number;
 
   // Exercise tracking (optional)
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  @Column("decimal", { precision: 10, scale: 2, default: 0 })
   exerciseCaloriesBurned: number;
 
   // Notes for the day
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   notes?: string;
 
   @CreateDateColumn()
@@ -105,12 +115,14 @@ export class DailyNutrition {
 
   // Calculate progress percentages
   get calorieProgress(): number {
-    const goal = this.calorieGoal || this.user?.preferences?.dailyCalorieGoal || 2000;
+    const goal =
+      this.calorieGoal || this.user?.preferences?.dailyCalorieGoal || 2000;
     return Math.min((this.totalCalories / goal) * 100, 100);
   }
 
   get proteinProgress(): number {
-    const goal = this.proteinGoal || this.user?.preferences?.dailyProteinGoal || 50;
+    const goal =
+      this.proteinGoal || this.user?.preferences?.dailyProteinGoal || 50;
     return Math.min((this.totalProtein / goal) * 100, 100);
   }
 
@@ -135,16 +147,17 @@ export class DailyNutrition {
 
   // Calculate macronutrient ratios
   get macroRatios() {
-    const totalMacroCalories = (this.totalProtein * 4) + (this.totalCarbs * 4) + (this.totalFat * 9);
-    
+    const totalMacroCalories =
+      this.totalProtein * 4 + this.totalCarbs * 4 + this.totalFat * 9;
+
     if (totalMacroCalories === 0) {
       return { protein: 0, carbs: 0, fat: 0 };
     }
 
     return {
-      protein: Math.round((this.totalProtein * 4 / totalMacroCalories) * 100),
-      carbs: Math.round((this.totalCarbs * 4 / totalMacroCalories) * 100),
-      fat: Math.round((this.totalFat * 9 / totalMacroCalories) * 100),
+      protein: Math.round(((this.totalProtein * 4) / totalMacroCalories) * 100),
+      carbs: Math.round(((this.totalCarbs * 4) / totalMacroCalories) * 100),
+      fat: Math.round(((this.totalFat * 9) / totalMacroCalories) * 100),
     };
   }
 
@@ -155,8 +168,10 @@ export class DailyNutrition {
     // Calorie target adherence (80-120% is optimal)
     const caloriePercentage = this.calorieProgress;
     if (caloriePercentage >= 80 && caloriePercentage <= 120) scores.push(100);
-    else if (caloriePercentage >= 70 && caloriePercentage <= 130) scores.push(80);
-    else if (caloriePercentage >= 60 && caloriePercentage <= 140) scores.push(60);
+    else if (caloriePercentage >= 70 && caloriePercentage <= 130)
+      scores.push(80);
+    else if (caloriePercentage >= 60 && caloriePercentage <= 140)
+      scores.push(60);
     else scores.push(40);
 
     // Protein adequacy

@@ -1,10 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Meal } from '../meals/entities/meal.entity';
-import { FoodEntry } from '../foods/entities/food-entry.entity';
-import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
-import { startOfDay, endOfDay, format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between } from "typeorm";
+import { Meal } from "../meals/entities/meal.entity";
+import { FoodEntry } from "../foods/entities/food-entry.entity";
+import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
+import {
+  startOfDay,
+  endOfDay,
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+} from "date-fns";
 
 export interface NutritionSummary {
   calories: number;
@@ -60,15 +69,15 @@ export class NutritionService {
    */
   async getMealNutrition(mealId: string): Promise<MealSummary> {
     const meal = await this.mealsRepository.findOne({
-      where: { 
+      where: {
         id: mealId,
         userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
-      relations: ['foods', 'foods.food'],
+      relations: ["foods", "foods.food"],
     });
 
     if (!meal) {
-      throw new Error('Meal not found');
+      throw new Error("Meal not found");
     }
 
     const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
@@ -87,12 +96,12 @@ export class NutritionService {
    */
   async getDailyNutrition(date: string): Promise<DailyNutrition> {
     const meals = await this.mealsRepository
-      .createQueryBuilder('meal')
-      .leftJoinAndSelect('meal.foods', 'foods')
-      .leftJoinAndSelect('foods.food', 'food')
-      .where('meal.date = :date', { date })
-      .andWhere('meal.userId = :userId', { userId: TEMP_USER_ID })
-      .orderBy('meal.createdAt', 'ASC')
+      .createQueryBuilder("meal")
+      .leftJoinAndSelect("meal.foods", "foods")
+      .leftJoinAndSelect("foods.food", "food")
+      .where("meal.date = :date", { date })
+      .andWhere("meal.userId = :userId", { userId: TEMP_USER_ID })
+      .orderBy("meal.createdAt", "ASC")
       .getMany();
 
     const mealSummaries: MealSummary[] = meals.map((meal) => {
@@ -128,14 +137,14 @@ export class NutritionService {
         date: Between(startOfDay(start), endOfDay(end)),
         userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
-      relations: ['foods', 'foods.food'],
-      order: { date: 'ASC', createdAt: 'ASC' },
+      relations: ["foods", "foods.food"],
+      order: { date: "ASC", createdAt: "ASC" },
     });
 
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
     meals.forEach((meal) => {
-      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
+      const dateKey = format(new Date(meal.date), "yyyy-MM-dd");
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
@@ -145,11 +154,11 @@ export class NutritionService {
     // Calculate daily nutrition for each date
     const days: DailyNutrition[] = [];
     const currentDate = new Date(start);
-    
+
     while (currentDate <= end) {
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
+      const dateKey = format(currentDate, "yyyy-MM-dd");
       const dayMeals = mealsByDate.get(dateKey) || [];
-      
+
       const mealSummaries: MealSummary[] = dayMeals.map((meal) => {
         const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
         return {
@@ -177,8 +186,8 @@ export class NutritionService {
     const weeklyAverages = this.calculateAverages(weeklyTotals, days.length);
 
     return {
-      startDate: format(start, 'yyyy-MM-dd'),
-      endDate: format(end, 'yyyy-MM-dd'),
+      startDate: format(start, "yyyy-MM-dd"),
+      endDate: format(end, "yyyy-MM-dd"),
       days,
       totals: weeklyTotals,
       averages: weeklyAverages,
@@ -188,13 +197,18 @@ export class NutritionService {
   /**
    * Get monthly nutrition data
    */
-  async getMonthlyNutrition(month: number, year: number): Promise<DailyNutrition[]> {
+  async getMonthlyNutrition(
+    month: number,
+    year: number,
+  ): Promise<DailyNutrition[]> {
     const start = startOfMonth(new Date(year, month - 1));
     const end = endOfMonth(new Date(year, month - 1));
     const days = eachDayOfInterval({ start, end });
 
     const monthlyData = await Promise.all(
-      days.map(day => this.getDailyNutrition(day.toISOString().split('T')[0]))
+      days.map((day) =>
+        this.getDailyNutrition(day.toISOString().split("T")[0]),
+      ),
     );
 
     return monthlyData;
@@ -203,14 +217,17 @@ export class NutritionService {
   /**
    * Compare nutrition to goals
    */
-  async compareToGoals(date: string, goals: NutritionGoals): Promise<{
+  async compareToGoals(
+    date: string,
+    goals: NutritionGoals,
+  ): Promise<{
     nutrition: DailyNutrition;
     goals: NutritionGoals;
     percentages: Record<keyof NutritionGoals, number>;
-    status: Record<keyof NutritionGoals, 'under' | 'met' | 'over'>;
+    status: Record<keyof NutritionGoals, "under" | "met" | "over">;
   }> {
     const nutrition = await this.getDailyNutrition(date);
-    
+
     const percentages = {
       calories: (nutrition.calories / goals.calories) * 100,
       protein: (nutrition.protein / goals.protein) * 100,
@@ -225,8 +242,12 @@ export class NutritionService {
       protein: this.getGoalStatus(percentages.protein),
       carbs: this.getGoalStatus(percentages.carbs),
       fat: this.getGoalStatus(percentages.fat),
-      fiber: goals.fiber ? this.getGoalStatus(percentages.fiber) : 'met' as const,
-      sodium: goals.sodium ? this.getGoalStatus(percentages.sodium) : 'met' as const,
+      fiber: goals.fiber
+        ? this.getGoalStatus(percentages.fiber)
+        : ("met" as const),
+      sodium: goals.sodium
+        ? this.getGoalStatus(percentages.sodium)
+        : ("met" as const),
     };
 
     return {
@@ -240,7 +261,9 @@ export class NutritionService {
   /**
    * Calculate nutrition from food entries
    */
-  private calculateNutritionFromFoodEntries(foodEntries: FoodEntry[]): NutritionSummary {
+  private calculateNutritionFromFoodEntries(
+    foodEntries: FoodEntry[],
+  ): NutritionSummary {
     return foodEntries.reduce(
       (total, entry) => ({
         calories: total.calories + entry.calculatedCalories,
@@ -292,9 +315,12 @@ export class NutritionService {
   /**
    * Calculate averages from totals
    */
-  private calculateAverages(totals: NutritionSummary, days: number): NutritionSummary {
+  private calculateAverages(
+    totals: NutritionSummary,
+    days: number,
+  ): NutritionSummary {
     if (days === 0) return totals;
-    
+
     return {
       calories: Math.round(totals.calories / days),
       protein: Math.round((totals.protein / days) * 100) / 100,
@@ -309,10 +335,10 @@ export class NutritionService {
   /**
    * Determine goal status
    */
-  private getGoalStatus(percentage: number): 'under' | 'met' | 'over' {
-    if (percentage < 90) return 'under';
-    if (percentage <= 110) return 'met';
-    return 'over';
+  private getGoalStatus(percentage: number): "under" | "met" | "over" {
+    if (percentage < 90) return "under";
+    if (percentage <= 110) return "met";
+    return "over";
   }
 
   /**

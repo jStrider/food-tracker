@@ -1,27 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run lint)",
-      "Bash(npm run test:*)",
-      "Bash(npm test *)",
-      "Bash(git status)",
-      "Bash(git diff *)",
-      "Bash(git log *)",
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git push)",
-      "Bash(git config *)",
-      "Bash(gh *)",
-      "Bash(node *)",
-      "Bash(which *)",
-      "Bash(pwd)",
-      "Bash(ls *)"
+      "Bash(pnpm:*)",
+      "Bash(bun:*)",
+      "Bash(npm:*)",
+      "Bash(yarn:*)",
+      "Bash(pnpx:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(vitest:*)",
+      "Bash(eslint:*)",
+      "Bash(biome:*)",
+      "Bash(tsc:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(cd:*)",
+      "Bash(pwd:*)",
+      "Bash(which:*)",
+      "Bash(diff:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)"
     ],
-    "deny": [
-      "Bash(rm -rf /)",
-      "Bash(curl * | bash)",
-      "Bash(wget * | sh)",
-      "Bash(eval *)"
-    ]
+    "deny": []
   }
 }

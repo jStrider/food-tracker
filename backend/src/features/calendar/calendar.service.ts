@@ -1,20 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Meal } from '../meals/entities/meal.entity';
-import { NutritionService, NutritionGoals } from '../nutrition/nutrition.service';
-import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
-import { 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  format, 
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, Between } from "typeorm";
+import { Meal } from "../meals/entities/meal.entity";
+import {
+  NutritionService,
+  NutritionGoals,
+} from "../nutrition/nutrition.service";
+import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  format,
   isSameMonth,
   addDays,
-  subDays 
-} from 'date-fns';
+  subDays,
+} from "date-fns";
 
 export interface CalendarDay {
   date: string;
@@ -81,120 +84,137 @@ export class CalendarService {
     private nutritionService: NutritionService,
   ) {}
 
-  async getMonthView(month: number, year: number, goals?: NutritionGoals): Promise<MonthData> {
+  async getMonthView(
+    month: number,
+    year: number,
+    goals?: NutritionGoals,
+  ): Promise<MonthData> {
     try {
       const startDate = startOfMonth(new Date(year, month - 1));
       const endDate = endOfMonth(new Date(year, month - 1));
-    
-    // Get all meals for the month
-    // TODO: Add proper user context from authentication
-    const meals = await this.mealsRepository.find({
-      where: {
-        date: Between(startDate, endDate),
-        userId: TEMP_USER_ID, // TODO: This should come from auth context
-      },
-      relations: ['foods', 'foods.food'],
-      order: { date: 'ASC' },
-    });
 
-    // Group meals by date
-    const mealsByDate = new Map<string, Meal[]>();
-    meals.forEach(meal => {
-      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
-      if (!mealsByDate.has(dateKey)) {
-        mealsByDate.set(dateKey, []);
-      }
-      mealsByDate.get(dateKey)!.push(meal);
-    });
+      // Get all meals for the month
+      // TODO: Add proper user context from authentication
+      const meals = await this.mealsRepository.find({
+        where: {
+          date: Between(startDate, endDate),
+          userId: TEMP_USER_ID, // TODO: This should come from auth context
+        },
+        relations: ["foods", "foods.food"],
+        order: { date: "ASC" },
+      });
 
-    // Generate all days in the month
-    const allDays = eachDayOfInterval({ start: startDate, end: endDate });
-    const calendarDays: CalendarDay[] = [];
-    
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalCarbs = 0;
-    let totalFat = 0;
-    let daysWithData = 0;
+      // Group meals by date
+      const mealsByDate = new Map<string, Meal[]>();
+      meals.forEach((meal) => {
+        const dateKey = format(new Date(meal.date), "yyyy-MM-dd");
+        if (!mealsByDate.has(dateKey)) {
+          mealsByDate.set(dateKey, []);
+        }
+        mealsByDate.get(dateKey)!.push(meal);
+      });
 
-    for (const day of allDays) {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      const dayMeals = mealsByDate.get(dateKey) || [];
-      
-      let dayNutrition = {
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-      };
+      // Generate all days in the month
+      const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+      const calendarDays: CalendarDay[] = [];
 
-      if (dayMeals.length > 0) {
-        const dayData = await this.nutritionService.getDailyNutrition(dateKey);
-        dayNutrition = {
-          calories: dayData.calories,
-          protein: dayData.protein,
-          carbs: dayData.carbs,
-          fat: dayData.fat,
-          fiber: dayData.fiber,
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalCarbs = 0;
+      let totalFat = 0;
+      let daysWithData = 0;
+
+      for (const day of allDays) {
+        const dateKey = format(day, "yyyy-MM-dd");
+        const dayMeals = mealsByDate.get(dateKey) || [];
+
+        let dayNutrition = {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          fiber: 0,
         };
-        
-        totalCalories += dayNutrition.calories;
-        totalProtein += dayNutrition.protein;
-        totalCarbs += dayNutrition.carbs;
-        totalFat += dayNutrition.fat;
-        daysWithData++;
-      }
 
-      const calendarDay: CalendarDay = {
-        date: dateKey,
-        totalCalories: Math.round(dayNutrition.calories),
-        totalProtein: Math.round(dayNutrition.protein * 10) / 10,
-        totalCarbs: Math.round(dayNutrition.carbs * 10) / 10,
-        totalFat: Math.round(dayNutrition.fat * 10) / 10,
-        totalFiber: Math.round(dayNutrition.fiber * 10) / 10,
-        mealCount: dayMeals.length,
-        hasData: dayMeals.length > 0,
-        isCurrentMonth: isSameMonth(day, new Date(year, month - 1)),
-        dayOfWeek: day.getDay(),
-        meals: dayMeals.map(meal => ({
-          id: meal.id,
-          name: meal.name,
-          category: meal.category,
-          time: meal.time,
-          calories: meal.totalCalories,
-        })),
-      };
+        if (dayMeals.length > 0) {
+          const dayData =
+            await this.nutritionService.getDailyNutrition(dateKey);
+          dayNutrition = {
+            calories: dayData.calories,
+            protein: dayData.protein,
+            carbs: dayData.carbs,
+            fat: dayData.fat,
+            fiber: dayData.fiber,
+          };
 
-      // Add goal progress if goals are provided
-      if (goals && dayMeals.length > 0) {
-        calendarDay.goalProgress = {
-          calories: Math.round((dayNutrition.calories / goals.calories) * 100),
-          protein: Math.round((dayNutrition.protein / goals.protein) * 100),
-          carbs: Math.round((dayNutrition.carbs / goals.carbs) * 100),
-          fat: Math.round((dayNutrition.fat / goals.fat) * 100),
+          totalCalories += dayNutrition.calories;
+          totalProtein += dayNutrition.protein;
+          totalCarbs += dayNutrition.carbs;
+          totalFat += dayNutrition.fat;
+          daysWithData++;
+        }
+
+        const calendarDay: CalendarDay = {
+          date: dateKey,
+          totalCalories: Math.round(dayNutrition.calories),
+          totalProtein: Math.round(dayNutrition.protein * 10) / 10,
+          totalCarbs: Math.round(dayNutrition.carbs * 10) / 10,
+          totalFat: Math.round(dayNutrition.fat * 10) / 10,
+          totalFiber: Math.round(dayNutrition.fiber * 10) / 10,
+          mealCount: dayMeals.length,
+          hasData: dayMeals.length > 0,
+          isCurrentMonth: isSameMonth(day, new Date(year, month - 1)),
+          dayOfWeek: day.getDay(),
+          meals: dayMeals.map((meal) => ({
+            id: meal.id,
+            name: meal.name,
+            category: meal.category,
+            time: meal.time,
+            calories: meal.totalCalories,
+          })),
         };
+
+        // Add goal progress if goals are provided
+        if (goals && dayMeals.length > 0) {
+          calendarDay.goalProgress = {
+            calories: Math.round(
+              (dayNutrition.calories / goals.calories) * 100,
+            ),
+            protein: Math.round((dayNutrition.protein / goals.protein) * 100),
+            carbs: Math.round((dayNutrition.carbs / goals.carbs) * 100),
+            fat: Math.round((dayNutrition.fat / goals.fat) * 100),
+          };
+        }
+
+        calendarDays.push(calendarDay);
       }
 
-      calendarDays.push(calendarDay);
-    }
-
-    return {
-      month,
-      year,
-      days: calendarDays,
-      summary: {
-        totalDays: allDays.length,
-        daysWithData,
-        averageCalories: daysWithData > 0 ? Math.round(totalCalories / daysWithData) : 0,
-        totalCalories: Math.round(totalCalories),
-        averageProtein: daysWithData > 0 ? Math.round((totalProtein / daysWithData) * 10) / 10 : 0,
-        averageCarbs: daysWithData > 0 ? Math.round((totalCarbs / daysWithData) * 10) / 10 : 0,
-        averageFat: daysWithData > 0 ? Math.round((totalFat / daysWithData) * 10) / 10 : 0,
-      },
-    };
+      return {
+        month,
+        year,
+        days: calendarDays,
+        summary: {
+          totalDays: allDays.length,
+          daysWithData,
+          averageCalories:
+            daysWithData > 0 ? Math.round(totalCalories / daysWithData) : 0,
+          totalCalories: Math.round(totalCalories),
+          averageProtein:
+            daysWithData > 0
+              ? Math.round((totalProtein / daysWithData) * 10) / 10
+              : 0,
+          averageCarbs:
+            daysWithData > 0
+              ? Math.round((totalCarbs / daysWithData) * 10) / 10
+              : 0,
+          averageFat:
+            daysWithData > 0
+              ? Math.round((totalFat / daysWithData) * 10) / 10
+              : 0,
+        },
+      };
     } catch (error) {
-      this.logger.error('Error in getMonthView:', error.stack);
+      this.logger.error("Error in getMonthView:", error.stack);
       // Return empty calendar data to prevent 500 error
       return {
         month,
@@ -213,7 +233,10 @@ export class CalendarService {
     }
   }
 
-  async getWeekView(startDate: string, goals?: NutritionGoals): Promise<WeekData> {
+  async getWeekView(
+    startDate: string,
+    goals?: NutritionGoals,
+  ): Promise<WeekData> {
     const start = startOfWeek(new Date(startDate));
     const end = endOfWeek(new Date(startDate));
 
@@ -223,25 +246,27 @@ export class CalendarService {
         date: Between(start, end),
         userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
-      relations: ['foods', 'foods.food'],
-      order: { date: 'ASC', time: 'ASC' },
+      relations: ["foods", "foods.food"],
+      order: { date: "ASC", time: "ASC" },
     });
 
     // Group meals by date
     const mealsByDate = new Map<string, Meal[]>();
-    meals.forEach(meal => {
-      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
+    meals.forEach((meal) => {
+      const dateKey = format(new Date(meal.date), "yyyy-MM-dd");
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
       mealsByDate.get(dateKey)!.push(meal);
     });
 
-    const weeklyNutrition = await this.nutritionService.getWeeklyNutrition(format(start, 'yyyy-MM-dd'));
-    
-    const calendarDays: CalendarDay[] = weeklyNutrition.days.map(day => {
+    const weeklyNutrition = await this.nutritionService.getWeeklyNutrition(
+      format(start, "yyyy-MM-dd"),
+    );
+
+    const calendarDays: CalendarDay[] = weeklyNutrition.days.map((day) => {
       const dayMeals = mealsByDate.get(day.date) || [];
-      
+
       const calendarDay: CalendarDay = {
         date: day.date,
         totalCalories: Math.round(day.calories),
@@ -252,7 +277,7 @@ export class CalendarService {
         mealCount: day.mealCount,
         hasData: day.mealCount > 0,
         dayOfWeek: new Date(day.date).getDay(),
-        meals: dayMeals.map(meal => ({
+        meals: dayMeals.map((meal) => ({
           id: meal.id,
           name: meal.name,
           category: meal.category,
@@ -274,7 +299,7 @@ export class CalendarService {
       return calendarDay;
     });
 
-    const daysWithData = calendarDays.filter(day => day.hasData).length;
+    const daysWithData = calendarDays.filter((day) => day.hasData).length;
 
     return {
       startDate: weeklyNutrition.startDate,
@@ -311,13 +336,13 @@ export class CalendarService {
         date: Between(start, end),
         userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
-      select: ['date'],
-      order: { date: 'ASC' },
+      select: ["date"],
+      order: { date: "ASC" },
     });
 
     // Get unique dates with meals
     const datesWithMeals = new Set(
-      meals.map(meal => format(meal.date, 'yyyy-MM-dd'))
+      meals.map((meal) => format(meal.date, "yyyy-MM-dd")),
     );
 
     // Calculate streaks
@@ -329,7 +354,7 @@ export class CalendarService {
     // Check from end date backwards for current streak
     const currentDate = new Date(end);
     while (currentDate >= start) {
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
+      const dateKey = format(currentDate, "yyyy-MM-dd");
       if (datesWithMeals.has(dateKey)) {
         currentStreak++;
         streakDates.unshift(dateKey);
@@ -342,7 +367,7 @@ export class CalendarService {
     // Find longest streak in the period
     const allDays = eachDayOfInterval({ start, end });
     for (const day of allDays) {
-      const dateKey = format(day, 'yyyy-MM-dd');
+      const dateKey = format(day, "yyyy-MM-dd");
       if (datesWithMeals.has(dateKey)) {
         tempStreak++;
         longestStreak = Math.max(longestStreak, tempStreak);
@@ -361,7 +386,10 @@ export class CalendarService {
   /**
    * Get calendar stats for a date range
    */
-  async getCalendarStats(startDate: string, endDate: string): Promise<{
+  async getCalendarStats(
+    startDate: string,
+    endDate: string,
+  ): Promise<{
     totalDays: number;
     daysWithData: number;
     completionRate: number;
@@ -378,8 +406,8 @@ export class CalendarService {
         date: Between(start, end),
         userId: TEMP_USER_ID, // TODO: This should come from auth context
       },
-      relations: ['foods', 'foods.food'],
-      order: { date: 'ASC' },
+      relations: ["foods", "foods.food"],
+      order: { date: "ASC" },
     });
 
     // Group by date
@@ -388,7 +416,7 @@ export class CalendarService {
     let totalMeals = 0;
 
     for (const meal of meals) {
-      const dateKey = format(new Date(meal.date), 'yyyy-MM-dd');
+      const dateKey = format(new Date(meal.date), "yyyy-MM-dd");
       if (!mealsByDate.has(dateKey)) {
         mealsByDate.set(dateKey, []);
       }
@@ -408,8 +436,8 @@ export class CalendarService {
     const completionRate = Math.round((daysWithData / totalDays) * 100);
 
     // Find most and least active days
-    let mostActiveDay = '';
-    let leastActiveDay = '';
+    let mostActiveDay = "";
+    let leastActiveDay = "";
     let maxMeals = 0;
     let minMeals = Infinity;
 
@@ -428,8 +456,12 @@ export class CalendarService {
       totalDays,
       daysWithData,
       completionRate,
-      averageCalories: daysWithData > 0 ? Math.round(totalCalories / daysWithData) : 0,
-      averageMealsPerDay: daysWithData > 0 ? Math.round((totalMeals / daysWithData) * 10) / 10 : 0,
+      averageCalories:
+        daysWithData > 0 ? Math.round(totalCalories / daysWithData) : 0,
+      averageMealsPerDay:
+        daysWithData > 0
+          ? Math.round((totalMeals / daysWithData) * 10) / 10
+          : 0,
       mostActiveDay,
       leastActiveDay,
     };

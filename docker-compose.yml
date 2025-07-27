@@ -1,15 +1,53 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: foodtracker-db
+    environment:
+      POSTGRES_DB: foodtracker
+      POSTGRES_USER: ${POSTGRES_USER:-foodtracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodtracker_secure_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.utf8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foodtracker} -d foodtracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
+    env_file:
+      - .env.docker
     build:
       context: .
       dockerfile: ./backend/Dockerfile
     ports:
       - "3002:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_PATH=/app/data/foodtracker.db
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=foodtracker
+      - DATABASE_USER=${POSTGRES_USER:-foodtracker}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD:-foodtracker_secure_password}
       - FRONTEND_URL=http://localhost:3003
+      - JWT_SECRET=${JWT_SECRET:-ZnJhbmNvaXNfbGVfZ3JhbmRfZGV2ZWxvcHBlcl9zZWNyZXRfa2V5XzMyX2NoYXJz}
+      - JWT_EXPIRES_IN=24h
+      - CORS_ORIGIN=http://localhost:3003
+      - OPENFOODFACTS_API_URL=https://world.openfoodfacts.org/api/v0
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=100
+      - LOG_LEVEL=info
+      - HEALTH_CHECK_ENDPOINT=/health
     volumes:
       - ./data:/app/data
     restart: unless-stopped
@@ -37,6 +75,8 @@ services:
       retries: 3
 
 volumes:
+  postgres_data:
+    driver: local
   data:
     driver: local
 
