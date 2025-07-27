@@ -2,52 +2,37 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
-import { NutritionModule } from './nutrition.module';
-import { MealsModule } from '../meals/meals.module';
-import { FoodsModule } from '../foods/foods.module';
+import { JwtService } from '@nestjs/jwt';
+import { TestAppModule } from '../../test/test-app.module';
+import { TestAuthHelper } from '../../test/test-auth.helper';
 import { User } from '../users/entities/user.entity';
 import { Meal, MealCategory } from '../meals/entities/meal.entity';
 import { Food, FoodSource } from '../foods/entities/food.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
 import { DailyNutrition } from './entities/daily-nutrition.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { fixtures } from '../../test/fixtures';
 
 describe('NutritionController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
-  let user: User;
+  let jwtService: JwtService;
+  let testUser: User;
+  let authToken: string;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [User, Meal, Food, FoodEntry, DailyNutrition],
-          synchronize: true,
-          logging: false,
-        }),
-        NutritionModule,
-        MealsModule,
-        FoodsModule,
-      ],
+      imports: [TestAppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
 
-    // Seed test data
-    const userRepo = dataSource.getRepository(User);
-    user = await userRepo.save({
-      email: 'test@example.com',
-      name: 'Test User',
-      password: 'test123',
-    });
+    // Create test user
+    testUser = await TestAuthHelper.createTestUser(dataSource);
+    authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
     const foodRepo = dataSource.getRepository(Food);
     const apple = await foodRepo.save({
@@ -72,14 +57,14 @@ describe('NutritionController Integration', () => {
       category: MealCategory.BREAKFAST,
       date: new Date('2024-01-15'),
       time: '08:00',
-      userId: user.id,
+      userId: testUser.id,
     });
     const lunch = await mealRepo.save({
       name: 'Lunch',
       category: MealCategory.LUNCH,
       date: new Date('2024-01-15'),
       time: '12:30',
-      userId: user.id,
+      userId: testUser.id,
     });
 
     const foodEntryRepo = dataSource.getRepository(FoodEntry);
@@ -125,6 +110,7 @@ describe('NutritionController Integration', () => {
     it('should return daily nutrition summary', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/daily?date=2024-01-15')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
@@ -144,6 +130,7 @@ describe('NutritionController Integration', () => {
     it('should return empty nutrition for day with no meals', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/daily?date=2024-01-20')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
@@ -161,6 +148,7 @@ describe('NutritionController Integration', () => {
     it('should return weekly nutrition summary', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/weekly?startDate=2024-01-15')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
@@ -188,6 +176,7 @@ describe('NutritionController Integration', () => {
     it('should return monthly nutrition data', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/monthly?month=1&year=2024')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
@@ -213,6 +202,7 @@ describe('NutritionController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .post('/nutrition/goals?date=2024-01-15')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(goals)
         .expect(201);
 
@@ -242,6 +232,7 @@ describe('NutritionController Integration', () => {
     it('should return macro breakdown for a date', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/macros?date=2024-01-15')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
@@ -278,7 +269,7 @@ describe('NutritionController Integration', () => {
           category: MealCategory.BREAKFAST,
           date: new Date(`2024-01-${10 + i}`),
           time: '08:00',
-          userId: user.id,
+          userId: testUser.id,
         });
 
         await foodEntryRepo.save({
@@ -297,6 +288,7 @@ describe('NutritionController Integration', () => {
     it('should return nutrition trends for date range', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/trends?startDate=2024-01-10&endDate=2024-01-20&period=daily')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(Array.isArray(response.body)).toBe(true);
@@ -316,6 +308,7 @@ describe('NutritionController Integration', () => {
     it('should return comprehensive nutrition summary', async () => {
       const response = await request(app.getHttpServer())
         .get('/nutrition/summary?startDate=2024-01-01&endDate=2024-01-31')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({

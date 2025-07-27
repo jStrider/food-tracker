@@ -33,6 +33,9 @@ export class Meal {
   @Column({ default: false })
   isCustomCategory: boolean; // If true, category was manually set
 
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
+
   @Column()
   userId: string;
 

@@ -1,8 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/authenticated-test';
 
 test.describe('Homepage', () => {
   test.beforeEach(async ({ page }) => {
+    // Already authenticated via context
+    // Navigate to homepage
     await page.goto('/');
+    
+    // Wait for the page to be ready
+    await page.waitForLoadState('networkidle');
   });
 
   test('has title', async ({ page }) => {

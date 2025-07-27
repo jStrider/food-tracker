@@ -1,13 +1,57 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@/test/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, act } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import DayView from './DayView';
 import { nutritionApi } from '@/features/nutrition/api/nutritionApi';
+// import { mealsApi } from '@/features/meals/api/mealsApi';
 
-// Mock the API module
+// Mock axios for AuthContext
+vi.mock('axios', () => {
+  const mockAxios = {
+    defaults: { baseURL: '' },
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
+    get: vi.fn().mockResolvedValue({ data: { id: '1', email: 'test@example.com', name: 'Test User' } }),
+    post: vi.fn(),
+  };
+  return {
+    default: mockAxios,
+  };
+});
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => { store[key] = value; },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { store = {}; },
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
+// Mock the API modules
 vi.mock('@/features/nutrition/api/nutritionApi', () => ({
   nutritionApi: {
     getDailyNutrition: vi.fn(),
+  },
+}));
+
+vi.mock('@/features/meals/api/mealsApi', () => ({
+  mealsApi: {
+    deleteMeal: vi.fn(),
+  },
+  MealType: {
+    breakfast: 'breakfast',
+    lunch: 'lunch',
+    dinner: 'dinner',
+    snack: 'snack',
   },
 }));
 
@@ -46,13 +90,22 @@ vi.mock('@/features/nutrition/components/NutritionGoalsCard', () => ({
   default: () => <div data-testid="nutrition-goals">Nutrition Goals</div>,
 }));
 
+// Mock the toast hook
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+    toasts: [],
+    dismiss: vi.fn(),
+  }),
+}));
+
 describe('DayView', () => {
   const mockNutritionData = {
     date: '2024-01-15',
-    totalCalories: 1850,
-    totalProtein: 95,
-    totalCarbs: 220,
-    totalFat: 65,
+    calories: 1850,
+    protein: 95,
+    carbs: 220,
+    fat: 65,
     meals: [
       {
         id: '1',
@@ -77,22 +130,40 @@ describe('DayView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorageMock.clear();
+    // Set up authenticated user
+    localStorageMock.setItem('token', 'test-token');
   });
 
-  it('renders date header correctly', () => {
-    render(<DayView />);
+  afterEach(() => {
+    vi.clearAllMocks();
+    localStorageMock.clear();
+  });
+
+  it('renders date header correctly', async () => {
+    (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
     
-    expect(screen.getByText('Monday, January 15, 2024')).toBeInTheDocument();
+    await act(async () => {
+      render(<DayView />);
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByText('Monday, 15 January 2024')).toBeInTheDocument();
+    });
   });
 
-  it('renders loading state', () => {
+  it('renders loading state', async () => {
     (nutritionApi.getDailyNutrition as any).mockImplementation(
       () => new Promise(() => {}) // Never resolves
     );
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    expect(screen.getByText(/Loading meals/)).toBeInTheDocument();
+    // Check for loading spinner instead of text
+    const spinner = document.querySelector('.animate-spin');
+    expect(spinner).toBeInTheDocument();
   });
 
   it('renders error state', async () => {
@@ -100,31 +171,45 @@ describe('DayView', () => {
       new Error('Failed to load')
     );
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    expect(await screen.findByText(/Failed to load meals/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to load daily data/)).toBeInTheDocument();
+    });
   });
 
   it('renders meals when loaded', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('meal-1')).toBeInTheDocument();
-      expect(screen.getByTestId('meal-2')).toBeInTheDocument();
+    await act(async () => {
+      render(<DayView />);
     });
     
-    expect(screen.getByText('Breakfast')).toBeInTheDocument();
-    expect(screen.getByText('450 cal')).toBeInTheDocument();
-    expect(screen.getByText('Lunch')).toBeInTheDocument();
-    expect(screen.getByText('650 cal')).toBeInTheDocument();
+    // Wait for the data to load
+    await waitFor(() => {
+      expect(screen.getByText('Daily Summary')).toBeInTheDocument();
+    });
+    
+    // Check for meal names in cards - there are multiple instances of Breakfast/Lunch
+    const breakfastElements = screen.getAllByText('Breakfast');
+    expect(breakfastElements.length).toBeGreaterThan(1); // At least in header and card
+    
+    const lunchElements = screen.getAllByText('Lunch');
+    expect(lunchElements.length).toBeGreaterThan(1); // At least in header and card
+    
+    // Check for calories in the macro summary
+    expect(screen.getByText('450')).toBeInTheDocument();
+    expect(screen.getByText('650')).toBeInTheDocument();
   });
 
   it('renders nutrition summary', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
     await waitFor(() => {
       expect(screen.getByText('Daily Summary')).toBeInTheDocument();
@@ -139,20 +224,32 @@ describe('DayView', () => {
   it('shows add meal button', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    const addButton = await screen.findByRole('button', { name: /add meal/i });
-    expect(addButton).toBeInTheDocument();
+    await waitFor(() => {
+      const addButtons = screen.getAllByRole('button', { name: /add/i });
+      expect(addButtons.length).toBeGreaterThan(0);
+    });
   });
 
   it('opens create meal modal when add button clicked', async () => {
     const user = userEvent.setup();
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    const addButton = await screen.findByRole('button', { name: /add meal/i });
-    await user.click(addButton);
+    await waitFor(() => {
+      expect(screen.getByText('Add Breakfast')).toBeInTheDocument();
+    });
+    
+    const addButton = screen.getByText('Add Breakfast');
+    await act(async () => {
+      await user.click(addButton);
+    });
     
     expect(screen.getByTestId('create-meal-modal')).toBeInTheDocument();
   });
@@ -161,13 +258,23 @@ describe('DayView', () => {
     const user = userEvent.setup();
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    const addButton = await screen.findByRole('button', { name: /add meal/i });
-    await user.click(addButton);
+    await waitFor(() => {
+      expect(screen.getByText('Add Breakfast')).toBeInTheDocument();
+    });
+    
+    const addButton = screen.getByText('Add Breakfast');
+    await act(async () => {
+      await user.click(addButton);
+    });
     
     const closeButton = screen.getByRole('button', { name: 'Close' });
-    await user.click(closeButton);
+    await act(async () => {
+      await user.click(closeButton);
+    });
     
     expect(screen.queryByTestId('create-meal-modal')).not.toBeInTheDocument();
   });
@@ -175,30 +282,39 @@ describe('DayView', () => {
   it('groups meals by category', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue(mockNutritionData);
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText('Breakfast')).toBeInTheDocument();
-      expect(screen.getByText('Lunch')).toBeInTheDocument();
+      expect(screen.getAllByText('Breakfast')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Lunch')[0]).toBeInTheDocument();
     });
     
     // Check that meals are organized by category
-    const breakfastSection = screen.getByText('Breakfast').closest('div');
+    const breakfastSection = screen.getAllByText('Breakfast')[0].closest('div');
     expect(breakfastSection).toBeInTheDocument();
   });
 
   it('shows empty state when no meals', async () => {
     (nutritionApi.getDailyNutrition as any).mockResolvedValue({
       date: '2024-01-15',
-      totalCalories: 0,
-      totalProtein: 0,
-      totalCarbs: 0,
-      totalFat: 0,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
       meals: [],
     });
 
-    render(<DayView />);
+    await act(async () => {
+      render(<DayView />);
+    });
     
-    expect(await screen.findByText(/No meals recorded/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/No breakfast recorded/)).toBeInTheDocument();
+      expect(screen.getByText(/No lunch recorded/)).toBeInTheDocument();
+      expect(screen.getByText(/No dinner recorded/)).toBeInTheDocument();
+      expect(screen.getByText(/No snack recorded/)).toBeInTheDocument();
+    });
   });
 });

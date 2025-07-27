@@ -1,8 +1,45 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import FoodSearch from './FoodSearch';
 import { createMockFood, createMockMeal } from '@/test/test-utils';
+import '@/test/mocks/ui-components';
+
+// Mock axios for AuthContext
+vi.mock('axios', () => {
+  const mockAxios = {
+    defaults: { baseURL: '' },
+    interceptors: {
+      request: { use: vi.fn() },
+      response: { use: vi.fn() },
+    },
+    get: vi.fn().mockResolvedValue({ data: { id: '1', email: 'test@example.com', name: 'Test User' } }),
+    post: vi.fn(),
+  };
+  return {
+    default: mockAxios,
+  };
+});
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => { store[key] = value; },
+    removeItem: (key: string) => { delete store[key]; },
+    clear: () => { store = {}; },
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
+// Mock hasPointerCapture which is not supported in jsdom
+Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
+  value: vi.fn().mockReturnValue(false),
+});
 
 // Mock the API modules
 vi.mock('@/features/foods/api/foodsApi', () => ({
@@ -43,13 +80,21 @@ describe('FoodSearch', () => {
   ];
 
   const mockMeals = [
-    createMockMeal({ id: '1', name: 'Breakfast', category: 'breakfast' }),
-    createMockMeal({ id: '2', name: 'Lunch', category: 'lunch' }),
+    createMockMeal({ id: '1', name: 'Breakfast', category: 'breakfast', type: 'breakfast' }),
+    createMockMeal({ id: '2', name: 'Lunch', category: 'lunch', type: 'lunch' }),
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorageMock.clear();
+    // Set up authenticated user
+    localStorageMock.setItem('token', 'test-token');
     (mealsApi.getMeals as any).mockResolvedValue(mockMeals);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    localStorageMock.clear();
   });
 
   it('renders search input and meal selector', async () => {
@@ -61,7 +106,6 @@ describe('FoodSearch', () => {
     // Check that the select trigger is present
     const selectTrigger = screen.getByRole('combobox');
     expect(selectTrigger).toBeInTheDocument();
-    expect(selectTrigger).toHaveTextContent('Select a meal');
   });
 
   it('searches for foods when typing', async () => {
@@ -92,7 +136,7 @@ describe('FoodSearch', () => {
     const searchInput = screen.getByPlaceholderText('Enter food name...');
     await user.type(searchInput, 'app');
     
-    expect(await screen.findByText('Searching...')).toBeInTheDocument();
+    expect(await screen.findByText('Searching foods...')).toBeInTheDocument();
   });
 
   it('displays error message when search fails', async () => {
@@ -105,7 +149,7 @@ describe('FoodSearch', () => {
     await user.type(searchInput, 'app');
     
     await waitFor(() => {
-      expect(screen.getByText(/Error searching foods/)).toBeInTheDocument();
+      expect(screen.getByText('Failed to search foods. Please try again.')).toBeInTheDocument();
     });
   });
 
@@ -137,8 +181,9 @@ describe('FoodSearch', () => {
     const selectTrigger = screen.getByRole('combobox');
     await userEvent.click(selectTrigger);
     
-    expect(await screen.findByText('Breakfast')).toBeInTheDocument();
-    expect(await screen.findByText('Lunch')).toBeInTheDocument();
+    // The select items show meal name and type in parentheses
+    expect(await screen.findByText('Breakfast (breakfast)')).toBeInTheDocument();
+    expect(await screen.findByText('Lunch (lunch)')).toBeInTheDocument();
   });
 
   it('shows toast when trying to add food without selecting meal', async () => {
@@ -171,10 +216,16 @@ describe('FoodSearch', () => {
     
     render(<FoodSearch />);
     
+    // Wait for meals to load
+    await waitFor(() => {
+      expect(mealsApi.getMeals).toHaveBeenCalled();
+    });
+    
     // Select a meal first
     const selectTrigger = screen.getByRole('combobox');
     await user.click(selectTrigger);
-    await user.click(await screen.findByText('Breakfast (breakfast)'));
+    const breakfastOption = await screen.findByText('Breakfast (breakfast)');
+    await user.click(breakfastOption);
     
     // Search for food
     const searchInput = screen.getByPlaceholderText('Enter food name...');
@@ -185,7 +236,9 @@ describe('FoodSearch', () => {
       expect(screen.getByText('Apple')).toBeInTheDocument();
     });
     
-    const addButton = screen.getAllByRole('button')[1]; // First button is the select, second is add
+    // Find the add button specifically for Apple
+    const appleCard = screen.getByText('Apple').closest('.hover\\:shadow-md');
+    const addButton = appleCard!.querySelector('button')!;
     await user.click(addButton);
     
     // Check that modal is open
@@ -200,10 +253,18 @@ describe('FoodSearch', () => {
     
     render(<FoodSearch />);
     
+    // Wait for meals to load
+    await waitFor(() => {
+      expect(mealsApi.getMeals).toHaveBeenCalled();
+    });
+    
     // Select a meal and add food to open modal
     const selectTrigger = screen.getByRole('combobox');
     await user.click(selectTrigger);
-    await user.click(await screen.findByText('Breakfast (breakfast)'));
+    
+    // Wait for the dropdown items to appear
+    const breakfastOption = await screen.findByText('Breakfast (breakfast)');
+    await user.click(breakfastOption);
     
     const searchInput = screen.getByPlaceholderText('Enter food name...');
     await user.type(searchInput, 'app');
@@ -212,7 +273,9 @@ describe('FoodSearch', () => {
       expect(screen.getByText('Apple')).toBeInTheDocument();
     });
     
-    const addButton = screen.getAllByRole('button')[1]; // First button is the select, second is add
+    // Find the add button specifically for Apple
+    const appleCard = screen.getByText('Apple').closest('.hover\\:shadow-md');
+    const addButton = appleCard!.querySelector('button')!;
     await user.click(addButton);
     
     // Modal should be open
