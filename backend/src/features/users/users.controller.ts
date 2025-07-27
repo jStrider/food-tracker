@@ -1,11 +1,21 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Post('init-default')
+  @ApiOperation({ summary: 'Create default user for development' })
+  @ApiResponse({ status: 201, description: 'Default user created successfully' })
+  @ApiResponse({ status: 200, description: 'Default user already exists' })
+  async initDefaultUser() {
+    return this.usersService.initDefaultUser();
+  }
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
