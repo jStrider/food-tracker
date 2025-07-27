@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
-  ArrowLeft, 
   Plus, 
   Edit, 
   Trash2, 
@@ -182,17 +181,9 @@ const DayView: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/calendar">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Calendar
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-semibold">
-            {formatCalendarDate(date!)}
-          </h1>
-        </div>
+        <h1 className="text-2xl font-semibold">
+          {formatCalendarDate(date!)}
+        </h1>
       </div>
 
       {/* Daily Summary with Enhanced Visuals */}

@@ -35,7 +35,9 @@ COPY frontend/tailwind.config.js ./tailwind.config.js
 COPY frontend/postcss.config.js ./postcss.config.js
 COPY frontend/tsconfig*.json ./
 
-# Build application
+# Build application with API URL
+ARG VITE_API_URL=http://localhost:3001
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Production image with nginx
