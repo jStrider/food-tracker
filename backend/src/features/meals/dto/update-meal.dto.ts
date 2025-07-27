@@ -11,6 +11,7 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { MealCategory } from "../entities/meal.entity";
+import { CreateFoodEntryDto } from "./create-meal.dto";
 
 export class UpdateMealDto {
   @IsOptional()

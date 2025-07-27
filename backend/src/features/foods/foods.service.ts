@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, ILike } from "typeorm";
 import { Food } from "./entities/food.entity";
 import { FoodEntry } from "./entities/food-entry.entity";
 import { OpenFoodFactsService } from "./open-food-facts.service";

@@ -5,6 +5,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, DataSource, QueryRunner } from "typeorm";
 import { Meal, MealCategory } from "./entities/meal.entity";
 import { FoodEntry } from "../foods/entities/food-entry.entity";
 import { Food } from "../foods/entities/food.entity";
