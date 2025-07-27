@@ -133,6 +133,7 @@ describe.skip('DayView', () => {
     localStorageMock.clear();
     // Set up authenticated user
     localStorageMock.setItem('token', 'test-token');
+    localStorageMock.setItem('refreshToken', 'test-refresh-token');
   });
 
   afterEach(() => {

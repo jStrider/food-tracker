@@ -31,9 +31,13 @@ test.describe('Essential Login Tests', () => {
       return;
     }
     
-    // Check if we have a token in localStorage after successful login
-    const token = await page.evaluate(() => localStorage.getItem('token'));
-    console.log('Token after login:', token ? 'exists' : 'missing');
+    // Check if we have tokens in localStorage after successful login
+    const [accessToken, refreshToken] = await page.evaluate(() => [
+      localStorage.getItem('token'),
+      localStorage.getItem('refreshToken')
+    ]);
+    console.log('Access token after login:', accessToken ? 'exists' : 'missing');
+    console.log('Refresh token after login:', refreshToken ? 'exists' : 'missing');
     
     // Wait a bit for React to process the state change
     await page.waitForTimeout(1000);
@@ -110,8 +114,12 @@ test.describe('Essential Login Tests', () => {
     await expect(page).toHaveURL(urlBeforeRefresh);
     await expect(page.getByRole('navigation')).toBeVisible();
     
-    // Verify token is still in localStorage
-    const token = await page.evaluate(() => localStorage.getItem('token'));
-    expect(token).toBeTruthy();
+    // Verify tokens are still in localStorage
+    const [accessToken, refreshToken] = await page.evaluate(() => [
+      localStorage.getItem('token'),
+      localStorage.getItem('refreshToken')
+    ]);
+    expect(accessToken).toBeTruthy();
+    expect(refreshToken).toBeTruthy();
   });
 });

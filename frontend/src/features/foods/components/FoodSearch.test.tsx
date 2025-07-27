@@ -89,6 +89,7 @@ describe('FoodSearch', () => {
     localStorageMock.clear();
     // Set up authenticated user
     localStorageMock.setItem('token', 'test-token');
+    localStorageMock.setItem('refreshToken', 'test-refresh-token');
     (mealsApi.getMeals as any).mockResolvedValue(mockMeals);
   });
 
