@@ -3,6 +3,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Create a custom render function that includes all providers
 const createTestQueryClient = () =>
@@ -24,10 +25,12 @@ const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-        <Toaster />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          {children}
+          <Toaster />
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

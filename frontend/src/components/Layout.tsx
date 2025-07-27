@@ -1,14 +1,20 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Search, Home, BarChart3 } from 'lucide-react';
+import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Calendar, Search, Home, BarChart3, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navigation = [
     { name: 'Calendar', href: '/', icon: Calendar },
@@ -49,13 +55,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </Button>
                 );
               })}
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {user?.name || 'My Account'}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
       </nav>
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {children}
+        <Outlet />
       </main>
     </div>
   );

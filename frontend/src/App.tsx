@@ -1,8 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import HomePage from '@/pages/HomePage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
 import CalendarView from '@/features/calendar/components/CalendarView';
 import WeekView from '@/features/calendar/components/WeekView';
 import FoodSearch from '@/features/foods/components/FoodSearch';
@@ -20,20 +24,45 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-background">
-          <Layout>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-background">
             <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/calendar" element={<CalendarView />} />
-              <Route path="/day/:date" element={<CalendarView />} />
-              <Route path="/week/:date?" element={<WeekView />} />
-              <Route path="/foods" element={<FoodSearch />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              
+              <Route element={<Layout />}>
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <ProtectedRoute>
+                    <CalendarView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/day/:date" element={
+                  <ProtectedRoute>
+                    <CalendarView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/week/:date?" element={
+                  <ProtectedRoute>
+                    <WeekView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/foods" element={
+                  <ProtectedRoute>
+                    <FoodSearch />
+                  </ProtectedRoute>
+                } />
+              </Route>
             </Routes>
-          </Layout>
-          <Toaster />
-        </div>
-      </Router>
+            <Toaster />
+          </div>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

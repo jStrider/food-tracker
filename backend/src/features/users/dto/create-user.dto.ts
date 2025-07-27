@@ -9,6 +9,10 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
+  password?: string;
+
+  @IsOptional()
+  @IsString()
   timezone?: string;
 
   @IsOptional()

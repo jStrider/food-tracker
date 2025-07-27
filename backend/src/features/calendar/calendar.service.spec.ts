@@ -6,6 +6,7 @@ import { Meal } from '../meals/entities/meal.entity';
 import { NutritionService } from '../nutrition/nutrition.service';
 import { fixtures } from '../../test/fixtures';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format } from 'date-fns';
+import { TEMP_USER_ID } from '../../common/constants/temp-user.constant';
 
 describe('CalendarService', () => {
   let service: CalendarService;
@@ -88,6 +89,7 @@ describe('CalendarService', () => {
       expect(mockMealsRepository.find).toHaveBeenCalledWith({
         where: {
           date: Between(startDate, endDate),
+          userId: TEMP_USER_ID,
         },
         relations: ['foods', 'foods.food'],
         order: { date: 'ASC' },
@@ -203,6 +205,7 @@ describe('CalendarService', () => {
       };
 
       mockNutritionService.getWeeklyNutrition.mockResolvedValue(mockWeeklyNutrition);
+      mockMealsRepository.find.mockResolvedValue([]);
 
       const result = await service.getWeekView(startDate);
 
@@ -260,6 +263,7 @@ describe('CalendarService', () => {
       };
 
       mockNutritionService.getWeeklyNutrition.mockResolvedValue(mockWeeklyNutrition);
+      mockMealsRepository.find.mockResolvedValue([]);
 
       const result = await service.getWeekView('2024-01-15', goals);
 

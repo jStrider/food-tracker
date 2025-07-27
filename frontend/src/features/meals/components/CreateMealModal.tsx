@@ -121,7 +121,6 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       ...(type && { category: type }), // Only include category if selected
       date: formattedDate,
       ...(time && { time }), // Only include time if provided
-      userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242', // TODO: Get from auth context
     });
   };
 
