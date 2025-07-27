@@ -11,12 +11,17 @@ describe('Button', () => {
 
   it('handles click events', async () => {
     const handleClick = vi.fn();
+    // Use real timers for userEvent to prevent timeouts
+    vi.useRealTimers();
     const user = userEvent.setup();
     
     render(<Button onClick={handleClick}>Click me</Button>);
     
     await user.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
+    
+    // Restore fake timers
+    vi.useFakeTimers();
   });
 
   it('can be disabled', () => {

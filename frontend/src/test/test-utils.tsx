@@ -11,7 +11,11 @@ const createTestQueryClient = () =>
     defaultOptions: {
       queries: {
         retry: false,
-        cacheTime: 0,
+        staleTime: 0,
+        gcTime: 0,
+      },
+      mutations: {
+        retry: false,
       },
     },
   });
@@ -26,7 +30,12 @@ const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           {children}
           <Toaster />
         </BrowserRouter>
