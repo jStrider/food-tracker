@@ -27,4 +27,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Run E2E tests if containers are running
+if [ -f "./frontend/scripts/test-e2e-ci.sh" ]; then
+  ./frontend/scripts/test-e2e-ci.sh
+  if [ $? -ne 0 ]; then
+    echo "💡 E2E tests failed. You can still commit, but please fix the tests."
+    # Don't fail on E2E tests for now, just warn
+  fi
+fi
+
 echo "✅ All checks passed!"

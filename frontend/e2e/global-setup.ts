@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const API_URL = process.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = process.env.VITE_API_URL || 'http://localhost:3002';
 
 async function globalSetup(config: FullConfig) {
   // Create auth directory if it doesn't exist
@@ -33,7 +33,7 @@ async function globalSetup(config: FullConfig) {
     
     // Check if backend is available
     try {
-      const response = await page.goto('http://localhost:3001/api/health', { 
+      const response = await page.goto('http://localhost:3002/api/health', { 
         timeout: 5000,
         waitUntil: 'domcontentloaded' 
       });
@@ -58,7 +58,7 @@ async function globalSetup(config: FullConfig) {
         ],
         origins: [
           {
-            origin: "http://localhost:3000",
+            origin: "http://localhost:3003",
             localStorage: [
               {
                 name: "token",
@@ -75,20 +75,20 @@ async function globalSetup(config: FullConfig) {
     }
     
     // Navigate to login page
-    await page.goto('http://localhost:3000/login');
+    await page.goto('http://localhost:3003/login');
     
     // Wait for login form to be ready
     await page.waitForSelector('#email', { state: 'visible', timeout: 30000 });
     
     // Fill login form with test credentials
-    await page.fill('#email', 'test@example.com');
-    await page.fill('#password', 'password123');
+    await page.fill('#email', 'joe@joe.joe');
+    await page.fill('#password', '09111993');
     
     // Submit form
     await page.click('button[type="submit"]');
     
     // Wait for successful login - should redirect to home page
-    await page.waitForURL('http://localhost:3000/', { timeout: 15000 });
+    await page.waitForURL('http://localhost:3003/', { timeout: 15000 });
     
     // Wait for the page to be fully loaded
     await page.waitForLoadState('networkidle');
