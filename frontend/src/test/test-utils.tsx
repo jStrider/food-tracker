@@ -12,7 +12,7 @@ const createTestQueryClient = () =>
       queries: {
         retry: false,
         staleTime: 0,
-        gcTime: 0,
+        cacheTime: 0,
       },
       mutations: {
         retry: false,

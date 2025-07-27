@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi, beforeEach, afterAll } from 'vitest';
-import React from 'react';
 
 // Mock AuthContext to prevent API calls and state update issues
 vi.mock('@/contexts/AuthContext', async () => {
