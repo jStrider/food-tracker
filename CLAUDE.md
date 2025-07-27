@@ -16,6 +16,16 @@
 **Status**: ✅ Backend COMPLETE (NestJS, OpenFoodFacts, MCP server)  
 **Focus**: 🚀 Frontend React development + Final integration
 
+### 📋 IMPORTANT: Task Management
+**ALWAYS** update `/TODO.md` when:
+- Starting new features or fixes
+- Completing tasks (mark as done)
+- Discovering new bugs or improvements needed
+- Planning future work
+- Adding technical debt items
+
+The TODO.md file is the single source of truth for project tasks and should be kept up-to-date throughout development.
+
 ### 🔒 USER REQUIREMENTS
 **CRITICAL**: NO AI/LLM traces in commits, code, or documentation
 - ❌ JAMAIS mentionner Claude, AI, LLM dans les commits
@@ -23,6 +33,10 @@
 - ✅ Messages de commit naturels et professionnels
 - ✅ Code et commentaires comme écrits par un développeur humain
 - ✅ Documentation technique standard sans référence AI
+
+### Workflow Guidance
+- Lorsque tu identifie des ameliorations possibles sur le projet, fais intervenir un subagent pour identifier le sujet et créer une tache associé dans la TODO.md
+- Lorsqu'une modification doit être fait dans la TODO, assure toi que ce soit repercuté sur github
 
 ### Tech Stack
 - **Frontend**: React + Tailwind + shadcn/ui + Calendar views

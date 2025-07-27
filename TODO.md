@@ -37,6 +37,12 @@
 - [ ] Meal templates/favorites
 - [ ] Barcode scanning for food items
 
+### DatePicker Implementation
+- [ ] Install date-fns and date-fns-tz
+- [ ] Create timezone-aware DatePicker component at `/src/components/ui/DatePicker.tsx`
+- [ ] Add date utilities at `/src/utils/date.ts`
+- [ ] Integrate with meal forms and calendar
+
 ### Calendar Features
 - [ ] Drag and drop meals between days
 - [ ] Copy meals to other dates
@@ -56,6 +62,12 @@
 - [ ] Implement integration tests
 - [ ] Set up CI/CD pipeline
 - [ ] Add API documentation (Swagger)
+  - [ ] Configure Swagger in main.ts
+  - [ ] Add @ApiTags decorators to controllers
+  - [ ] Add @ApiProperty decorators to DTOs
+  - [ ] Document all endpoints with @ApiOperation
+  - [ ] Add authentication documentation
+  - [ ] Generate OpenAPI spec file
 - [ ] Implement caching strategy
 - [ ] Add rate limiting per user
 

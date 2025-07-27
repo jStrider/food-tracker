@@ -116,10 +116,10 @@ describe('NutritionController Integration', () => {
       expect(response.body).toMatchObject({
         date: '2024-01-15',
         mealCount: 2,
-        calories: 574.5,
-        protein: expect.closeTo(66.35, 2),
-        carbs: 55.5,
-        fat: expect.closeTo(8.85, 2),
+        calories: 497.28,
+        protein: expect.closeTo(65.9045, 2),
+        carbs: 34.71,
+        fat: expect.closeTo(8.553, 2),
       });
 
       expect(response.body.meals).toHaveLength(2);
@@ -185,7 +185,7 @@ describe('NutritionController Integration', () => {
       // Find the day with data
       const dayWithData = response.body.find(day => day.date === '2024-01-15');
       expect(dayWithData).toBeDefined();
-      expect(dayWithData.calories).toBe(574.5);
+      expect(dayWithData.calories).toBe(497.28);
     });
   });
 

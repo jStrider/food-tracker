@@ -28,7 +28,8 @@ afterEach(async () => {
 
 // Setup before each test
 beforeEach(() => {
-  vi.useFakeTimers();
+  // Don't use fake timers by default, as they cause issues with userEvent
+  // Tests that need fake timers can enable them explicitly
   // Clear any existing DOM
   document.body.innerHTML = '';
   document.head.innerHTML = '';
