@@ -22,7 +22,8 @@
     "db:generate": "typeorm migration:generate -d src/database/data-source.ts",
     "db:revert": "typeorm migration:revert -d src/database/data-source.ts",
     "db:create": "typeorm migration:create",
-    "db:show": "typeorm migration:show -d src/database/data-source.ts"
+    "db:show": "typeorm migration:show -d src/database/data-source.ts",
+    "db:seed": "ts-node src/database/seed-default-user.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^3.0.0",

@@ -10,7 +10,7 @@ import { MealsModule } from './features/meals/meals.module';
 import { FoodsModule } from './features/foods/foods.module';
 import { NutritionModule } from './features/nutrition/nutrition.module';
 import { CalendarModule } from './features/calendar/calendar.module';
-// import { AuthModule } from './features/auth/auth.module';
+import { AuthModule } from './features/auth/auth.module';
 
 // Common modules
 import { DatabaseModule } from './database/database.module';
@@ -42,7 +42,7 @@ import { HealthController } from './common/health.controller';
     ]),
     DatabaseModule,
     McpModule,
-    // AuthModule,
+    AuthModule,
     UsersModule,
     MealsModule,
     FoodsModule,
