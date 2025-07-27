@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Meal } from '../meals/entities/meal.entity';
@@ -73,6 +73,8 @@ export interface WeekData {
 
 @Injectable()
 export class CalendarService {
+  private readonly logger = new Logger(CalendarService.name);
+
   constructor(
     @InjectRepository(Meal)
     private mealsRepository: Repository<Meal>,
@@ -192,7 +194,7 @@ export class CalendarService {
       },
     };
     } catch (error) {
-      console.error('Error in getMonthView:', error);
+      this.logger.error('Error in getMonthView:', error.stack);
       // Return empty calendar data to prevent 500 error
       return {
         month,

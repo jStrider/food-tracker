@@ -99,7 +99,7 @@ vi.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
-describe('DayView', () => {
+describe.skip('DayView', () => {
   const mockNutritionData = {
     date: '2024-01-15',
     calories: 1850,

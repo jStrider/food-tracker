@@ -82,6 +82,15 @@ describe('MealsService', () => {
     foodsRepository = module.get<Repository<Food>>(getRepositoryToken(Food));
     dataSource = module.get<DataSource>(DataSource);
     queryRunner = dataSource.createQueryRunner();
+    
+    // Mock the logger to prevent error logs in tests
+    (service as any).logger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    };
   });
 
   afterEach(() => {

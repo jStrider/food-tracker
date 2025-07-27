@@ -42,6 +42,15 @@ describe('CalendarService', () => {
     service = module.get<CalendarService>(CalendarService);
     mealsRepository = module.get<Repository<Meal>>(getRepositoryToken(Meal));
     nutritionService = module.get<NutritionService>(NutritionService);
+    
+    // Mock the logger to prevent error logs in tests
+    (service as any).logger = {
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      verbose: jest.fn(),
+    };
   });
 
   describe('getMonthView', () => {
