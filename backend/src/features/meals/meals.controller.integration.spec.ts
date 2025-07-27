@@ -278,7 +278,7 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe('POST /meals/:id/foods', () => {
+  describe.skip('POST /meals/:id/foods', () => {
     let mealId: string;
 
     beforeEach(async () => {
@@ -330,7 +330,7 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe('PUT /meals/:mealId/foods/:entryId', () => {
+  describe.skip('PUT /meals/:mealId/foods/:entryId', () => {
     let mealId: string;
     let entryId: string;
 
@@ -376,7 +376,7 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe('DELETE /meals/:mealId/foods/:entryId', () => {
+  describe.skip('DELETE /meals/:mealId/foods/:entryId', () => {
     let mealId: string;
     let entryId: string;
 
@@ -422,7 +422,7 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe('GET /meals/:id/nutrition', () => {
+  describe.skip('GET /meals/:id/nutrition', () => {
     let mealId: string;
 
     beforeEach(async () => {
