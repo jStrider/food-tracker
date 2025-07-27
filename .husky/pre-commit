@@ -1,0 +1,34 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🚀 Running pre-commit checks..."
+
+# Run lint-staged
+npx lint-staged
+
+if [ $? -ne 0 ]; then
+  echo "❌ Pre-commit checks failed. Please fix the issues before committing."
+  exit 1
+fi
+
+# Check if docker is running
+if ! docker info > /dev/null 2>&1; then
+  echo "⚠️  Docker is not running. Skipping Docker build check."
+else
+  # Check if Dockerfile or package files have changed
+  DOCKER_FILES_CHANGED=$(git diff --cached --name-only | grep -E "(Dockerfile|package\.json|package-lock\.json|\.dockerignore)" | wc -l)
+  
+  if [ $DOCKER_FILES_CHANGED -gt 0 ]; then
+    echo "🐳 Docker-related files changed. Running Docker Compose build..."
+    docker compose build
+    
+    if [ $? -ne 0 ]; then
+      echo "❌ Docker Compose build failed. Please fix the build errors before committing."
+      exit 1
+    fi
+  else
+    echo "ℹ️  No Docker-related files changed. Skipping Docker build."
+  fi
+fi
+
+echo "✅ All checks passed!"
