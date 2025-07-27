@@ -1,8 +1,8 @@
-import { JwtService } from '@nestjs/jwt';
-import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { User } from '../features/users/entities/user.entity';
-import { TEMP_USER_ID } from '../common/constants/temp-user.constant';
+import { JwtService } from "@nestjs/jwt";
+import { DataSource } from "typeorm";
+import * as bcrypt from "bcrypt";
+import { User } from "../features/users/entities/user.entity";
+import { TEMP_USER_ID } from "../common/constants/temp-user.constant";
 
 export class TestAuthHelper {
   static generateToken(user: Partial<User>, jwtService: JwtService): string {
@@ -16,11 +16,11 @@ export class TestAuthHelper {
 
   static async createTestUser(dataSource: DataSource): Promise<User> {
     const userRepo = dataSource.getRepository(User);
-    const hashedPassword = await bcrypt.hash('test123', 12);
+    const hashedPassword = await bcrypt.hash("test123", 12);
     return userRepo.save({
       id: TEMP_USER_ID,
-      email: 'test@example.com',
-      name: 'Test User',
+      email: "test@example.com",
+      name: "Test User",
       password: hashedPassword,
     });
   }

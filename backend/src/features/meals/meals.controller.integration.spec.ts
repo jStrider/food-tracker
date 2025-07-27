@@ -1,17 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { DataSource } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { TestAppModule } from '../../test/test-app.module';
-import { TestAuthHelper } from '../../test/test-auth.helper';
-import { User } from '../users/entities/user.entity';
-import { Meal, MealCategory } from './entities/meal.entity';
-import { Food, FoodSource } from '../foods/entities/food.entity';
-import { FoodEntry } from '../foods/entities/food-entry.entity';
-import { fixtures } from '../../test/fixtures';
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import * as request from "supertest";
+import { DataSource } from "typeorm";
+import { JwtService } from "@nestjs/jwt";
+import { TestAppModule } from "../../test/test-app.module";
+import { TestAuthHelper } from "../../test/test-auth.helper";
+import { User } from "../users/entities/user.entity";
+import { Meal, MealCategory } from "./entities/meal.entity";
+import { Food, FoodSource } from "../foods/entities/food.entity";
+import { FoodEntry } from "../foods/entities/food-entry.entity";
+import { fixtures } from "../../test/fixtures";
 
-describe('MealsController Integration', () => {
+describe("MealsController Integration", () => {
   let app: INestApplication;
   let dataSource: DataSource;
   let jwtService: JwtService;
@@ -35,14 +35,14 @@ describe('MealsController Integration', () => {
     testUser = await TestAuthHelper.createTestUser(dataSource);
     authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
-    const foodRepo = dataSource.getRepository(Food);
-    const apple = await foodRepo.save({
+    const _foodRepo = dataSource.getRepository(Food);
+    const _apple = await foodRepo.save({
       ...fixtures.foods.apple,
       id: undefined,
       source: FoodSource.MANUAL,
     });
 
-    const chickenBreast = await foodRepo.save({
+    const _chickenBreast = await foodRepo.save({
       ...fixtures.foods.chickenBreast,
       id: undefined,
       source: FoodSource.MANUAL,
@@ -59,18 +59,18 @@ describe('MealsController Integration', () => {
     await app.close();
   });
 
-  describe('POST /meals', () => {
-    it('should create a new meal', async () => {
-      const createMealDto = {
-        name: 'Test Breakfast',
+  describe("POST /meals", () => {
+    it("should create a new meal", async () => {
+      const _createMealDto = {
+        name: "Test Breakfast",
         category: MealCategory.BREAKFAST,
-        date: '2024-01-15',
-        time: '08:00',
-        notes: 'Integration test meal',
+        date: "2024-01-15",
+        time: "08:00",
+        notes: "Integration test meal",
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/meals')
+      const _response = await request(app.getHttpServer())
+        .post("/meals")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(201);
@@ -85,186 +85,188 @@ describe('MealsController Integration', () => {
       });
     });
 
-    it('should auto-categorize meal when category not provided', async () => {
-      const createMealDto = {
-        name: 'Auto-categorized Lunch',
-        date: '2024-01-15',
-        time: '13:00',
+    it("should auto-categorize meal when category not provided", async () => {
+      const _createMealDto = {
+        name: "Auto-categorized Lunch",
+        date: "2024-01-15",
+        time: "13:00",
       };
 
-      const response = await request(app.getHttpServer())
-        .post('/meals')
+      const _response = await request(app.getHttpServer())
+        .post("/meals")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(201);
 
-      expect(response.body.category).toBe('lunch');
+      expect(response.body.category).toBe("lunch");
     });
 
-    it('should validate required fields', async () => {
-      const createMealDto = {
+    it("should validate required fields", async () => {
+      const _createMealDto = {
         category: MealCategory.BREAKFAST,
         // Missing required date
       };
 
       await request(app.getHttpServer())
-        .post('/meals')
+        .post("/meals")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(400);
     });
   });
 
-  describe('GET /meals', () => {
+  describe("GET /meals", () => {
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      
+      const _mealRepo = dataSource.getRepository(Meal);
+
       // Create multiple meals
       await mealRepo.save({
-        name: 'Breakfast',
+        name: "Breakfast",
         category: MealCategory.BREAKFAST,
-        date: new Date('2024-01-15'),
-        time: '08:00',
+        date: new Date("2024-01-15"),
+        time: "08:00",
         userId: testUser.id,
       });
       await mealRepo.save({
-        name: 'Lunch',
+        name: "Lunch",
         category: MealCategory.LUNCH,
-        date: new Date('2024-01-15'),
-        time: '12:30',
+        date: new Date("2024-01-15"),
+        time: "12:30",
         userId: testUser.id,
       });
       await mealRepo.save({
-        name: 'Dinner',
+        name: "Dinner",
         category: MealCategory.DINNER,
-        date: new Date('2024-01-16'),
-        time: '19:00',
+        date: new Date("2024-01-16"),
+        time: "19:00",
         userId: testUser.id,
       });
     });
 
-    it('should return all meals', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/meals')
+    it("should return all meals", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/meals")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body.data).toHaveLength(3);
       expect(response.body.total).toBe(3);
-      expect(response.body.data[0]).toHaveProperty('id');
-      expect(response.body.data[0]).toHaveProperty('name');
-      expect(response.body.data[0]).toHaveProperty('category');
+      expect(response.body.data[0]).toHaveProperty("id");
+      expect(response.body.data[0]).toHaveProperty("name");
+      expect(response.body.data[0]).toHaveProperty("category");
     });
 
-    it('should filter meals by date', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/meals?date=2024-01-15')
+    it("should filter meals by date", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/meals?date=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body.data).toHaveLength(2);
       expect(response.body.total).toBe(2);
-      expect(response.body.data.every(meal => meal.date === '2024-01-15')).toBe(true);
+      expect(
+        response.body.data.every((meal) => meal.date === "2024-01-15"),
+      ).toBe(true);
     });
 
-    it('should filter meals by category', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/meals?category=breakfast')
+    it("should filter meals by category", async () => {
+      const _response = await request(app.getHttpServer())
+        .get("/meals?category=breakfast")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body.data).toHaveLength(1);
       expect(response.body.total).toBe(1);
-      expect(response.body.data[0].category).toBe('breakfast');
+      expect(response.body.data[0].category).toBe("breakfast");
     });
   });
 
-  describe('GET /meals/:id', () => {
+  describe("GET /meals/:id", () => {
     let mealId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const meal = await mealRepo.save({
-        name: 'Test Meal',
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _meal = await mealRepo.save({
+        name: "Test Meal",
         category: MealCategory.LUNCH,
-        date: new Date('2024-01-15'),
-        time: '12:30',
+        date: new Date("2024-01-15"),
+        time: "12:30",
         userId: testUser.id,
       });
       mealId = meal.id;
     });
 
-    it('should return a specific meal with foods', async () => {
-      const response = await request(app.getHttpServer())
+    it("should return a specific meal with foods", async () => {
+      const _response = await request(app.getHttpServer())
         .get(`/meals/${mealId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
         id: mealId,
-        name: 'Test Meal',
+        name: "Test Meal",
         category: MealCategory.LUNCH,
         foods: expect.any(Array),
       });
     });
 
-    it('should return 404 for non-existent meal', async () => {
+    it("should return 404 for non-existent meal", async () => {
       await request(app.getHttpServer())
-        .get('/meals/00000000-0000-0000-0000-000000000000')
+        .get("/meals/00000000-0000-0000-0000-000000000000")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(404);
     });
   });
 
-  describe('PUT /meals/:id', () => {
+  describe("PUT /meals/:id", () => {
     let mealId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const meal = await mealRepo.save({
-        name: 'Original Meal',
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _meal = await mealRepo.save({
+        name: "Original Meal",
         category: MealCategory.LUNCH,
-        date: new Date('2024-01-15'),
-        time: '12:30',
+        date: new Date("2024-01-15"),
+        time: "12:30",
         userId: testUser.id,
       });
       mealId = meal.id;
     });
 
-    it('should update a meal', async () => {
-      const updateMealDto = {
-        name: 'Updated Meal',
-        notes: 'Updated notes',
+    it("should update a meal", async () => {
+      const _updateMealDto = {
+        name: "Updated Meal",
+        notes: "Updated notes",
       };
 
-      const response = await request(app.getHttpServer())
+      const _response = await request(app.getHttpServer())
         .put(`/meals/${mealId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(updateMealDto)
         .expect(200);
 
-      expect(response.body.name).toBe('Updated Meal');
-      expect(response.body.notes).toBe('Updated notes');
-      expect(response.body.category).toBe('lunch'); // Unchanged
+      expect(response.body.name).toBe("Updated Meal");
+      expect(response.body.notes).toBe("Updated notes");
+      expect(response.body.category).toBe("lunch"); // Unchanged
     });
   });
 
-  describe('DELETE /meals/:id', () => {
+  describe("DELETE /meals/:id", () => {
     let mealId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const meal = await mealRepo.save({
-        name: 'Meal to Delete',
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _meal = await mealRepo.save({
+        name: "Meal to Delete",
         category: MealCategory.DINNER,
-        date: new Date('2024-01-15'),
-        time: '19:00',
+        date: new Date("2024-01-15"),
+        time: "19:00",
         userId: testUser.id,
       });
       mealId = meal.id;
     });
 
-    it('should delete a meal', async () => {
+    it("should delete a meal", async () => {
       await request(app.getHttpServer())
         .delete(`/meals/${mealId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
@@ -278,29 +280,29 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe.skip('POST /meals/:id/foods', () => {
+  describe.skip("POST /meals/:id/foods", () => {
     let mealId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const meal = await mealRepo.save({
-        name: 'Meal for Foods',
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _meal = await mealRepo.save({
+        name: "Meal for Foods",
         category: MealCategory.BREAKFAST,
-        date: new Date('2024-01-15'),
-        time: '08:00',
+        date: new Date("2024-01-15"),
+        time: "08:00",
         userId: testUser.id,
       });
       mealId = meal.id;
     });
 
-    it('should add food to meal', async () => {
-      const addFoodDto = {
+    it("should add food to meal", async () => {
+      const _addFoodDto = {
         foodId: appleFood.id,
         quantity: 2,
-        unit: 'servings',
+        unit: "servings",
       };
 
-      const response = await request(app.getHttpServer())
+      const _response = await request(app.getHttpServer())
         .post(`/meals/${mealId}/foods`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(addFoodDto)
@@ -309,17 +311,17 @@ describe('MealsController Integration', () => {
       expect(response.body).toMatchObject({
         foodId: appleFood.id,
         quantity: 2,
-        unit: 'servings',
+        unit: "servings",
         calculatedCalories: expect.any(Number),
         calculatedProtein: expect.any(Number),
       });
     });
 
-    it('should validate food existence', async () => {
-      const addFoodDto = {
-        foodId: '00000000-0000-0000-0000-000000000000',
+    it("should validate food existence", async () => {
+      const _addFoodDto = {
+        foodId: "00000000-0000-0000-0000-000000000000",
         quantity: 1,
-        unit: 'g',
+        unit: "g",
       };
 
       await request(app.getHttpServer())
@@ -330,28 +332,28 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe.skip('PUT /meals/:mealId/foods/:entryId', () => {
+  describe.skip("PUT /meals/:mealId/foods/:entryId", () => {
     let mealId: string;
     let entryId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const foodEntryRepo = dataSource.getRepository(FoodEntry);
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _foodEntryRepo = dataSource.getRepository(FoodEntry);
 
-      const meal = await mealRepo.save({
-        name: 'Meal with Food',
+      const _meal = await mealRepo.save({
+        name: "Meal with Food",
         category: MealCategory.LUNCH,
-        date: new Date('2024-01-15'),
-        time: '12:30',
+        date: new Date("2024-01-15"),
+        time: "12:30",
         userId: testUser.id,
       });
       mealId = meal.id;
 
-      const foodEntry = await foodEntryRepo.save({
+      const _foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
         foodId: chickenBreastFood.id,
         quantity: 100,
-        unit: 'g',
+        unit: "g",
         calculatedCalories: 165,
         calculatedProtein: 31,
         calculatedCarbs: 0,
@@ -360,12 +362,12 @@ describe('MealsController Integration', () => {
       entryId = foodEntry.id;
     });
 
-    it('should update food quantity', async () => {
-      const updateDto = {
+    it("should update food quantity", async () => {
+      const _updateDto = {
         quantity: 200,
       };
 
-      const response = await request(app.getHttpServer())
+      const _response = await request(app.getHttpServer())
         .put(`/meals/${mealId}/foods/${entryId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(updateDto)
@@ -376,28 +378,28 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe.skip('DELETE /meals/:mealId/foods/:entryId', () => {
+  describe.skip("DELETE /meals/:mealId/foods/:entryId", () => {
     let mealId: string;
     let entryId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const foodEntryRepo = dataSource.getRepository(FoodEntry);
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _foodEntryRepo = dataSource.getRepository(FoodEntry);
 
-      const meal = await mealRepo.save({
-        name: 'Meal with Food to Delete',
+      const _meal = await mealRepo.save({
+        name: "Meal with Food to Delete",
         category: MealCategory.DINNER,
-        date: new Date('2024-01-15'),
-        time: '19:00',
+        date: new Date("2024-01-15"),
+        time: "19:00",
         userId: testUser.id,
       });
       mealId = meal.id;
 
-      const foodEntry = await foodEntryRepo.save({
+      const _foodEntry = await foodEntryRepo.save({
         mealId: meal.id,
         foodId: appleFood.id,
         quantity: 1,
-        unit: 'serving',
+        unit: "serving",
         calculatedCalories: 52,
         calculatedProtein: 0.3,
         calculatedCarbs: 14,
@@ -406,14 +408,14 @@ describe('MealsController Integration', () => {
       entryId = foodEntry.id;
     });
 
-    it('should remove food from meal', async () => {
+    it("should remove food from meal", async () => {
       await request(app.getHttpServer())
         .delete(`/meals/${mealId}/foods/${entryId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(204);
 
       // Verify the meal still exists but food is removed
-      const response = await request(app.getHttpServer())
+      const _response = await request(app.getHttpServer())
         .get(`/meals/${mealId}`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -422,18 +424,18 @@ describe('MealsController Integration', () => {
     });
   });
 
-  describe.skip('GET /meals/:id/nutrition', () => {
+  describe.skip("GET /meals/:id/nutrition", () => {
     let mealId: string;
 
     beforeEach(async () => {
-      const mealRepo = dataSource.getRepository(Meal);
-      const foodEntryRepo = dataSource.getRepository(FoodEntry);
+      const _mealRepo = dataSource.getRepository(Meal);
+      const _foodEntryRepo = dataSource.getRepository(FoodEntry);
 
-      const meal = await mealRepo.save({
-        name: 'Nutritious Meal',
+      const _meal = await mealRepo.save({
+        name: "Nutritious Meal",
         category: MealCategory.LUNCH,
-        date: new Date('2024-01-15'),
-        time: '12:30',
+        date: new Date("2024-01-15"),
+        time: "12:30",
         userId: testUser.id,
       });
       mealId = meal.id;
@@ -442,7 +444,7 @@ describe('MealsController Integration', () => {
         mealId: meal.id,
         foodId: chickenBreastFood.id,
         quantity: 200,
-        unit: 'g',
+        unit: "g",
         calculatedCalories: 330,
         calculatedProtein: 62,
         calculatedCarbs: 0,
@@ -452,7 +454,7 @@ describe('MealsController Integration', () => {
         mealId: meal.id,
         foodId: appleFood.id,
         quantity: 1,
-        unit: 'serving',
+        unit: "serving",
         calculatedCalories: 52,
         calculatedProtein: 0.3,
         calculatedCarbs: 14,
@@ -460,15 +462,15 @@ describe('MealsController Integration', () => {
       });
     });
 
-    it('should return meal nutrition summary', async () => {
-      const response = await request(app.getHttpServer())
+    it("should return meal nutrition summary", async () => {
+      const _response = await request(app.getHttpServer())
         .get(`/meals/${mealId}/nutrition`)
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
         id: mealId,
-        name: 'Nutritious Meal',
+        name: "Nutritious Meal",
         category: MealCategory.LUNCH,
         foodCount: 2,
         calories: 382,

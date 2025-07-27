@@ -1,3 +1,17 @@
+// Import types for interfaces
+import type { 
+  Food, 
+  Meal, 
+  DailyNutrition, 
+  MealFilterParams
+} from '../types';
+import type { 
+  CreateFoodDto,
+  UpdateFoodDto,
+  CreateMealDto,
+  UpdateMealDto
+} from '../dtos';
+
 // Service interfaces
 export interface IFoodService {
   searchByName(query: string): Promise<Food[]>;
@@ -72,20 +86,3 @@ export interface IMcpService {
   getResource(resourceUri: string): Promise<any>;
 }
 
-// Import types for interfaces
-import type { 
-  Food, 
-  Meal, 
-  DailyNutrition, 
-  MealFilterParams
-  // CreateFoodDto,
-  // UpdateFoodDto,
-  // CreateMealDto,
-  // UpdateMealDto
-} from '../types';
-import type { 
-  CreateFoodDto as CreateFoodDtoImport,
-  UpdateFoodDto as UpdateFoodDtoImport,
-  CreateMealDto as CreateMealDtoImport,
-  UpdateMealDto as UpdateMealDtoImport
-} from '../dtos';

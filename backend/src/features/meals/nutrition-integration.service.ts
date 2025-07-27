@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { MealsService, DailyNutritionSummary } from './meals.service';
-import { Meal } from './entities/meal.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { MealsService, DailyNutritionSummary } from "./meals.service";
+import { Meal } from "./entities/meal.entity";
 
 export interface NutritionGoals {
   calories: number;
@@ -25,10 +25,10 @@ export interface NutritionProgress {
     sodium?: number;
   };
   status: {
-    calories: 'under' | 'met' | 'over';
-    protein: 'under' | 'met' | 'over';
-    carbs: 'under' | 'met' | 'over';
-    fat: 'under' | 'met' | 'over';
+    calories: "under" | "met" | "over";
+    protein: "under" | "met" | "over";
+    carbs: "under" | "met" | "over";
+    fat: "under" | "met" | "over";
   };
 }
 
@@ -50,7 +50,7 @@ export class NutritionIntegrationService {
    */
   async calculateNutritionProgress(
     date: string,
-    goals: NutritionGoals
+    goals: NutritionGoals,
   ): Promise<NutritionProgress> {
     this.logger.log(`Calculating nutrition progress for ${date}`);
 
@@ -65,15 +65,24 @@ export class NutritionIntegrationService {
     };
 
     if (goals.fiber !== undefined) {
-      percentages.fiber = this.calculatePercentage(actual.totalFiber, goals.fiber);
+      percentages.fiber = this.calculatePercentage(
+        actual.totalFiber,
+        goals.fiber,
+      );
     }
 
     if (goals.sugar !== undefined) {
-      percentages.sugar = this.calculatePercentage(actual.totalSugar, goals.sugar);
+      percentages.sugar = this.calculatePercentage(
+        actual.totalSugar,
+        goals.sugar,
+      );
     }
 
     if (goals.sodium !== undefined) {
-      percentages.sodium = this.calculatePercentage(actual.totalSodium, goals.sodium);
+      percentages.sodium = this.calculatePercentage(
+        actual.totalSodium,
+        goals.sodium,
+      );
     }
 
     // Determine status (with 5% tolerance for "met")
@@ -99,7 +108,7 @@ export class NutritionIntegrationService {
     totalCalories: number,
     totalProtein: number,
     totalCarbs: number,
-    totalFat: number
+    totalFat: number,
   ): MacroDistribution {
     // Calories per gram: protein=4, carbs=4, fat=9
     const proteinCalories = totalProtein * 4;
@@ -139,7 +148,7 @@ export class NutritionIntegrationService {
       nutrition.totalCalories,
       nutrition.totalProtein,
       nutrition.totalCarbs,
-      nutrition.totalFat
+      nutrition.totalFat,
     );
   }
 
@@ -153,7 +162,7 @@ export class NutritionIntegrationService {
       meal.totalCalories,
       meal.totalProtein,
       meal.totalCarbs,
-      meal.totalFat
+      meal.totalFat,
     );
   }
 
@@ -162,7 +171,7 @@ export class NutritionIntegrationService {
    */
   async calculateNutritionTrends(
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<{
     averages: {
       calories: number;
@@ -183,19 +192,28 @@ export class NutritionIntegrationService {
     }>;
     totalDays: number;
   }> {
-    this.logger.log(`Calculating nutrition trends from ${startDate} to ${endDate}`);
+    this.logger.log(
+      `Calculating nutrition trends from ${startDate} to ${endDate}`,
+    );
 
-    const meals = await this.mealsService.findByDateRange(startDate, endDate, true);
+    const meals = await this.mealsService.findByDateRange(
+      startDate,
+      endDate,
+      true,
+    );
 
     // Group meals by date
-    const mealsByDate = meals.reduce((acc, meal) => {
-      const dateStr = meal.date.toISOString().split('T')[0];
-      if (!acc[dateStr]) {
-        acc[dateStr] = [];
-      }
-      acc[dateStr].push(meal);
-      return acc;
-    }, {} as Record<string, Meal[]>);
+    const mealsByDate = meals.reduce(
+      (acc, meal) => {
+        const dateStr = meal.date.toISOString().split("T")[0];
+        if (!acc[dateStr]) {
+          acc[dateStr] = [];
+        }
+        acc[dateStr].push(meal);
+        return acc;
+      },
+      {} as Record<string, Meal[]>,
+    );
 
     const dailyData = [];
     let totalCalories = 0;
@@ -207,9 +225,18 @@ export class NutritionIntegrationService {
     let totalSodium = 0;
 
     for (const [date, dateMeals] of Object.entries(mealsByDate)) {
-      const dayCalories = dateMeals.reduce((sum, meal) => sum + meal.totalCalories, 0);
-      const dayProtein = dateMeals.reduce((sum, meal) => sum + meal.totalProtein, 0);
-      const dayCarbs = dateMeals.reduce((sum, meal) => sum + meal.totalCarbs, 0);
+      const dayCalories = dateMeals.reduce(
+        (sum, meal) => sum + meal.totalCalories,
+        0,
+      );
+      const dayProtein = dateMeals.reduce(
+        (sum, meal) => sum + meal.totalProtein,
+        0,
+      );
+      const dayCarbs = dateMeals.reduce(
+        (sum, meal) => sum + meal.totalCarbs,
+        0,
+      );
       const dayFat = dateMeals.reduce((sum, meal) => sum + meal.totalFat, 0);
 
       totalCalories += dayCalories;
@@ -230,7 +257,7 @@ export class NutritionIntegrationService {
           dayCalories,
           dayProtein,
           dayCarbs,
-          dayFat
+          dayFat,
         ),
       });
     }
@@ -240,12 +267,19 @@ export class NutritionIntegrationService {
     return {
       averages: {
         calories: totalDays > 0 ? Math.round(totalCalories / totalDays) : 0,
-        protein: totalDays > 0 ? Math.round((totalProtein / totalDays) * 100) / 100 : 0,
-        carbs: totalDays > 0 ? Math.round((totalCarbs / totalDays) * 100) / 100 : 0,
+        protein:
+          totalDays > 0
+            ? Math.round((totalProtein / totalDays) * 100) / 100
+            : 0,
+        carbs:
+          totalDays > 0 ? Math.round((totalCarbs / totalDays) * 100) / 100 : 0,
         fat: totalDays > 0 ? Math.round((totalFat / totalDays) * 100) / 100 : 0,
-        fiber: totalDays > 0 ? Math.round((totalFiber / totalDays) * 100) / 100 : 0,
-        sugar: totalDays > 0 ? Math.round((totalSugar / totalDays) * 100) / 100 : 0,
-        sodium: totalDays > 0 ? Math.round((totalSodium / totalDays) * 100) / 100 : 0,
+        fiber:
+          totalDays > 0 ? Math.round((totalFiber / totalDays) * 100) / 100 : 0,
+        sugar:
+          totalDays > 0 ? Math.round((totalSugar / totalDays) * 100) / 100 : 0,
+        sodium:
+          totalDays > 0 ? Math.round((totalSodium / totalDays) * 100) / 100 : 0,
       },
       dailyData: dailyData.sort((a, b) => a.date.localeCompare(b.date)),
       totalDays,
@@ -265,18 +299,24 @@ export class NutritionIntegrationService {
     }>;
     recommendations: string[];
   }> {
-    const meals = await this.mealsService.findByDate({ date, includeFoods: true });
-    
+    const meals = await this.mealsService.findByDate({
+      date,
+      includeFoods: true,
+    });
+
     if (meals.length === 0) {
       return {
         currentDistribution: [],
-        recommendations: ['No meals found for this date'],
+        recommendations: ["No meals found for this date"],
       };
     }
 
-    const totalCalories = meals.reduce((sum, meal) => sum + meal.totalCalories, 0);
+    const totalCalories = meals.reduce(
+      (sum, meal) => sum + meal.totalCalories,
+      0,
+    );
 
-    const currentDistribution = meals.map(meal => ({
+    const currentDistribution = meals.map((meal) => ({
       mealName: meal.name,
       category: meal.category,
       time: meal.time,
@@ -284,7 +324,8 @@ export class NutritionIntegrationService {
       percentage: Math.round((meal.totalCalories / totalCalories) * 100),
     }));
 
-    const recommendations = this.generateMealRecommendations(currentDistribution);
+    const recommendations =
+      this.generateMealRecommendations(currentDistribution);
 
     return {
       currentDistribution,
@@ -303,58 +344,75 @@ export class NutritionIntegrationService {
   /**
    * Determine goal status with tolerance
    */
-  private getStatus(percentage: number): 'under' | 'met' | 'over' {
-    if (percentage < 95) return 'under';
-    if (percentage > 110) return 'over';
-    return 'met';
+  private getStatus(percentage: number): "under" | "met" | "over" {
+    if (percentage < 95) return "under";
+    if (percentage > 110) return "over";
+    return "met";
   }
 
   /**
    * Generate meal optimization recommendations
    */
-  private generateMealRecommendations(distribution: Array<{
-    mealName: string;
-    category: string;
-    calories: number;
-    percentage: number;
-  }>): string[] {
+  private generateMealRecommendations(
+    distribution: Array<{
+      mealName: string;
+      category: string;
+      calories: number;
+      percentage: number;
+    }>,
+  ): string[] {
     const recommendations = [];
 
     // Check breakfast
-    const breakfast = distribution.filter(m => m.category === 'breakfast');
-    const breakfastCalories = breakfast.reduce((sum, m) => sum + m.percentage, 0);
-    
+    const breakfast = distribution.filter((m) => m.category === "breakfast");
+    const breakfastCalories = breakfast.reduce(
+      (sum, m) => sum + m.percentage,
+      0,
+    );
+
     if (breakfastCalories < 20) {
-      recommendations.push('Consider increasing breakfast calories to 20-25% of daily intake for better energy distribution');
+      recommendations.push(
+        "Consider increasing breakfast calories to 20-25% of daily intake for better energy distribution",
+      );
     } else if (breakfastCalories > 35) {
-      recommendations.push('Breakfast is quite large; consider redistributing some calories to other meals');
+      recommendations.push(
+        "Breakfast is quite large; consider redistributing some calories to other meals",
+      );
     }
 
     // Check dinner timing and size
-    const dinner = distribution.filter(m => m.category === 'dinner');
+    const dinner = distribution.filter((m) => m.category === "dinner");
     const dinnerCalories = dinner.reduce((sum, m) => sum + m.percentage, 0);
-    
+
     if (dinnerCalories > 40) {
-      recommendations.push('Dinner represents a large portion of daily calories; consider having a lighter dinner and larger lunch');
+      recommendations.push(
+        "Dinner represents a large portion of daily calories; consider having a lighter dinner and larger lunch",
+      );
     }
 
     // Check meal frequency
     if (distribution.length < 3) {
-      recommendations.push('Consider adding more meals throughout the day for better nutrient distribution');
+      recommendations.push(
+        "Consider adding more meals throughout the day for better nutrient distribution",
+      );
     } else if (distribution.length > 6) {
-      recommendations.push('You have many small meals; this can be good for metabolism if it works for your schedule');
+      recommendations.push(
+        "You have many small meals; this can be good for metabolism if it works for your schedule",
+      );
     }
 
     // Check snack balance
-    const snacks = distribution.filter(m => m.category === 'snack');
+    const snacks = distribution.filter((m) => m.category === "snack");
     const snackCalories = snacks.reduce((sum, m) => sum + m.percentage, 0);
-    
+
     if (snackCalories > 25) {
-      recommendations.push('Snacks represent a significant portion of daily calories; consider incorporating them into main meals');
+      recommendations.push(
+        "Snacks represent a significant portion of daily calories; consider incorporating them into main meals",
+      );
     }
 
     if (recommendations.length === 0) {
-      recommendations.push('Your meal distribution looks well balanced!');
+      recommendations.push("Your meal distribution looks well balanced!");
     }
 
     return recommendations;
