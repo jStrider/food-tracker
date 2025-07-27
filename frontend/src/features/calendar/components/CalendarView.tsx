@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
+import DayView from './DayView';
 
 type ViewType = 'month' | 'week' | 'day';
 
 const CalendarView: React.FC = () => {
   const [viewType, setViewType] = useState<ViewType>('month');
   const navigate = useNavigate();
+  const { date } = useParams<{ date?: string }>();
+
+  // If we're on a day route, set the view to day
+  useEffect(() => {
+    if (date) {
+      setViewType('day');
+    }
+  }, [date]);
+
+  const handleDayClick = () => {
+    setViewType('day');
+    // Navigate to the day view with today's date if not already on a date
+    if (!date) {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      navigate(`/day/${today}`);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -20,25 +38,27 @@ const CalendarView: React.FC = () => {
           <Button
             variant={viewType === 'month' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewType('month')}
+            onClick={() => {
+              setViewType('month');
+              navigate('/calendar');
+            }}
           >
             Month
           </Button>
           <Button
             variant={viewType === 'week' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewType('week')}
+            onClick={() => {
+              setViewType('week');
+              navigate('/calendar');
+            }}
           >
             Week
           </Button>
           <Button
             variant={viewType === 'day' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => {
-              // When switching to day view, navigate to today's date
-              const today = format(new Date(), 'yyyy-MM-dd');
-              navigate(`/day/${today}`);
-            }}
+            onClick={handleDayClick}
           >
             Day
           </Button>
@@ -47,6 +67,7 @@ const CalendarView: React.FC = () => {
 
       {viewType === 'month' && <MonthView />}
       {viewType === 'week' && <WeekView />}
+      {viewType === 'day' && date && <DayView />}
     </div>
   );
 };

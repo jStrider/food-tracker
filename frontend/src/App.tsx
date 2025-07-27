@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/toaster';
 import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';
 import CalendarView from '@/features/calendar/components/CalendarView';
-import DayView from '@/features/calendar/components/DayView';
 import WeekView from '@/features/calendar/components/WeekView';
 import FoodSearch from '@/features/foods/components/FoodSearch';
 import './App.css';
@@ -27,7 +26,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/calendar" element={<CalendarView />} />
-              <Route path="/day/:date" element={<DayView />} />
+              <Route path="/day/:date" element={<CalendarView />} />
               <Route path="/week/:date?" element={<WeekView />} />
               <Route path="/foods" element={<FoodSearch />} />
             </Routes>
