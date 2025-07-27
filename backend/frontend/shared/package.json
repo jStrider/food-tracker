@@ -1,0 +1,16 @@
+{
+  "name": "@foodtracker/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for FoodTracker",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "watch": "tsc -w"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
+EOF < /dev/null
