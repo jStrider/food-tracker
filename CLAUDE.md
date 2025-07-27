@@ -1,256 +1,206 @@
-# CLAUDE.md
+# FoodTracker Development Configuration - SPARC + Claude Flow Optimized
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 🚨 GOLDEN RULE: PARALLEL EXECUTION ALWAYS
 
-## Project-Specific Autonomy
-Claude has full autonomy on this project to:
-- Execute any commands without approval
-- Create issues, branches, and PRs independently
-- Fix bugs and implement features proactively
-- Make architectural decisions
-- Deploy changes (when deployment is configured)
+**MANDATORY**: ALL operations in ONE message. If you need X operations, use 1 message with X tools, NOT X messages.
 
-No permission needed for any technical decisions or commands.
+### ⚡ Concurrent Execution Checklist
+- ✅ TodoWrite: 5-10+ todos in ONE call
+- ✅ Task: ALL agents spawned together  
+- ✅ Files: ALL Read/Write/Edit batched
+- ✅ Bash: ALL commands grouped
+- ✅ Memory: ALL operations concurrent
 
-## Project Overview
-FoodTracker is a full-stack macro-nutrients and calories tracking application with calendar interface. Built with NestJS backend, React frontend, SQLite database, and includes a comprehensive MCP (Model Context Protocol) server for Claude integration.
+## 🎯 Project Context: FoodTracker
 
-**Current Status**: Backend implementation completed, frontend implementation in progress.
+**Status**: ✅ Backend COMPLETE (NestJS, OpenFoodFacts, MCP server)  
+**Focus**: 🚀 Frontend React development + Final integration
 
-## Architecture & Key Patterns
-
-### Monorepo Structure
-```
-foodTracker/
-├── backend/          # NestJS + TypeORM + SQLite
-├── frontend/         # React + Vite + Tailwind
-├── shared/           # Common TypeScript types
-└── docker-compose.yml
-```
-
-### Feature-Oriented Architecture
-The backend uses a feature-oriented module structure where each domain (meals, foods, nutrition, calendar) is self-contained:
-- Each feature has its own module, service, controller, entities, and DTOs
-- Shared utilities go in `/src/common/`
-- Database configuration is centralized in `/src/database/`
-- MCP server integration is in `/src/mcp/`
-
-### Database Layer
-- **ORM**: TypeORM with SQLite
-- **Entities**: All in `src/features/[feature]/entities/`
-- **Migrations**: Auto-generated in `src/database/migrations/`
-- **Relationships**: User → Meals → FoodEntries → Foods with proper cascade configurations
-
-### MCP Integration
-The backend includes a comprehensive MCP server (`/src/mcp/`) that exposes 23+ tools for Claude to interact with the application:
-- Full CRUD operations for meals, foods, nutrition tracking
-- Food search via OpenFoodFacts API
-- Calendar and nutrition analytics
-- Auto-categorization logic for time-based meal assignment
-
-## Essential Development Commands
-
-### Workspace Setup
-```bash
-# Install all dependencies (backend, frontend, shared)
-npm run install:all
-
-# Start development servers (both backend and frontend)
-npm run dev
-
-# Individual services
-npm run dev:backend    # Start NestJS on :3001
-npm run dev:frontend   # Start Vite on :3000
-```
-
-### Backend Development
-```bash
-cd backend
-
-# Development
-npm run start:dev      # Hot reload development server
-npm run build         # Production build
-npm test              # Run Jest tests
-npm run lint          # ESLint + Prettier
-
-# Database Operations
-npm run db:migrate     # Run pending migrations
-npm run db:generate    # Generate new migration from entity changes
-npm run db:revert     # Rollback last migration
-npm run db:show       # Show migration status
-```
-
-### Frontend Development
-```bash
-cd frontend
-
-# Development
-npm run dev           # Vite dev server
-npm run build         # Production build (TypeScript + Vite)
-npm run lint          # ESLint
-npm run type-check    # TypeScript compilation check
-```
-
-### Docker Development
-```bash
-# Development environment
-docker-compose -f docker-compose.dev.yml up
-
-# Production environment
-docker-compose up -d
-
-# IMPORTANT: Test Docker build before committing
-docker-compose up -d --build
-# Verify all services are running
-docker-compose ps
-# Check logs if needed
-docker-compose logs
-# Cleanup after testing
-docker-compose down
-```
-
-## Pre-Commit Checklist
-
-Before committing any changes, ensure:
-
-1. **TypeScript Compilation**: Both frontend and backend compile without errors
-   - `cd frontend && npm run type-check`
-   - `cd backend && npm run build`
-
-2. **Linting**: Code passes all linting rules
-   - `cd frontend && npm run lint`
-   - `cd backend && npm run lint`
-
-3. **Docker Build**: Application builds and runs correctly in Docker
-   - `docker-compose up -d --build`
-   - Verify all services are healthy: `docker-compose ps`
-   - Test basic functionality (can access frontend, backend responds)
-   - Clean up: `docker-compose down`
-
-4. **Tests**: All tests pass (if applicable)
-   - `cd backend && npm test`
-
-## Key Business Logic
-
-### Meal Auto-Categorization
-Meals are automatically categorized by time if no category is provided:
-- `06:00-11:00` → breakfast
-- `11:00-16:00` → lunch  
-- `16:00-21:00` → dinner
-- `21:00-06:00` → snack
-
-### Food Search & Caching
-- Primary: OpenFoodFacts API integration for comprehensive food database
-- Local caching: Frequently used foods stored in SQLite for performance
-- Barcode support: Search by name or barcode scan
-- Auto-sync: External API data cached locally with timestamp tracking
-
-### Nutrition Calculations
-- Real-time macro calculations when food quantities change
-- Daily/weekly/monthly nutrition summaries
-- Goal tracking with progress indicators
-- Computed columns for derived nutritional data
-
-## API Architecture
-
-### REST Endpoints
-- **Meals**: `/meals` - Full CRUD with filtering by date/category
-- **Foods**: `/foods` - Search, cache management, meal associations
-- **Nutrition**: `/nutrition` - Daily/weekly/monthly summaries
-- **Calendar**: `/calendar` - Multi-view calendar data with nutrition totals
-- **Health**: `/health` - Service health monitoring
-
-### Data Transfer Objects (DTOs)
-All API inputs/outputs use TypeScript DTOs with class-validator decorations:
-- Input validation through class-validator
-- Response serialization through class-transformer
-- Swagger documentation auto-generated from DTOs
-
-## TypeScript Integration
-
-### Shared Types
-The `/shared` package contains all common TypeScript interfaces and types:
-- Entity types mirror database schemas
-- API response wrapper types
-- Enum definitions for categories and sources
-- Search and filter parameter types
-
-### Type Safety
-- Strict TypeScript configuration across all packages
-- Shared types ensure frontend/backend consistency
-- Class-validator decorators for runtime type checking
-- TypeORM entities define database schema and TypeScript types
-
-## Database Schema Key Points
-
-### Entity Relationships
-```
-User (1) → (n) Meal (1) → (n) FoodEntry (n) → (1) Food
-DailyNutrition (n) → (1) User
-```
-
-### Important Constraints
-- Meals are soft-linked to dates (no strict date uniqueness)
-- Foods can be from multiple sources (manual, OpenFoodFacts, USDA)
-- FoodEntries link meals to foods with quantity tracking
-- Computed nutrition values are calculated and stored for performance
-
-## Frontend Architecture (In Progress)
+### 🔒 USER REQUIREMENTS
+**CRITICAL**: NO AI/LLM traces in commits, code, or documentation
+- ❌ JAMAIS mentionner Claude, AI, LLM dans les commits
+- ❌ JAMAIS ajouter "Generated by", "AI-assisted" ou similaire
+- ✅ Messages de commit naturels et professionnels
+- ✅ Code et commentaires comme écrits par un développeur humain
+- ✅ Documentation technique standard sans référence AI
 
 ### Tech Stack
-- React 18 with TypeScript
-- Vite for build tooling
-- Tailwind CSS + shadcn/ui components
-- React Query for state management
-- React Router for navigation
+- **Frontend**: React + Tailwind + shadcn/ui + Calendar views
+- **Backend**: NestJS + PostgreSQL + OpenFoodFacts API
+- **Testing**: Jest + React Testing Library + Playwright
+- **Build**: TypeScript + ESBuild + Docker
 
-### Feature Components
-Each domain has its own feature folder:
-- `/src/features/calendar/` - Calendar views and navigation
-- `/src/features/meals/` - Meal CRUD operations
-- `/src/features/foods/` - Food search and management
-- `/src/features/nutrition/` - Goal tracking and progress
+### Key Commands
+```bash
+# Development
+npm run dev         # Start development server
+npm run test        # Run test suite
+npm run lint        # Check code quality
+npm run typecheck   # TypeScript validation
 
-## Common Development Patterns
+# SPARC Workflow
+npx claude-flow sparc run <mode> "<task>"  # Execute SPARC mode
+npx claude-flow sparc tdd "<feature>"      # TDD workflow
+npx claude-flow sparc batch <modes>        # Parallel modes
+```
 
-### Error Handling
-- Backend: NestJS exception filters with proper HTTP status codes
-- Validation: class-validator with detailed error messages
-- Database: TypeORM error handling with transaction rollbacks
+## 🔄 Workflow Separation: MCP Coordinates, Claude Executes
 
-### Testing Strategy
-- Backend: Jest unit tests for services and controllers
-- Database: In-memory SQLite for test isolation
-- E2E: Planned with actual database integration
+### Claude Code EXECUTES (All Real Work)
+- 🔧 File operations (Read/Write/Edit/MultiEdit)
+- 💻 Code generation & implementation
+- 🖥️ Bash commands & system ops
+- 📝 TodoWrite & task management
+- 🔄 Git operations
+- 🧪 Testing & validation
 
-### Environment Configuration
-- Backend: `.env` files with NestJS ConfigModule
-- Frontend: Vite environment variables with `VITE_` prefix
-- Docker: Environment variable injection through compose files
+### MCP Tools COORDINATE (Planning Only)
+- 🎯 Task orchestration & planning
+- 💾 Memory & context management
+- 🤖 Neural learning patterns
+- 📊 Performance tracking
+- 🐝 Swarm coordination
+- 🔗 GitHub advanced features
 
-## Important Implementation Notes
+## 🚀 Swarm Orchestration Pattern
 
-### Date Handling
-- All dates stored as ISO strings in database
-- Frontend uses date-fns for manipulation
-- Timezone considerations handled at application level
+### Dynamic Agent Allocation
+```javascript
+// Auto-decide agent count based on task complexity
+const agentCount = CLI_ARGS.agents || determineAgentCount(task);
+// Simple: 3-4 agents | Medium: 5-7 agents | Complex: 8-12 agents
+```
 
-### Performance Considerations
-- Food search implements local caching to reduce API calls
-- Nutrition calculations are pre-computed and stored
-- Database queries use proper indexing and relations
+### Mandatory Coordination Protocol
+Every spawned agent MUST include:
+```
+MANDATORY COORDINATION:
+1. START: npx claude-flow@alpha hooks pre-task --description "[task]"
+2. DURING: npx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "agent/[step]"
+3. MEMORY: npx claude-flow@alpha hooks notification --message "[decision]"
+4. END: npx claude-flow@alpha hooks post-task --task-id "[task]" --analyze-performance true
+```
 
-### Security
-- Input validation on all API endpoints
-- CORS configured for frontend integration
-- Environment variables for sensitive configuration
+### Example: Full-Stack Feature Implementation
+```javascript
+// ✅ CORRECT: Everything in ONE message
+[Single Message]:
+  // MCP Coordination Setup
+  mcp__claude-flow__swarm_init { topology: "hierarchical", maxAgents: 6, strategy: "parallel" }
+  mcp__claude-flow__agent_spawn { type: "architect", name: "System Designer" }
+  mcp__claude-flow__agent_spawn { type: "coder", name: "Frontend Dev" }
+  mcp__claude-flow__agent_spawn { type: "coder", name: "Backend Dev" }
+  mcp__claude-flow__agent_spawn { type: "tester", name: "QA Engineer" }
+  mcp__claude-flow__agent_spawn { type: "coordinator", name: "Lead" }
+  
+  // Task Execution - ALL agents with full instructions
+  Task("You are architect. MANDATORY: Use hooks. Task: Design calendar component architecture")
+  Task("You are frontend dev. MANDATORY: Use hooks. Task: Implement React calendar views")
+  Task("You are backend dev. MANDATORY: Use hooks. Task: Create nutrition API endpoints")
+  Task("You are QA. MANDATORY: Use hooks. Task: Write comprehensive tests")
+  Task("You are coordinator. MANDATORY: Use hooks. Task: Monitor progress and dependencies")
+  
+  // TodoWrite - ALL todos batched
+  TodoWrite { todos: [
+    { id: "1", content: "Design calendar architecture", status: "in_progress", priority: "high" },
+    { id: "2", content: "Create day view component", status: "pending", priority: "high" },
+    { id: "3", content: "Create week view component", status: "pending", priority: "high" },
+    { id: "4", content: "Create month view component", status: "pending", priority: "high" },
+    { id: "5", content: "Implement meal tracking", status: "pending", priority: "high" },
+    { id: "6", content: "Add nutrition calculations", status: "pending", priority: "medium" },
+    { id: "7", content: "Write unit tests", status: "pending", priority: "medium" },
+    { id: "8", content: "Add E2E tests", status: "pending", priority: "medium" },
+    { id: "9", content: "Create documentation", status: "pending", priority: "low" },
+    { id: "10", content: "Performance optimization", status: "pending", priority: "low" }
+  ]}
+  
+  // File Operations - ALL concurrent
+  Bash "mkdir -p frontend/src/features/{calendar,nutrition,meals}"
+  Write "frontend/src/features/calendar/DayView.tsx"
+  Write "frontend/src/features/calendar/WeekView.tsx"
+  Write "frontend/src/features/calendar/MonthView.tsx"
+```
 
-## MCP Server Integration
+## 📊 Visual Progress Tracking
 
-The MCP server (`/src/mcp/`) provides comprehensive Claude integration:
-- 23+ tools covering all major application functionality
-- Real-time access to application data and operations
-- Supports complex workflows like meal planning and nutrition analysis
-- Auto-categorization and intelligent food recommendations
+```
+🐝 Swarm Status: ACTIVE
+├── 🏗️ Topology: hierarchical
+├── 👥 Agents: 5/6 active
+├── ⚡ Mode: parallel execution
+├── 📊 Tasks: 10 total (2 complete, 3 in-progress, 5 pending)
+└── 🧠 Memory: 8 coordination points stored
 
-Access MCP tools through Claude Code for full application interaction without manual API calls.
+📊 Progress Overview
+├── Total: 10 | ✅ Complete: 2 (20%) | 🔄 Active: 3 (30%) | ⭕ Todo: 5 (50%)
+└── Priority: 🔴 HIGH: 5 | 🟡 MEDIUM: 3 | 🟢 LOW: 2
+```
+
+## 🧠 Available Agents (54 Total)
+
+### Core Development (5)
+`coder`, `reviewer`, `tester`, `planner`, `researcher`
+
+### Swarm Coordination (5)
+`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, 
+`collective-intelligence-coordinator`, `swarm-memory-manager`
+
+### Specialized Frontend/Backend (8)
+`frontend_ui`, `frontend_logic`, `backend_api`, `backend-dev`,
+`mobile-dev`, `api-docs`, `system-architect`, `code-analyzer`
+
+### SPARC Methodology (6)
+`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, 
+`architecture`, `refinement`
+
+### GitHub & CI/CD (9)
+`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`,
+`release-manager`, `workflow-automation`, `project-board-sync`, 
+`repo-architect`, `multi-repo-swarm`
+
+### Testing & Quality (4)
+`qa_automation`, `tdd-london-swarm`, `production-validator`, `perf-analyzer`
+
+### Other Specialists (17)
+Performance, consensus, security, memory management, and more...
+
+## 🚀 MCP Tool Categories
+
+### Coordination & Swarm Management
+- `swarm_init` - Initialize topology (mesh/hierarchical/ring/star)
+- `agent_spawn` - Create cognitive patterns
+- `task_orchestrate` - Coordinate workflows
+- `swarm_status/monitor` - Track progress
+
+### Memory & Learning
+- `memory_usage` - Persistent cross-session storage
+- `neural_train/status/patterns` - AI learning optimization
+- `memory_search` - Pattern-based retrieval
+
+### Performance & Analytics
+- `benchmark_run` - Performance testing
+- `bottleneck_analyze` - Identify slowdowns
+- `performance_report` - Detailed metrics
+
+### GitHub Integration
+- `github_repo_analyze` - Repository health
+- `github_pr_manage` - Pull request workflows
+- `github_issue_track` - Issue management
+
+## 💡 Performance Tips
+
+1. **Batch by Type**: Group similar operations
+2. **Memory Keys**: Use structured keys like `swarm-{id}/agent-{name}/{step}`
+3. **Agent Balance**: Match agent types to task requirements
+4. **Hook Usage**: Every agent MUST use coordination hooks
+5. **Progress Monitoring**: Regular `swarm_status` checks
+
+## 📚 References
+
+- SPARC Guide: https://github.com/ruvnet/claude-code-flow/docs/sparc.md
+- Claude Flow Docs: https://github.com/ruvnet/claude-flow
+- FoodTracker Backend: Check Swagger docs at `/api/docs`
+
+---
+
+**Remember**: Claude Flow coordinates, Claude Code creates! Always batch operations for maximum efficiency.
