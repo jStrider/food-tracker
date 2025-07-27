@@ -17,8 +17,8 @@ WORKDIR /app
 COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
-# Install production dependencies only
-RUN npm install --only=production && \
+# Install production dependencies only (ignore prepare script for husky)
+RUN npm install --only=production --ignore-scripts && \
     npm cache clean --force && \
     rm -rf ~/.npm
 
@@ -30,8 +30,8 @@ WORKDIR /app
 COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
-# Install all dependencies (including dev)
-RUN npm install
+# Install all dependencies (including dev, ignore prepare script for husky)
+RUN npm install --ignore-scripts
 
 # Copy source code
 COPY backend/src ./src
