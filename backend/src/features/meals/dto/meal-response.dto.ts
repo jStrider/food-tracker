@@ -1,5 +1,5 @@
-import { Expose, Type } from 'class-transformer';
-import { MealCategory } from '../entities/meal.entity';
+import { Expose, Type } from "class-transformer";
+import { MealCategory } from "../entities/meal.entity";
 
 export class FoodSummaryDto {
   @Expose()

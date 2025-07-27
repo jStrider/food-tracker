@@ -1,4 +1,12 @@
-import { IsString, IsNumber, IsOptional, Min, Max, IsUUID, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  Min,
+  Max,
+  IsUUID,
+  IsIn,
+} from "class-validator";
 
 export class CreateFoodEntryDto {
   @IsUUID()
@@ -11,6 +19,6 @@ export class CreateFoodEntryDto {
 
   @IsString()
   @IsOptional()
-  @IsIn(['g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'piece', 'slice'])
-  unit?: string = 'g';
+  @IsIn(["g", "kg", "ml", "l", "cup", "tbsp", "tsp", "piece", "slice"])
+  unit?: string = "g";
 }

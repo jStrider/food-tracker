@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
-import { Food } from './entities/food.entity';
-import { FoodSearchResultDto } from './dto';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, MoreThan } from "typeorm";
+import { Food } from "./entities/food.entity";
+import { FoodSearchResultDto } from "./dto";
 
 @Injectable()
 export class FoodCacheService {
@@ -27,7 +27,7 @@ export class FoodCacheService {
         updatedAt: MoreThan(cutoffDate),
       },
       order: {
-        updatedAt: 'DESC',
+        updatedAt: "DESC",
       },
       take: limit,
     });
@@ -57,24 +57,24 @@ export class FoodCacheService {
     try {
       // Find foods that are old and have no associated food entries
       const oldFoods = await this.foodsRepository
-        .createQueryBuilder('food')
-        .leftJoin('food_entries', 'fe', 'fe.foodId = food.id')
-        .where('food.updatedAt < :cutoffDate', { cutoffDate })
-        .andWhere('fe.id IS NULL') // No food entries reference this food
+        .createQueryBuilder("food")
+        .leftJoin("food_entries", "fe", "fe.foodId = food.id")
+        .where("food.updatedAt < :cutoffDate", { cutoffDate })
+        .andWhere("fe.id IS NULL") // No food entries reference this food
         .getMany();
 
       if (oldFoods.length === 0) {
-        this.logger.log('No old foods to clean up');
+        this.logger.log("No old foods to clean up");
         return 0;
       }
 
-      const foodIds = oldFoods.map(food => food.id);
+      const foodIds = oldFoods.map((food) => food.id);
       const result = await this.foodsRepository.delete(foodIds);
 
       this.logger.log(`Cleaned up ${result.affected} old cached foods`);
       return result.affected || 0;
     } catch (error) {
-      this.logger.error('Failed to cleanup old cache:', error.message);
+      this.logger.error("Failed to cleanup old cache:", error.message);
       return 0;
     }
   }
@@ -85,10 +85,10 @@ export class FoodCacheService {
   async getCacheStats(): Promise<CacheStats> {
     try {
       const total = await this.foodsRepository.count();
-      
+
       const recentCutoff = new Date();
       recentCutoff.setDate(recentCutoff.getDate() - 7);
-      
+
       const recentlyUsed = await this.foodsRepository.count({
         where: {
           updatedAt: MoreThan(recentCutoff),
@@ -97,7 +97,7 @@ export class FoodCacheService {
 
       const withBarcode = await this.foodsRepository.count({
         where: {
-          barcode: MoreThan(''),
+          barcode: MoreThan(""),
         },
       });
 
@@ -108,7 +108,7 @@ export class FoodCacheService {
         cacheHitRate: total > 0 ? (recentlyUsed / total) * 100 : 0,
       };
     } catch (error) {
-      this.logger.error('Failed to get cache stats:', error.message);
+      this.logger.error("Failed to get cache stats:", error.message);
       return {
         totalCachedFoods: 0,
         recentlyUsedFoods: 0,
@@ -123,13 +123,14 @@ export class FoodCacheService {
    */
   shouldCacheFood(food: FoodSearchResultDto): boolean {
     // Don't cache foods with insufficient nutrition data
-    if (!food.name || food.name === 'Unknown Product') {
+    if (!food.name || food.name === "Unknown Product") {
       return false;
     }
 
     // Don't cache foods with zero calories and zero macros (likely incomplete data)
-    const hasNutritionData = food.calories > 0 || food.protein > 0 || food.carbs > 0 || food.fat > 0;
-    
+    const hasNutritionData =
+      food.calories > 0 || food.protein > 0 || food.carbs > 0 || food.fat > 0;
+
     // Don't cache foods with very low confidence scores
     const hasGoodConfidence = !food.confidence || food.confidence >= 0.3;
 
@@ -152,9 +153,11 @@ export class FoodCacheService {
       // - Prioritizing foods with barcodes
       // - Keeping foods with better nutrition data
 
-      this.logger.log(`Cache optimization completed. Cleaned ${cleanedCount} foods.`);
+      this.logger.log(
+        `Cache optimization completed. Cleaned ${cleanedCount} foods.`,
+      );
     } catch (error) {
-      this.logger.error('Cache optimization failed:', error.message);
+      this.logger.error("Cache optimization failed:", error.message);
     }
   }
 }

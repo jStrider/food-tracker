@@ -1,8 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { IsOptional, IsString, IsDateString, IsEnum, Length, Matches, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { CreateMealDto, CreateFoodEntryDto } from './create-meal.dto';
-import { MealCategory } from '../entities/meal.entity';
+import { PartialType } from "@nestjs/mapped-types";
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsEnum,
+  Length,
+  Matches,
+  IsArray,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { MealCategory } from "../entities/meal.entity";
 
 export class UpdateMealDto {
   @IsOptional()
@@ -21,7 +29,7 @@ export class UpdateMealDto {
   @IsOptional()
   @IsString()
   @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: 'Time must be in HH:MM format (24-hour)',
+    message: "Time must be in HH:MM format (24-hour)",
   })
   time?: string;
 

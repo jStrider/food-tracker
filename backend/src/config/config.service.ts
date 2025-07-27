@@ -1,36 +1,39 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { EnvironmentVariables } from './env.validation';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { EnvironmentVariables } from "./env.validation";
 
 @Injectable()
 export class AppConfigService {
   private readonly logger = new Logger(AppConfigService.name);
 
-  constructor(private configService: ConfigService<EnvironmentVariables, true>) {
+  constructor(
+    private configService: ConfigService<EnvironmentVariables, true>,
+  ) {
     this.validateCriticalConfiguration();
   }
 
   private validateCriticalConfiguration(): void {
     const criticalChecks = [
       {
-        key: 'JWT_SECRET',
-        message: 'JWT_SECRET is missing or too short. Generate one with: openssl rand -base64 32',
+        key: "JWT_SECRET",
+        message:
+          "JWT_SECRET is missing or too short. Generate one with: openssl rand -base64 32",
         validation: () => {
           const secret = this.getJwtSecret();
           return secret && secret.length >= 32;
         },
       },
       {
-        key: 'NODE_ENV',
-        message: 'NODE_ENV should be set to development, production, or test',
+        key: "NODE_ENV",
+        message: "NODE_ENV should be set to development, production, or test",
         validation: () => {
           const env = this.getNodeEnv();
-          return ['development', 'production', 'test'].includes(env);
+          return ["development", "production", "test"].includes(env);
         },
       },
       {
-        key: 'DATABASE_PATH',
-        message: 'DATABASE_PATH must be specified',
+        key: "DATABASE_PATH",
+        message: "DATABASE_PATH must be specified",
         validation: () => {
           const path = this.getDatabasePath();
           return !!path;
@@ -49,14 +52,20 @@ export class AppConfigService {
     }
 
     if (failures.length > 0) {
-      this.logger.error('🚨 CRITICAL CONFIGURATION ERRORS:');
-      failures.forEach(failure => this.logger.error(failure));
-      this.logger.error('Please check your .env file and ensure all required variables are set.');
-      
+      this.logger.error("🚨 CRITICAL CONFIGURATION ERRORS:");
+      failures.forEach((failure) => this.logger.error(failure));
+      this.logger.error(
+        "Please check your .env file and ensure all required variables are set.",
+      );
+
       if (this.isProduction()) {
-        throw new Error('Critical configuration errors in production environment');
+        throw new Error(
+          "Critical configuration errors in production environment",
+        );
       } else {
-        this.logger.warn('⚠️  Continuing in development mode with configuration errors');
+        this.logger.warn(
+          "⚠️  Continuing in development mode with configuration errors",
+        );
       }
     }
 
@@ -66,82 +75,91 @@ export class AppConfigService {
   private logSecurityWarnings(): void {
     if (this.isProduction()) {
       // Production security checks
-      if (this.getJwtSecret() === 'your-super-secure-jwt-secret-key-here-minimum-32-characters') {
-        this.logger.error('🚨 SECURITY RISK: Using default JWT_SECRET in production!');
+      if (
+        this.getJwtSecret() ===
+        "your-super-secure-jwt-secret-key-here-minimum-32-characters"
+      ) {
+        this.logger.error(
+          "🚨 SECURITY RISK: Using default JWT_SECRET in production!",
+        );
       }
-      
-      if (this.getDatabasePath().includes('data/')) {
-        this.logger.warn('⚠️  Using local database path in production. Consider external database.');
+
+      if (this.getDatabasePath().includes("data/")) {
+        this.logger.warn(
+          "⚠️  Using local database path in production. Consider external database.",
+        );
       }
     } else {
       // Development warnings
       if (!this.getJwtSecret()) {
-        this.logger.warn('⚠️  JWT_SECRET not set. Authentication will not work.');
+        this.logger.warn(
+          "⚠️  JWT_SECRET not set. Authentication will not work.",
+        );
       }
     }
   }
 
   // Application Configuration
   getNodeEnv(): string {
-    return this.configService.get('NODE_ENV', { infer: true });
+    return this.configService.get("NODE_ENV", { infer: true });
   }
 
   getPort(): number {
-    return this.configService.get('PORT', { infer: true });
+    return this.configService.get("PORT", { infer: true });
   }
 
   getCorsOrigin(): string {
-    return this.configService.get('CORS_ORIGIN', { infer: true });
+    return this.configService.get("CORS_ORIGIN", { infer: true });
   }
 
   isProduction(): boolean {
-    return this.getNodeEnv() === 'production';
+    return this.getNodeEnv() === "production";
   }
 
   isDevelopment(): boolean {
-    return this.getNodeEnv() === 'development';
+    return this.getNodeEnv() === "development";
   }
 
   isTest(): boolean {
-    return this.getNodeEnv() === 'test';
+    return this.getNodeEnv() === "test";
   }
 
   // Database Configuration
   getDatabasePath(): string {
-    return this.configService.get('DATABASE_PATH', { infer: true });
+    return this.configService.get("DATABASE_PATH", { infer: true });
   }
 
   // Authentication Configuration
   getJwtSecret(): string {
-    return this.configService.get('JWT_SECRET', { infer: true });
+    return this.configService.get("JWT_SECRET", { infer: true });
   }
 
   getJwtExpiresIn(): string {
-    return this.configService.get('JWT_EXPIRES_IN', { infer: true });
+    return this.configService.get("JWT_EXPIRES_IN", { infer: true });
   }
 
   // External APIs
   getOpenFoodFactsApiUrl(): string {
-    return this.configService.get('OPENFOODFACTS_API_URL', { infer: true });
+    return this.configService.get("OPENFOODFACTS_API_URL", { infer: true });
   }
 
   // Rate Limiting
   getThrottleTtl(): number {
-    return this.configService.get('THROTTLE_TTL', { infer: true });
+    return this.configService.get("THROTTLE_TTL", { infer: true });
   }
 
   getThrottleLimit(): number {
-    return this.configService.get('THROTTLE_LIMIT', { infer: true });
+    return this.configService.get("THROTTLE_LIMIT", { infer: true });
   }
 
   // Logging
   getLogLevel(): string {
-    return this.configService.get('LOG_LEVEL', { infer: true });
+    return this.configService.get("LOG_LEVEL", { infer: true });
   }
 
   // Health Check
   getHealthCheckEndpoint(): string {
-    return this.configService.get('HEALTH_CHECK_ENDPOINT', { infer: true });
+    return this.configService.get("HEALTH_CHECK_ENDPOINT", { infer: true });
   }
 
   // Utility methods

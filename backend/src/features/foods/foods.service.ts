@@ -1,11 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, ILike } from 'typeorm';
-import { Food } from './entities/food.entity';
-import { FoodEntry } from './entities/food-entry.entity';
-import { OpenFoodFactsService } from './open-food-facts.service';
-import { FoodCacheService } from './food-cache.service';
-import { CreateFoodDto, UpdateFoodDto, CreateFoodEntryDto, UpdateFoodEntryDto, FoodSearchResultDto } from './dto';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Food } from "./entities/food.entity";
+import { FoodEntry } from "./entities/food-entry.entity";
+import { OpenFoodFactsService } from "./open-food-facts.service";
+import { FoodCacheService } from "./food-cache.service";
+import {
+  CreateFoodDto,
+  UpdateFoodDto,
+  CreateFoodEntryDto,
+  UpdateFoodEntryDto,
+  FoodSearchResultDto,
+} from "./dto";
 
 @Injectable()
 export class FoodsService {
@@ -24,29 +29,42 @@ export class FoodsService {
 
   async searchByName(query: string): Promise<FoodSearchResultDto[]> {
     this.logger.log(`Searching foods by name: ${query}`);
-    
+
     try {
       // First search local cache with better matching
       const localFoods = await this.searchLocalFoods(query);
-      const localResults = localFoods.map(food => this.mapFoodToSearchResult(food, true));
+      const localResults = localFoods.map((food) =>
+        this.mapFoodToSearchResult(food, true),
+      );
 
       // If not enough results, search OpenFoodFacts
       if (localResults.length < this.CACHE_THRESHOLD) {
-        this.logger.log(`Local results insufficient (${localResults.length}), searching external API`);
-        
+        this.logger.log(
+          `Local results insufficient (${localResults.length}), searching external API`,
+        );
+
         try {
-          const externalResults = await this.openFoodFactsService.searchByName(query);
-          
+          const externalResults =
+            await this.openFoodFactsService.searchByName(query);
+
           // Cache promising external foods locally
-          const cachedResults = await this.cacheExternalResults(externalResults);
-          
+          const cachedResults =
+            await this.cacheExternalResults(externalResults);
+
           // Combine and deduplicate results
-          const combinedResults = this.deduplicateResults([...localResults, ...cachedResults]);
-          
-          this.logger.log(`Combined search returned ${combinedResults.length} results`);
+          const combinedResults = this.deduplicateResults([
+            ...localResults,
+            ...cachedResults,
+          ]);
+
+          this.logger.log(
+            `Combined search returned ${combinedResults.length} results`,
+          );
           return combinedResults;
         } catch (externalError) {
-          this.logger.warn(`External search failed, returning local results only: ${externalError.message}`);
+          this.logger.warn(
+            `External search failed, returning local results only: ${externalError.message}`,
+          );
           return localResults;
         }
       }
@@ -54,18 +72,21 @@ export class FoodsService {
       this.logger.log(`Returning ${localResults.length} local results`);
       return localResults;
     } catch (error) {
-      this.logger.error(`Food search failed for query "${query}":`, error.message);
+      this.logger.error(
+        `Food search failed for query "${query}":`,
+        error.message,
+      );
       throw new Error(`Food search failed: ${error.message}`);
     }
   }
 
   async searchByBarcode(barcode: string): Promise<FoodSearchResultDto | null> {
     this.logger.log(`Searching foods by barcode: ${barcode}`);
-    
+
     try {
       // First check local cache
-      let food = await this.foodsRepository.findOne({ where: { barcode } });
-      
+      const food = await this.foodsRepository.findOne({ where: { barcode } });
+
       if (food) {
         this.logger.log(`Found food in local cache: ${food.name}`);
         return this.mapFoodToSearchResult(food, true);
@@ -73,19 +94,25 @@ export class FoodsService {
 
       // Search OpenFoodFacts
       this.logger.log(`Food not in cache, searching external API`);
-      const externalResult = await this.openFoodFactsService.searchByBarcode(barcode);
-      
+      const externalResult =
+        await this.openFoodFactsService.searchByBarcode(barcode);
+
       if (externalResult) {
         // Cache the food locally
         const cachedFood = await this.cacheFood(externalResult);
-        this.logger.log(`Cached new food from external API: ${cachedFood.name}`);
+        this.logger.log(
+          `Cached new food from external API: ${cachedFood.name}`,
+        );
         return this.mapFoodToSearchResult(cachedFood, false);
       }
 
       this.logger.warn(`No food found for barcode: ${barcode}`);
       return null;
     } catch (error) {
-      this.logger.error(`Barcode search failed for "${barcode}":`, error.message);
+      this.logger.error(
+        `Barcode search failed for "${barcode}":`,
+        error.message,
+      );
       throw new Error(`Barcode search failed: ${error.message}`);
     }
   }
@@ -119,26 +146,36 @@ export class FoodsService {
   }
 
   // Food entries management
-  async addFoodToMeal(mealId: string, createFoodEntryDto: CreateFoodEntryDto): Promise<FoodEntry> {
+  async addFoodToMeal(
+    mealId: string,
+    createFoodEntryDto: CreateFoodEntryDto,
+  ): Promise<FoodEntry> {
     // Verify food exists
     await this.findOne(createFoodEntryDto.foodId);
-    
+
     const foodEntry = this.foodEntriesRepository.create({
       ...createFoodEntryDto,
       mealId,
     });
-    
+
     const savedEntry = await this.foodEntriesRepository.save(foodEntry);
-    this.logger.log(`Added food entry: ${createFoodEntryDto.quantity}${createFoodEntryDto.unit} to meal ${mealId}`);
+    this.logger.log(
+      `Added food entry: ${createFoodEntryDto.quantity}${createFoodEntryDto.unit} to meal ${mealId}`,
+    );
     return savedEntry;
   }
 
-  async updateFoodEntry(entryId: string, updateFoodEntryDto: UpdateFoodEntryDto): Promise<FoodEntry> {
-    const existingEntry = await this.foodEntriesRepository.findOne({ where: { id: entryId } });
+  async updateFoodEntry(
+    entryId: string,
+    updateFoodEntryDto: UpdateFoodEntryDto,
+  ): Promise<FoodEntry> {
+    const existingEntry = await this.foodEntriesRepository.findOne({
+      where: { id: entryId },
+    });
     if (!existingEntry) {
       throw new NotFoundException(`Food entry with ID ${entryId} not found`);
     }
-    
+
     await this.foodEntriesRepository.update(entryId, updateFoodEntryDto);
     this.logger.log(`Updated food entry: ${entryId}`);
     return this.foodEntriesRepository.findOne({ where: { id: entryId } });
@@ -154,16 +191,16 @@ export class FoodsService {
 
   private async searchLocalFoods(query: string): Promise<Food[]> {
     return this.foodsRepository.find({
-      where: [
-        { name: ILike(`%${query}%`) },
-        { brand: ILike(`%${query}%`) },
-      ],
-      order: { name: 'ASC' },
+      where: [{ name: ILike(`%${query}%`) }, { brand: ILike(`%${query}%`) }],
+      order: { name: "ASC" },
       take: 20,
     });
   }
 
-  private mapFoodToSearchResult(food: Food, isFromCache: boolean): FoodSearchResultDto {
+  private mapFoodToSearchResult(
+    food: Food,
+    isFromCache: boolean,
+  ): FoodSearchResultDto {
     return {
       id: food.id,
       name: food.name,
@@ -183,13 +220,17 @@ export class FoodsService {
     };
   }
 
-  private async cacheExternalResults(externalResults: FoodSearchResultDto[]): Promise<FoodSearchResultDto[]> {
+  private async cacheExternalResults(
+    externalResults: FoodSearchResultDto[],
+  ): Promise<FoodSearchResultDto[]> {
     const cachedResults: FoodSearchResultDto[] = [];
-    
+
     for (const result of externalResults.slice(0, this.MAX_EXTERNAL_RESULTS)) {
       // Check if food should be cached based on quality criteria
       if (!this.foodCacheService.shouldCacheFood(result)) {
-        this.logger.debug(`Skipping cache for low quality food: ${result.name}`);
+        this.logger.debug(
+          `Skipping cache for low quality food: ${result.name}`,
+        );
         cachedResults.push(result);
         continue;
       }
@@ -207,14 +248,16 @@ export class FoodsService {
         cachedResults.push(result);
       }
     }
-    
+
     return cachedResults;
   }
 
-  private deduplicateResults(results: FoodSearchResultDto[]): FoodSearchResultDto[] {
+  private deduplicateResults(
+    results: FoodSearchResultDto[],
+  ): FoodSearchResultDto[] {
     const seen = new Set<string>();
     const deduplicated: FoodSearchResultDto[] = [];
-    
+
     for (const result of results) {
       const key = result.barcode || `${result.name}-${result.brand}`;
       if (!seen.has(key)) {
@@ -222,7 +265,7 @@ export class FoodsService {
         deduplicated.push(result);
       }
     }
-    
+
     return deduplicated.sort((a, b) => {
       // Prioritize cache results, then by confidence
       if (a.isFromCache && !b.isFromCache) return -1;
@@ -231,21 +274,23 @@ export class FoodsService {
     });
   }
 
-  private async cacheFood(foodData: Partial<Food> | FoodSearchResultDto): Promise<Food> {
+  private async cacheFood(
+    foodData: Partial<Food> | FoodSearchResultDto,
+  ): Promise<Food> {
     // Check if already exists by barcode or name+brand combination
     let existingFood: Food | null = null;
-    
+
     if (foodData.barcode) {
       existingFood = await this.foodsRepository.findOne({
         where: { barcode: foodData.barcode },
       });
     }
-    
+
     if (!existingFood && foodData.name) {
       existingFood = await this.foodsRepository.findOne({
         where: {
           name: foodData.name,
-          brand: foodData.brand || '',
+          brand: foodData.brand || "",
         },
       });
     }
@@ -257,9 +302,9 @@ export class FoodsService {
 
     // Create new food entry
     const newFood = this.foodsRepository.create({
-      name: foodData.name || 'Unknown Product',
-      brand: foodData.brand || '',
-      barcode: foodData.barcode || '',
+      name: foodData.name || "Unknown Product",
+      brand: foodData.brand || "",
+      barcode: foodData.barcode || "",
       calories: foodData.calories || 0,
       protein: foodData.protein || 0,
       carbs: foodData.carbs || 0,
@@ -267,10 +312,10 @@ export class FoodsService {
       fiber: foodData.fiber || 0,
       sugar: foodData.sugar || 0,
       sodium: foodData.sodium || 0,
-      servingSize: foodData.servingSize || '100g',
+      servingSize: foodData.servingSize || "100g",
       imageUrl: foodData.imageUrl,
     });
-    
+
     const savedFood = await this.foodsRepository.save(newFood);
     this.logger.debug(`Cached new food: ${savedFood.name}`);
     return savedFood;

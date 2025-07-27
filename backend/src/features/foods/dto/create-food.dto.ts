@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsNumber, IsUrl, Min, Max, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsUrl,
+  Min,
+  Max,
+  IsNotEmpty,
+} from "class-validator";
 
 export class CreateFoodDto {
   @IsString()
