@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 // Configuration
 import { AppConfigModule } from "./config/config.module";
+import { getRateLimitConfig } from "./config/rate-limit.config";
 
 // Feature modules
 import { UsersModule } from "./features/users/users.module";
@@ -17,28 +18,14 @@ import { AuthModule } from "./features/auth/auth.module";
 import { DatabaseModule } from "./database/database.module";
 import { McpModule } from "./mcp/mcp.module";
 import { HealthController } from "./common/health.controller";
-// import { JwtAuthGuard } from './features/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from './features/auth/guards/jwt-auth.guard';
+import { CustomThrottlerGuard } from "./common/guards/custom-throttler.guard";
+import { RateLimitHeadersInterceptor } from "./common/interceptors/rate-limit-headers.interceptor";
 
 @Module({
   imports: [
     AppConfigModule,
-    ThrottlerModule.forRoot([
-      {
-        name: "short",
-        ttl: 1000, // 1 seconde
-        limit: 3, // 3 requêtes par seconde
-      },
-      {
-        name: "medium",
-        ttl: 10000, // 10 secondes
-        limit: 20, // 20 requêtes par 10 secondes
-      },
-      {
-        name: "long",
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requêtes par minute
-      },
-    ]),
+    ThrottlerModule.forRoot(getRateLimitConfig()),
     DatabaseModule,
     McpModule,
     AuthModule,
@@ -52,12 +39,15 @@ import { HealthController } from "./common/health.controller";
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard, // Rate limiting global
+      useClass: CustomThrottlerGuard, // Custom rate limiting guard
     },
     {
       provide: APP_GUARD,
-      // useClass: JwtAuthGuard, // Auth global (sauf routes @Public)
-      useClass: ThrottlerGuard, // Temporary: only rate limiting
+      useClass: JwtAuthGuard, // Global authentication
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RateLimitHeadersInterceptor, // Add rate limit headers to responses
     },
   ],
 })

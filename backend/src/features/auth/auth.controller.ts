@@ -16,6 +16,9 @@ import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { AuthRateLimit, QueryRateLimit } from "../../common/decorators/rate-limit.decorator";
+import { ApiAuthRateLimit, ApiQueryRateLimit } from "../../common/decorators/api-rate-limit.decorator";
+import { Public } from "./decorators/public.decorator";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -23,6 +26,9 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post("login")
+  @Public()
+  @AuthRateLimit()
+  @ApiAuthRateLimit()
   @ApiOperation({ summary: "Login with email and password" })
   @ApiResponse({ status: 200, description: "Login successful" })
   @ApiResponse({ status: 401, description: "Invalid credentials" })
@@ -31,6 +37,9 @@ export class AuthController {
   }
 
   @Post("register")
+  @Public()
+  @AuthRateLimit()
+  @ApiAuthRateLimit()
   @ApiOperation({ summary: "Register a new user" })
   @ApiResponse({ status: 201, description: "User created successfully" })
   @ApiResponse({ status: 409, description: "User already exists" })
@@ -40,6 +49,8 @@ export class AuthController {
 
   @Get("me")
   @UseGuards(JwtAuthGuard)
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get current user profile" })
   @ApiResponse({ status: 200, description: "User profile" })

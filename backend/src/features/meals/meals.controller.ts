@@ -47,6 +47,7 @@ import {
   MealStatsDto,
 } from "./dto";
 import { Meal } from "./entities/meal.entity";
+import { MutationRateLimit, QueryRateLimit } from "../../common/decorators/rate-limit.decorator";
 
 @ApiTags("meals")
 @Controller("meals")
@@ -60,6 +61,7 @@ export class MealsController {
   ) {}
 
   @Get()
+  @QueryRateLimit()
   @ApiOperation({ summary: "Get all meals with filtering and pagination" })
   @ApiResponse({
     status: 200,
@@ -105,6 +107,7 @@ export class MealsController {
   }
 
   @Get("daily/:date")
+  @QueryRateLimit()
   @ApiOperation({ summary: "Get all meals for a specific date" })
   @ApiResponse({
     status: 200,
@@ -129,6 +132,7 @@ export class MealsController {
   }
 
   @Get("nutrition/:date")
+  @QueryRateLimit()
   @ApiOperation({ summary: "Get daily nutrition summary" })
   @ApiResponse({
     status: 200,
@@ -144,6 +148,7 @@ export class MealsController {
   }
 
   @Get("stats/summary")
+  @QueryRateLimit()
   @ApiOperation({ summary: "Get meal statistics" })
   @ApiResponse({
     status: 200,
@@ -210,6 +215,7 @@ export class MealsController {
   }
 
   @Get(":id")
+  @QueryRateLimit()
   @ApiOperation({ summary: "Get a specific meal by ID" })
   @ApiResponse({
     status: 200,
@@ -232,6 +238,7 @@ export class MealsController {
   }
 
   @Post()
+  @MutationRateLimit()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a new meal" })
   @ApiResponse({
@@ -249,6 +256,7 @@ export class MealsController {
   }
 
   @Put(":id")
+  @MutationRateLimit()
   @ApiOperation({ summary: "Update an existing meal" })
   @ApiResponse({
     status: 200,
@@ -268,6 +276,7 @@ export class MealsController {
   }
 
   @Delete(":id")
+  @MutationRateLimit()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a meal" })
   @ApiResponse({ status: 204, description: "Meal deleted successfully" })
@@ -281,6 +290,7 @@ export class MealsController {
   // Nutrition Integration Endpoints
 
   @Post("nutrition/progress/:date")
+  @QueryRateLimit()
   @ApiOperation({ summary: "Calculate nutrition progress against goals" })
   @ApiResponse({
     status: 200,
