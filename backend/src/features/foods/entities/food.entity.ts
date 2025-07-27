@@ -116,7 +116,7 @@ export class Food {
   @Column({ default: false })
   isCached: boolean; // True if this is a frequently used food cached locally
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lastSyncedAt?: Date; // Last time data was synced from OpenFoodFacts
 
   @Column({ default: 0 })

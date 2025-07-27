@@ -1,4 +1,5 @@
 import { DataSource } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from '../features/users/entities/user.entity';
 import { Meal } from '../features/meals/entities/meal.entity';
 import { FoodEntry } from '../features/foods/entities/food-entry.entity';
@@ -9,8 +10,12 @@ const DEFAULT_USER_ID = 'a3aa41df-b467-40c8-867c-beb5edc4d032';
 
 async function seedDefaultUser() {
   const AppDataSource = new DataSource({
-    type: 'sqlite',
-    database: process.env.DATABASE_PATH || './data/foodtracker.db',
+    type: 'postgres',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.DATABASE_PORT || '5432'),
+    username: process.env.DATABASE_USER || 'foodtracker',
+    password: process.env.DATABASE_PASSWORD || 'foodtracker_secure_password',
+    database: process.env.DATABASE_NAME || 'foodtracker',
     entities: [User, Meal, FoodEntry, Food],
     synchronize: false,
   });
@@ -31,11 +36,14 @@ async function seedDefaultUser() {
       return;
     }
 
-    // Create default user
+    // Create default user with hashed password
+    const hashedPassword = await bcrypt.hash('defaultPassword123', 10);
+    
     const defaultUser = userRepository.create({
       id: DEFAULT_USER_ID,
       email: 'default@foodtracker.com',
       name: 'Default User',
+      password: hashedPassword,
       timezone: 'Europe/Paris',
       preferences: {
         dailyCalorieGoal: 2000,
