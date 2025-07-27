@@ -9,8 +9,8 @@ WORKDIR /app
 COPY frontend/package*.json ./
 COPY shared/package.json ./shared/
 
-# Install dependencies
-RUN npm install --only=production && npm cache clean --force
+# Install dependencies (ignore prepare script for husky)
+RUN npm install --only=production --ignore-scripts && npm cache clean --force
 
 # Build the application
 FROM base AS builder
@@ -20,8 +20,8 @@ WORKDIR /app
 COPY frontend/package*.json ./
 COPY shared/package*.json ./shared/
 
-# Install all dependencies
-RUN npm install
+# Install all dependencies (ignore prepare script for husky)
+RUN npm install --ignore-scripts
 
 # Copy shared module
 COPY shared ./shared
