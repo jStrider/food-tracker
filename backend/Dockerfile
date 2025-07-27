@@ -7,6 +7,9 @@ RUN apk update && apk upgrade && \
     apk add --no-cache \
     dumb-init \
     curl \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/cache/apk/*
 
 # Install dependencies only when needed
@@ -19,6 +22,7 @@ COPY shared/package*.json ./shared/
 
 # Install production dependencies only (ignore prepare script for husky)
 RUN npm install --only=production --ignore-scripts && \
+    npm rebuild bcrypt --build-from-source && \
     npm cache clean --force && \
     rm -rf ~/.npm
 
@@ -31,7 +35,8 @@ COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
 # Install all dependencies (including dev, ignore prepare script for husky)
-RUN npm install --ignore-scripts
+RUN npm install --ignore-scripts && \
+    npm rebuild bcrypt --build-from-source
 
 # Copy source code
 COPY backend/src ./src
@@ -46,7 +51,7 @@ RUN npm run build && \
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Install security updates
+# Install security updates  
 RUN apk update && apk upgrade && \
     apk add --no-cache dumb-init curl && \
     rm -rf /var/cache/apk/*
