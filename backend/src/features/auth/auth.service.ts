@@ -49,16 +49,21 @@ export class AuthService {
     return crypto.randomBytes(32).toString("hex");
   }
 
-  private async generateTokens(userId: string, email: string, roles?: string[], permissions?: string[]) {
+  private async generateTokens(
+    userId: string,
+    email: string,
+    roles?: string[],
+    permissions?: string[],
+  ) {
     // Enrich token payload with user context
-    const payload = { 
-      email, 
+    const payload = {
+      email,
       sub: userId,
-      roles: roles || ['user'], // Default role if none provided
+      roles: roles || ["user"], // Default role if none provided
       permissions: permissions || [],
-      type: 'access' // Token type identifier
+      type: "access", // Token type identifier
     };
-    
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.configService.get<string>("JWT_SECRET"), // No fallback - fail fast if not configured
@@ -76,13 +81,13 @@ export class AuthService {
     // Store refresh token
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiration
-    
+
     const tokenData: RefreshTokenData = {
       userId,
       refreshToken,
       expiresAt,
     };
-    
+
     this.refreshTokenStore.set(refreshToken, tokenData);
     this.userTokenMap.set(userId, refreshToken);
 
@@ -99,12 +104,12 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = await this.generateTokens(
-      user.id, 
+      user.id,
       user.email,
-      user.roles || ['user'],
-      user.permissions || []
+      user.roles || ["user"],
+      user.permissions || [],
     );
-    
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -114,7 +119,7 @@ export class AuthService {
         name: user.name,
         timezone: user.timezone,
         preferences: user.preferences,
-        roles: user.roles || ['user'],
+        roles: user.roles || ["user"],
         permissions: user.permissions || [],
       },
     };
@@ -129,7 +134,7 @@ export class AuthService {
 
     // Hash password
     // Get bcrypt rounds from environment variable with default fallback
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS', 12);
+    const saltRounds = this.configService.get<number>("BCRYPT_ROUNDS", 12);
     const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
 
     // Create user
@@ -140,12 +145,12 @@ export class AuthService {
 
     // Generate tokens
     const { accessToken, refreshToken } = await this.generateTokens(
-      user.id, 
+      user.id,
       user.email,
-      user.roles || ['user'],
-      user.permissions || []
+      user.roles || ["user"],
+      user.permissions || [],
     );
-    
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -155,7 +160,7 @@ export class AuthService {
         name: user.name,
         timezone: user.timezone,
         preferences: user.preferences,
-        roles: user.roles || ['user'],
+        roles: user.roles || ["user"],
         permissions: user.permissions || [],
       },
     };
@@ -169,7 +174,7 @@ export class AuthService {
 
   async refreshTokens(refreshToken: string) {
     const tokenData = this.refreshTokenStore.get(refreshToken);
-    
+
     if (!tokenData) {
       throw new ForbiddenException("Invalid refresh token");
     }
@@ -187,13 +192,14 @@ export class AuthService {
     }
 
     // Generate new tokens (rotation)
-    const { accessToken, refreshToken: newRefreshToken } = await this.generateTokens(
-      user.id, 
-      user.email,
-      user.roles || ['user'],
-      user.permissions || []
-    );
-    
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.generateTokens(
+        user.id,
+        user.email,
+        user.roles || ["user"],
+        user.permissions || [],
+      );
+
     return {
       access_token: accessToken,
       refresh_token: newRefreshToken,
@@ -203,7 +209,7 @@ export class AuthService {
         name: user.name,
         timezone: user.timezone,
         preferences: user.preferences,
-        roles: user.roles || ['user'],
+        roles: user.roles || ["user"],
         permissions: user.permissions || [],
       },
     };

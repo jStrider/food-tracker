@@ -1,7 +1,9 @@
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
-export class AddUserRolesPermissions1700000000000 implements MigrationInterface {
-  name = 'AddUserRolesPermissions1700000000000';
+export class AddUserRolesPermissions1700000000000
+  implements MigrationInterface
+{
+  name = "AddUserRolesPermissions1700000000000";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Add roles column with default value
@@ -12,7 +14,7 @@ export class AddUserRolesPermissions1700000000000 implements MigrationInterface 
         type: "text",
         default: "'[\"user\"]'",
         isNullable: false,
-      })
+      }),
     );
 
     // Add permissions column with default value
@@ -23,7 +25,7 @@ export class AddUserRolesPermissions1700000000000 implements MigrationInterface 
         type: "text",
         default: "'[]'",
         isNullable: false,
-      })
+      }),
     );
   }
 

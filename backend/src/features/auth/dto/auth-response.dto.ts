@@ -13,25 +13,26 @@ export class UserProfileDto {
   @ApiProperty({ example: "America/New_York" })
   timezone: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: {
       dietary_restrictions: [],
-      daily_calorie_goal: 2000
-    }
+      daily_calorie_goal: 2000,
+    },
   })
   preferences: any;
 }
 
 export class AuthResponseDto {
-  @ApiProperty({ 
+  @ApiProperty({
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    description: "JWT access token (short-lived, 15 minutes)"
+    description: "JWT access token (short-lived, 15 minutes)",
   })
   access_token: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: "a1b2c3d4e5f6g7h8i9j0...",
-    description: "Refresh token for obtaining new access tokens (7 days validity)"
+    description:
+      "Refresh token for obtaining new access tokens (7 days validity)",
   })
   refresh_token: string;
 

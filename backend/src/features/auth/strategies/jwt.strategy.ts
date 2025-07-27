@@ -15,12 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     // Return enriched user context from JWT payload
-    return { 
-      userId: payload.sub, 
+    return {
+      userId: payload.sub,
       email: payload.email,
-      roles: payload.roles || ['user'],
+      roles: payload.roles || ["user"],
       permissions: payload.permissions || [],
-      tokenType: payload.type || 'access'
+      tokenType: payload.type || "access",
     };
   }
 }
