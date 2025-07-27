@@ -1,8 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './helpers/authenticated-test';
 
 test.describe('Meal Management', () => {
   test.beforeEach(async ({ page }) => {
+    // Already authenticated via context
+    // Navigate to homepage
     await page.goto('/');
+    
+    // Wait for the page to be ready
+    await page.waitForLoadState('networkidle');
   });
 
   test('can create a new meal', async ({ page }) => {
@@ -30,7 +35,7 @@ test.describe('Meal Management', () => {
 
   test('can add food to meal', async ({ page }) => {
     // Navigate to food search
-    await page.getByRole('link', { name: 'Food Search' }).click();
+    await page.goto('/foods');
     
     // Wait for meals to load
     await page.waitForLoadState('networkidle');
