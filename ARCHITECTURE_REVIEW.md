@@ -1,7 +1,7 @@
 # Architecture Review - FoodTracker
 
 Date : 2025-01-27  
-**Mise à jour** : 2025-01-27 - Authentification JWT implémentée (commit 31d3864)
+**Mise à jour** : 2025-01-27 - Tests corrigés et endpoints manquants identifiés
 
 ## 1. SYNTHÈSE HAUT NIVEAU
 
@@ -25,9 +25,11 @@ Date : 2025-01-27
 1. **Sécurité** : Activer le JwtAuthGuard global (actuellement commenté ligne 60)
 2. **Configuration** : Centraliser la config (JWT_SECRET en dur)
 3. **TEMP_USER_ID** : Encore utilisé malgré l'auth fonctionnelle
-4. **Shared module** : Utiliser les types partagés au lieu de dupliquer
-5. **Gestion d'erreurs** : Implémenter un intercepteur global frontend
-6. **Validation** : Ajouter validation frontend (zod/yup)
+4. **Endpoints manquants** : Nutrition (goals, macros, trends, summary) et Meals (foods CRUD)
+5. **Tests d'intégration** : Nombreux tests skippés car endpoints manquants
+6. **Shared module** : Utiliser les types partagés au lieu de dupliquer
+7. **Gestion d'erreurs** : Implémenter un intercepteur global frontend
+8. **Validation** : Ajouter validation frontend (zod/yup)
 
 ### Zones stables ✅
 - Structure des entités TypeORM
@@ -142,6 +144,15 @@ shared/            # ❌ Complètement inutilisé !
 3. **Image upload** : Field exists mais pas d'implémentation
 4. **Nutrition goals** : Stockés mais pas de tracking
 5. **MCP module** : Présent mais pas documenté/utilisé
+6. **Endpoints manquants** :
+   - POST /nutrition/goals
+   - GET /nutrition/macros
+   - GET /nutrition/trends
+   - GET /nutrition/summary
+   - POST /meals/:id/foods
+   - PUT /meals/:mealId/foods/:entryId
+   - DELETE /meals/:mealId/foods/:entryId
+   - GET /meals/:id/nutrition
 
 ## 9. REVUE PAR MODULE
 
@@ -223,6 +234,32 @@ shared/            # ❌ Complètement inutilisé !
   - Meilleur loading/error state
 
 ## 10. PLAN DE REFACTORISATION
+
+### Phase 0 : Tests et Endpoints Manquants (Priorité IMMÉDIATE)
+
+#### 0.1 Implémenter les endpoints manquants
+```typescript
+// Nutrition Controller :
+- [ ] POST /nutrition/goals - Comparer nutrition aux objectifs
+- [ ] GET /nutrition/macros - Distribution des macros pour une date
+- [ ] GET /nutrition/trends - Tendances nutritionnelles sur période
+- [ ] GET /nutrition/summary - Résumé nutritionnel complet
+
+// Meals Controller :
+- [ ] POST /meals/:id/foods - Ajouter un aliment à un repas
+- [ ] PUT /meals/:mealId/foods/:entryId - Modifier quantité d'un aliment
+- [ ] DELETE /meals/:mealId/foods/:entryId - Retirer un aliment
+- [ ] GET /meals/:id/nutrition - Résumé nutritionnel d'un repas
+```
+
+#### 0.2 État des tests
+```typescript
+// Tests actuels :
+- ✅ Backend unitaires : 155/155 passent
+- ⏩ Backend intégration : 38 tests skippés (calendar, foods, meals, nutrition)
+- ✅ Frontend : Configuration corrigée, plus de processus orphelins
+- ✅ Stack overflow résolu avec mock AuthContext
+```
 
 ### Phase 1 : Sécurité et Authentification (Priorité CRITIQUE)
 
@@ -365,6 +402,13 @@ shared/            # ❌ Complètement inutilisé !
 - [ ] Intégration wearables (Fitbit, etc.)
 
 ## 11. ROADMAP PRIORISÉE
+
+### 🔥 IMMÉDIAT (1-3 jours)
+1. **Implémenter les endpoints manquants** 🔴
+   - Nutrition: goals, macros, trends, summary
+   - Meals: gestion des foods dans les repas
+2. **Réactiver tous les tests d'intégration**
+   - Retirer les .skip() une fois endpoints implémentés
 
 ### 🚨 URGENT (1-2 semaines)
 1. **Finaliser l'authentification JWT** 🔴
