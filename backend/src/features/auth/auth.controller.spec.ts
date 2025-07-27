@@ -77,7 +77,9 @@ describe("AuthController", () => {
 
       mockAuthService.login.mockRejectedValue(new Error("Invalid credentials"));
 
-      await expect(controller.login(loginDto)).rejects.toThrow("Invalid credentials");
+      await expect(controller.login(loginDto)).rejects.toThrow(
+        "Invalid credentials",
+      );
     });
   });
 
@@ -139,9 +141,13 @@ describe("AuthController", () => {
         password: "password123",
       };
 
-      mockAuthService.register.mockRejectedValue(new Error("User already exists"));
+      mockAuthService.register.mockRejectedValue(
+        new Error("User already exists"),
+      );
 
-      await expect(controller.register(registerDto)).rejects.toThrow("User already exists");
+      await expect(controller.register(registerDto)).rejects.toThrow(
+        "User already exists",
+      );
     });
   });
 
@@ -172,7 +178,9 @@ describe("AuthController", () => {
 
       mockAuthService.getProfile.mockRejectedValue(new Error("User not found"));
 
-      await expect(controller.getProfile(req)).rejects.toThrow("User not found");
+      await expect(controller.getProfile(req)).rejects.toThrow(
+        "User not found",
+      );
     });
   });
 
@@ -192,7 +200,9 @@ describe("AuthController", () => {
       const result = await controller.refreshTokens(refreshTokenDto);
 
       expect(result).toEqual(expectedResponse);
-      expect(authService.refreshTokens).toHaveBeenCalledWith(refreshTokenDto.refresh_token);
+      expect(authService.refreshTokens).toHaveBeenCalledWith(
+        refreshTokenDto.refresh_token,
+      );
     });
 
     it("should propagate error when refresh token is invalid", async () => {
@@ -200,9 +210,13 @@ describe("AuthController", () => {
         refresh_token: "invalid-refresh-token",
       };
 
-      mockAuthService.refreshTokens.mockRejectedValue(new Error("Invalid refresh token"));
+      mockAuthService.refreshTokens.mockRejectedValue(
+        new Error("Invalid refresh token"),
+      );
 
-      await expect(controller.refreshTokens(refreshTokenDto)).rejects.toThrow("Invalid refresh token");
+      await expect(controller.refreshTokens(refreshTokenDto)).rejects.toThrow(
+        "Invalid refresh token",
+      );
     });
   });
 

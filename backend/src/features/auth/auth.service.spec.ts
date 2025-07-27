@@ -1,11 +1,26 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
+import {
+  UnauthorizedException,
+  ConflictException,
+  ForbiddenException,
+} from "@nestjs/common";
+import * as bcrypt from "bcrypt";
 import { AuthService } from "./auth.service";
 import { UsersService } from "../users/users.service";
-import { UnauthorizedException, ConflictException, ForbiddenException } from "@nestjs/common";
-import * as bcrypt from "bcrypt";
+import { CreateUserDto } from "../users/dto/create-user.dto";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
 import { User } from "../users/entities/user.entity";
+
+// Mock crypto module
+jest.mock("crypto", () => ({
+  randomBytes: jest.fn(),
+}));
+
+// Import the mocked randomBytes
+import { randomBytes } from "crypto";
 
 describe("AuthService", () => {
   let authService: AuthService;
@@ -82,7 +97,9 @@ describe("AuthService", () => {
       const password = "password123";
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, "compare").mockImplementation(() => Promise.resolve(true));
+      jest
+        .spyOn(bcrypt, "compare")
+        .mockImplementation(() => Promise.resolve(true));
 
       const result = await authService.validateUser(email, password);
 
@@ -95,16 +112,24 @@ describe("AuthService", () => {
     it("should return null when user not found", async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
 
-      const result = await authService.validateUser("nonexistent@example.com", "password");
+      const result = await authService.validateUser(
+        "nonexistent@example.com",
+        "password",
+      );
 
       expect(result).toBeNull();
     });
 
     it("should return null when password is invalid", async () => {
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, "compare").mockImplementation(() => Promise.resolve(false));
+      jest
+        .spyOn(bcrypt, "compare")
+        .mockImplementation(() => Promise.resolve(false));
 
-      const result = await authService.validateUser("test@example.com", "wrongpassword");
+      const result = await authService.validateUser(
+        "test@example.com",
+        "wrongpassword",
+      );
 
       expect(result).toBeNull();
     });
@@ -119,7 +144,7 @@ describe("AuthService", () => {
       jest.spyOn(authService, "validateUser").mockResolvedValue(mockUser);
       mockJwtService.signAsync.mockResolvedValue(accessToken);
       // Mock crypto.randomBytes for refresh token generation
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue(refreshToken),
       } as any);
 
@@ -144,12 +169,12 @@ describe("AuthService", () => {
           sub: mockUser.id,
           roles: mockUser.roles,
           permissions: mockUser.permissions,
-          type: 'access',
+          type: "access",
         },
         {
           secret: "test-secret",
           expiresIn: "15m",
-        }
+        },
       );
     });
 
@@ -158,7 +183,9 @@ describe("AuthService", () => {
 
       jest.spyOn(authService, "validateUser").mockResolvedValue(null);
 
-      await expect(authService.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -173,13 +200,19 @@ describe("AuthService", () => {
       const hashedPassword = "$2b$10$newhashpassword";
       const accessToken = "jwt-access-token";
       const refreshToken = "refresh-token-hash";
-      const newUser = { ...mockUser, email: registerDto.email, name: registerDto.name };
+      const newUser = {
+        ...mockUser,
+        email: registerDto.email,
+        name: registerDto.name,
+      };
 
       mockUsersService.findByEmail.mockResolvedValue(null);
-      jest.spyOn(bcrypt, "hash").mockImplementation(() => Promise.resolve(hashedPassword));
+      jest
+        .spyOn(bcrypt, "hash")
+        .mockImplementation(() => Promise.resolve(hashedPassword));
       mockUsersService.create.mockResolvedValue(newUser);
       mockJwtService.signAsync.mockResolvedValue(accessToken);
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue(refreshToken),
       } as any);
 
@@ -214,7 +247,9 @@ describe("AuthService", () => {
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(authService.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(authService.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
       expect(mockUsersService.create).not.toHaveBeenCalled();
     });
 
@@ -227,14 +262,16 @@ describe("AuthService", () => {
       const hashedPassword = "$2b$10$hashedversion";
 
       mockUsersService.findByEmail.mockResolvedValue(null);
-      jest.spyOn(bcrypt, "hash").mockImplementation(() => Promise.resolve(hashedPassword));
+      jest
+        .spyOn(bcrypt, "hash")
+        .mockImplementation(() => Promise.resolve(hashedPassword));
       mockUsersService.create.mockResolvedValue({
         ...mockUser,
         email: registerDto.email,
         password: hashedPassword,
       });
       mockJwtService.signAsync.mockResolvedValue("token");
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue("refresh-token"),
       } as any);
 
@@ -270,16 +307,16 @@ describe("AuthService", () => {
       // First, simulate a login to store the refresh token
       jest.spyOn(authService, "validateUser").mockResolvedValue(mockUser);
       mockJwtService.signAsync.mockResolvedValue("initial-access-token");
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue(refreshToken),
       } as any);
-      
+
       await authService.login({ email: mockUser.email, password: "password" });
 
       // Now test refresh
       mockUsersService.findOne.mockResolvedValue(mockUser);
       mockJwtService.signAsync.mockResolvedValue(newAccessToken);
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue(newRefreshToken),
       } as any);
 
@@ -303,23 +340,27 @@ describe("AuthService", () => {
     it("should throw ForbiddenException when refresh token is invalid", async () => {
       const invalidToken = "invalid-refresh-token";
 
-      await expect(authService.refreshTokens(invalidToken)).rejects.toThrow(ForbiddenException);
+      await expect(authService.refreshTokens(invalidToken)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it("should throw ForbiddenException when refresh token is expired", async () => {
       const expiredToken = "expired-refresh-token";
-      
+
       // Manually set an expired token in the store
       const expiredDate = new Date();
       expiredDate.setDate(expiredDate.getDate() - 1);
-      
+
       (authService as any).refreshTokenStore.set(expiredToken, {
         userId: mockUser.id,
         refreshToken: expiredToken,
         expiresAt: expiredDate,
       });
 
-      await expect(authService.refreshTokens(expiredToken)).rejects.toThrow(ForbiddenException);
+      await expect(authService.refreshTokens(expiredToken)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -330,19 +371,21 @@ describe("AuthService", () => {
       // Simulate login to store refresh token
       jest.spyOn(authService, "validateUser").mockResolvedValue(mockUser);
       mockJwtService.signAsync.mockResolvedValue("access-token");
-      jest.spyOn(require("crypto"), "randomBytes").mockReturnValue({
+      (randomBytes as jest.Mock).mockReturnValue({
         toString: jest.fn().mockReturnValue(refreshToken),
       } as any);
-      
+
       await authService.login({ email: mockUser.email, password: "password" });
 
       // Logout
       const result = await authService.logout(mockUser.id);
 
       expect(result).toEqual({ message: "Logout successful" });
-      
+
       // Verify token is removed
-      await expect(authService.refreshTokens(refreshToken)).rejects.toThrow(ForbiddenException);
+      await expect(authService.refreshTokens(refreshToken)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

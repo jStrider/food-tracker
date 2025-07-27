@@ -53,20 +53,24 @@ export const validationSchema = Joi.object<EnvironmentVariables>({
     .required()
     .custom((value, helpers) => {
       // Additional validation for JWT secret strength
-      if (value.length < 64 && process.env.NODE_ENV === 'production') {
-        return helpers.error('any.custom', {
-          message: 'JWT_SECRET should be at least 64 characters in production for enhanced security'
+      if (value.length < 64 && process.env.NODE_ENV === "production") {
+        return helpers.error("any.custom", {
+          message:
+            "JWT_SECRET should be at least 64 characters in production for enhanced security",
         });
       }
       // Check for common weak patterns
       if (/^[a-zA-Z]+$/.test(value) || /^[0-9]+$/.test(value)) {
-        return helpers.error('any.custom', {
-          message: 'JWT_SECRET must contain a mix of characters, not just letters or numbers'
+        return helpers.error("any.custom", {
+          message:
+            "JWT_SECRET must contain a mix of characters, not just letters or numbers",
         });
       }
       return value;
     })
-    .description("Secret key for JWT token signing (minimum 32 characters, 64+ recommended for production)"),
+    .description(
+      "Secret key for JWT token signing (minimum 32 characters, 64+ recommended for production)",
+    ),
 
   JWT_EXPIRES_IN: Joi.string()
     .default("24h")
@@ -78,7 +82,9 @@ export const validationSchema = Joi.object<EnvironmentVariables>({
     .min(10)
     .max(20)
     .default(12)
-    .description("Number of bcrypt rounds for password hashing (10-20, higher = more secure but slower)"),
+    .description(
+      "Number of bcrypt rounds for password hashing (10-20, higher = more secure but slower)",
+    ),
 
   // External APIs
   OPENFOODFACTS_API_URL: Joi.string()

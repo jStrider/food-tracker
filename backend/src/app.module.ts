@@ -17,7 +17,7 @@ import { AuthModule } from "./features/auth/auth.module";
 import { DatabaseModule } from "./database/database.module";
 import { McpModule } from "./mcp/mcp.module";
 import { HealthController } from "./common/health.controller";
-import { JwtAuthGuard } from './features/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from "./features/auth/guards/jwt-auth.guard";
 
 @Module({
   imports: [
