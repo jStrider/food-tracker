@@ -11,9 +11,6 @@
 - ✅ Bash: ALL commands grouped
 - ✅ Memory: ALL operations concurrent
 
-### 🐝 Swarm Execution Guidelines
-- When swarm is active, always try to use all instances available
-- When swarm is active, always try to use all instances available, use availables mcp as much as possible
 
 ## 🎯 Project Context: FoodTracker
 
@@ -219,12 +216,16 @@ Performance, consensus, security, memory management, and more...
 
 ## 📚 References
 
-- SPARC Guide: https://github.com/ruvnet/claude-code-flow/docs/sparc.md
 - FoodTracker Backend: Check Swagger docs at `/api/docs`
 
 ---
 
 ### Memory & Guidelines
-- explique TOUJOURS lorsque l'utilisateur fait une demande pourquoi tu décide d'utiliser ou non les mcp swarm
+## 🐝 Swarm Execution Guidelines
+- When swarm is active, you must always try to use all instances available in parrallel except for tasks that does not have any impact when it is parralelised
+
+- you must explain, when the user makes a request, why you choose to use or not use the MCP swarm tools
+
+- you must use dedicated agent everytime you can
 
 **Remember**: Claude Flow coordinates, Claude Code creates! Always batch operations for maximum efficiency.
