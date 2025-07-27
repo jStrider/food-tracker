@@ -2,54 +2,38 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
-import { MealsModule } from './meals.module';
-import { FoodsModule } from '../foods/foods.module';
-import { NutritionModule } from '../nutrition/nutrition.module';
+import { JwtService } from '@nestjs/jwt';
+import { TestAppModule } from '../../test/test-app.module';
+import { TestAuthHelper } from '../../test/test-auth.helper';
 import { User } from '../users/entities/user.entity';
 import { Meal, MealCategory } from './entities/meal.entity';
 import { Food, FoodSource } from '../foods/entities/food.entity';
 import { FoodEntry } from '../foods/entities/food-entry.entity';
-import { DailyNutrition } from '../nutrition/entities/daily-nutrition.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { fixtures } from '../../test/fixtures';
 
 describe('MealsController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
+  let jwtService: JwtService;
   let testUser: User;
+  let authToken: string;
   let chickenBreastFood: Food;
   let appleFood: Food;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [User, Meal, Food, FoodEntry, DailyNutrition],
-          synchronize: true,
-          logging: false,
-        }),
-        MealsModule,
-        FoodsModule,
-        NutritionModule,
-      ],
+      imports: [TestAppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
 
     // Seed test data
-    const userRepo = dataSource.getRepository(User);
-    const user = await userRepo.save({
-      email: 'test@example.com',
-      name: 'Test User',
-      password: 'test123',
-    });
+    testUser = await TestAuthHelper.createTestUser(dataSource);
+    authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
     const foodRepo = dataSource.getRepository(Food);
     const apple = await foodRepo.save({
@@ -65,7 +49,6 @@ describe('MealsController Integration', () => {
     });
 
     // Store IDs for later use
-    testUser = user;
     chickenBreastFood = chickenBreast;
     appleFood = apple;
     fixtures.foods.apple.id = apple.id;
@@ -88,11 +71,12 @@ describe('MealsController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .post('/meals')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(201);
 
       expect(response.body).toMatchObject({
-        id: expect.any(Number),
+        id: expect.any(String),
         name: createMealDto.name,
         category: createMealDto.category,
         date: createMealDto.date,
@@ -110,6 +94,7 @@ describe('MealsController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .post('/meals')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(201);
 
@@ -124,6 +109,7 @@ describe('MealsController Integration', () => {
 
       await request(app.getHttpServer())
         .post('/meals')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(createMealDto)
         .expect(400);
     });
@@ -160,30 +146,36 @@ describe('MealsController Integration', () => {
     it('should return all meals', async () => {
       const response = await request(app.getHttpServer())
         .get('/meals')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
-      expect(response.body).toHaveLength(3);
-      expect(response.body[0]).toHaveProperty('id');
-      expect(response.body[0]).toHaveProperty('name');
-      expect(response.body[0]).toHaveProperty('category');
+      expect(response.body.data).toHaveLength(3);
+      expect(response.body.total).toBe(3);
+      expect(response.body.data[0]).toHaveProperty('id');
+      expect(response.body.data[0]).toHaveProperty('name');
+      expect(response.body.data[0]).toHaveProperty('category');
     });
 
     it('should filter meals by date', async () => {
       const response = await request(app.getHttpServer())
         .get('/meals?date=2024-01-15')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
-      expect(response.body).toHaveLength(2);
-      expect(response.body.every(meal => meal.date === '2024-01-15')).toBe(true);
+      expect(response.body.data).toHaveLength(2);
+      expect(response.body.total).toBe(2);
+      expect(response.body.data.every(meal => meal.date === '2024-01-15')).toBe(true);
     });
 
     it('should filter meals by category', async () => {
       const response = await request(app.getHttpServer())
         .get('/meals?category=breakfast')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
-      expect(response.body).toHaveLength(1);
-      expect(response.body[0].category).toBe('breakfast');
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.total).toBe(1);
+      expect(response.body.data[0].category).toBe('breakfast');
     });
   });
 
@@ -205,6 +197,7 @@ describe('MealsController Integration', () => {
     it('should return a specific meal with foods', async () => {
       const response = await request(app.getHttpServer())
         .get(`/meals/${mealId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({
@@ -218,6 +211,7 @@ describe('MealsController Integration', () => {
     it('should return 404 for non-existent meal', async () => {
       await request(app.getHttpServer())
         .get('/meals/99999')
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(404);
     });
   });
@@ -245,6 +239,7 @@ describe('MealsController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .put(`/meals/${mealId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(updateMealDto)
         .expect(200);
 
@@ -272,11 +267,13 @@ describe('MealsController Integration', () => {
     it('should delete a meal', async () => {
       await request(app.getHttpServer())
         .delete(`/meals/${mealId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(204);
 
       // Verify deletion
       await request(app.getHttpServer())
         .get(`/meals/${mealId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(404);
     });
   });
@@ -305,6 +302,7 @@ describe('MealsController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .post(`/meals/${mealId}/foods`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(addFoodDto)
         .expect(201);
 
@@ -326,6 +324,7 @@ describe('MealsController Integration', () => {
 
       await request(app.getHttpServer())
         .post(`/meals/${mealId}/foods`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(addFoodDto)
         .expect(404);
     });
@@ -368,6 +367,7 @@ describe('MealsController Integration', () => {
 
       const response = await request(app.getHttpServer())
         .put(`/meals/${mealId}/foods/${entryId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .send(updateDto)
         .expect(200);
 
@@ -409,11 +409,13 @@ describe('MealsController Integration', () => {
     it('should remove food from meal', async () => {
       await request(app.getHttpServer())
         .delete(`/meals/${mealId}/foods/${entryId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(204);
 
       // Verify the meal still exists but food is removed
       const response = await request(app.getHttpServer())
         .get(`/meals/${mealId}`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body.foods).toHaveLength(0);
@@ -461,6 +463,7 @@ describe('MealsController Integration', () => {
     it('should return meal nutrition summary', async () => {
       const response = await request(app.getHttpServer())
         .get(`/meals/${mealId}/nutrition`)
+        .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
 
       expect(response.body).toMatchObject({

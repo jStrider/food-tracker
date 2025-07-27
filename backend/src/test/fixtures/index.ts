@@ -3,47 +3,49 @@
 export const fixtures = {
   users: {
     john: {
-      id: 1,
+      id: 'a3aa41df-b467-40c8-867c-beb5edc4d032', // Using TEMP_USER_ID from backend
       username: 'johndoe',
       email: 'john@example.com',
-      password: '$2b$10$hashedpassword',
+      name: 'John Doe',
+      password: '$2b$12$hashedpassword',
     },
     jane: {
-      id: 2,
+      id: '798f47e6-dba4-4fbd-934a-0aa2599e4242',
       username: 'janedoe',
       email: 'jane@example.com',
-      password: '$2b$10$hashedpassword',
+      name: 'Jane Doe',
+      password: '$2b$12$hashedpassword',
     },
   },
 
   meals: {
     breakfast: {
-      id: 1,
-      userId: 1,
+      id: '1',
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032',
       category: 'breakfast',
       date: '2024-01-15',
       time: '08:00',
       notes: 'Healthy breakfast',
     },
     lunch: {
-      id: 2,
-      userId: 1,
+      id: '2',
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032',
       category: 'lunch',
       date: '2024-01-15',
       time: '12:30',
       notes: 'Light lunch',
     },
     dinner: {
-      id: 3,
-      userId: 1,
+      id: '3',
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032',
       category: 'dinner',
       date: '2024-01-15',
       time: '19:00',
       notes: 'Family dinner',
     },
     snack: {
-      id: 4,
-      userId: 1,
+      id: '4',
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032',
       category: 'snack',
       date: '2024-01-15',
       time: '15:00',
@@ -53,7 +55,7 @@ export const fixtures = {
 
   foods: {
     apple: {
-      id: 1,
+      id: '1',
       name: 'Apple',
       barcode: '1111111111',
       source: 'manual',
@@ -69,7 +71,7 @@ export const fixtures = {
       servingUnit: 'g',
     },
     chickenBreast: {
-      id: 2,
+      id: '2',
       name: 'Chicken Breast',
       barcode: '2222222222',
       source: 'manual',
@@ -85,7 +87,7 @@ export const fixtures = {
       servingUnit: 'g',
     },
     brownRice: {
-      id: 3,
+      id: '3',
       name: 'Brown Rice',
       barcode: '3333333333',
       source: 'manual',
@@ -101,7 +103,7 @@ export const fixtures = {
       servingUnit: 'g',
     },
     yogurt: {
-      id: 4,
+      id: '4',
       name: 'Greek Yogurt',
       barcode: '4444444444',
       source: 'openfoodfacts',
@@ -120,9 +122,9 @@ export const fixtures = {
 
   foodEntries: {
     breakfastApple: {
-      id: 1,
-      mealId: 1,
-      foodId: 1,
+      id: '1',
+      mealId: '1',
+      foodId: '1',
       quantity: 1.5,
       unit: 'serving',
       calories: 78,
@@ -131,9 +133,9 @@ export const fixtures = {
       fat: 0.3,
     },
     lunchChicken: {
-      id: 2,
-      mealId: 2,
-      foodId: 2,
+      id: '2',
+      mealId: '2',
+      foodId: '2',
       quantity: 200,
       unit: 'g',
       calories: 330,
@@ -142,9 +144,9 @@ export const fixtures = {
       fat: 7.2,
     },
     lunchRice: {
-      id: 3,
-      mealId: 2,
-      foodId: 3,
+      id: '3',
+      mealId: '2',
+      foodId: '3',
       quantity: 150,
       unit: 'g',
       calories: 166.5,
@@ -156,7 +158,7 @@ export const fixtures = {
 
   nutritionGoals: {
     standard: {
-      userId: 1,
+      userId: 'a3aa41df-b467-40c8-867c-beb5edc4d032',
       dailyCalories: 2000,
       dailyProtein: 50,
       dailyCarbs: 250,
@@ -166,7 +168,7 @@ export const fixtures = {
       dailySodium: 2300,
     },
     athletic: {
-      userId: 2,
+      userId: '798f47e6-dba4-4fbd-934a-0aa2599e4242',
       dailyCalories: 2500,
       dailyProtein: 100,
       dailyCarbs: 300,

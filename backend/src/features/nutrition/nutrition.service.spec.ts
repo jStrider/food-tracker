@@ -12,9 +12,19 @@ describe('NutritionService', () => {
   let mealsRepository: Repository<Meal>;
   let foodEntriesRepository: Repository<FoodEntry>;
 
+  const mockQueryBuilder = {
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn(),
+    getOne: jest.fn(),
+  };
+
   const mockMealsRepository = {
     findOne: jest.fn(),
     find: jest.fn(),
+    createQueryBuilder: jest.fn(() => mockQueryBuilder),
   };
 
   const mockFoodEntriesRepository = {};
@@ -108,7 +118,7 @@ describe('NutritionService', () => {
         ),
       ];
 
-      mockMealsRepository.find.mockResolvedValue(mockMeals);
+      mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
       const result = await service.getDailyNutrition(date);
 
@@ -118,20 +128,12 @@ describe('NutritionService', () => {
       expect(result.calories).toBe(574.5); // 78 + 330 + 166.5
       expect(result.protein).toBeCloseTo(66.35, 2); // 0.45 + 62 + 3.9 - use toBeCloseTo for floating point
       expect(result.carbs).toBe(55.5); // 21 + 0 + 34.5
-      expect(mockMealsRepository.find).toHaveBeenCalledWith({
-        where: {
-          date: Between(
-            startOfDay(new Date(date)),
-            endOfDay(new Date(date))
-          ),
-        },
-        relations: ['foods', 'foods.food'],
-        order: { createdAt: 'ASC' },
-      });
+      expect(mockMealsRepository.createQueryBuilder).toHaveBeenCalledWith('meal');
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith('meal.date = :date', { date });
     });
 
     it('should return empty nutrition for day with no meals', async () => {
-      mockMealsRepository.find.mockResolvedValue([]);
+      mockQueryBuilder.getMany.mockResolvedValue([]);
 
       const result = await service.getDailyNutrition('2024-01-15');
 
