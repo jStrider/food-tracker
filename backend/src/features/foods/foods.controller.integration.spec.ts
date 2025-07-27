@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { DataSource } from 'typeorm';
-import { FoodsModule } from './foods.module';
+import { JwtService } from '@nestjs/jwt';
+import { TestAppModule } from '../../test/test-app.module';
+import { TestAuthHelper } from '../../test/test-auth.helper';
 import { User } from '../users/entities/user.entity';
 import { Food, FoodSource } from './entities/food.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
 import { FoodsService } from './foods.service';
 import { fixtures } from '../../test/fixtures';
 
@@ -16,28 +16,26 @@ jest.mock('../../integrations/openfoodfacts/openfoodfacts.service');
 describe('FoodsController Integration', () => {
   let app: INestApplication;
   let dataSource: DataSource;
+  let jwtService: JwtService;
   let foodsService: FoodsService;
+  let testUser: User;
+  let authToken: string;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
-        TypeOrmModule.forRoot({
-          type: 'sqlite',
-          database: ':memory:',
-          entities: [User, Food],
-          synchronize: true,
-          logging: false,
-        }),
-        FoodsModule,
-      ],
+      imports: [TestAppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
     foodsService = moduleFixture.get<FoodsService>(FoodsService);
+
+    // Create test user
+    testUser = await TestAuthHelper.createTestUser(dataSource);
+    authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
     // Seed test data
     const foodRepo = dataSource.getRepository(Food);
@@ -55,7 +53,7 @@ describe('FoodsController Integration', () => {
   describe('GET /foods/search', () => {
     it('should search foods by name', async () => {
       const response = await request(app.getHttpServer())
-        .get('/foods/search?query=apple')
+        .get('/foods/search?q=apple')
         .expect(200);
 
       expect(response.body).toHaveLength(1);
@@ -64,7 +62,7 @@ describe('FoodsController Integration', () => {
 
     it('should return empty array for no matches', async () => {
       const response = await request(app.getHttpServer())
-        .get('/foods/search?query=pizza')
+        .get('/foods/search?q=pizza')
         .expect(200);
 
       expect(response.body).toHaveLength(0);
@@ -100,7 +98,7 @@ describe('FoodsController Integration', () => {
       ]);
 
       const response = await request(app.getHttpServer())
-        .get('/foods/search?query=apple&includeExternal=true')
+        .get('/foods/search?q=apple&includeExternal=true')
         .expect(200);
 
       expect(response.body).toHaveLength(1);
@@ -273,7 +271,7 @@ describe('FoodsController Integration', () => {
 
       // Verify it's now searchable locally
       const searchResponse = await request(app.getHttpServer())
-        .get('/foods/search?query=External Food')
+        .get('/foods/search?q=External Food')
         .expect(200);
 
       expect(searchResponse.body).toHaveLength(1);
