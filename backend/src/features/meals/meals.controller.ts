@@ -47,7 +47,10 @@ import {
   MealStatsDto,
 } from "./dto";
 import { Meal } from "./entities/meal.entity";
-import { MutationRateLimit, QueryRateLimit } from "../../common/decorators/rate-limit.decorator";
+import {
+  MutationRateLimit,
+  QueryRateLimit,
+} from "../../common/decorators/rate-limit.decorator";
 
 @ApiTags("meals")
 @Controller("meals")

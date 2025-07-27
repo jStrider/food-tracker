@@ -6,7 +6,6 @@ import { RATE_LIMIT_CATEGORIES } from "../../config/rate-limit.config";
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
-
   /**
    * Get the throttler name based on the rate limit category
    */
@@ -32,39 +31,44 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     const ip = request.ip;
-    
+
     // If user is authenticated, use user ID for rate limiting
     // Otherwise, use IP address
     const identifier = user?.id || ip;
-    
+
     return `${identifier}:${name}:${suffix}`;
   }
 
   /**
    * Custom error response for rate limit exceeded
    */
-  protected async throwThrottlingException(context: ExecutionContext, throttlerLimitDetail: any): Promise<void> {
+  protected async throwThrottlingException(
+    context: ExecutionContext,
+    throttlerLimitDetail: any,
+  ): Promise<void> {
     const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
-    
+
     // Get the rate limit info from the context
-    const category = this.reflector.get<string>(
-      RATE_LIMIT_KEY,
-      context.getHandler(),
-    ) || RATE_LIMIT_CATEGORIES.DEFAULT;
-    
+    const category =
+      this.reflector.get<string>(RATE_LIMIT_KEY, context.getHandler()) ||
+      RATE_LIMIT_CATEGORIES.DEFAULT;
+
     // Set rate limit headers
     const ttl = this.getTtlFromCategory(category);
     const limit = this.getLimitFromCategory(category);
-    
+
     response.setHeader("X-RateLimit-Limit", limit);
     response.setHeader("X-RateLimit-Remaining", 0);
-    response.setHeader("X-RateLimit-Reset", new Date(Date.now() + ttl).toISOString());
+    response.setHeader(
+      "X-RateLimit-Reset",
+      new Date(Date.now() + ttl).toISOString(),
+    );
     response.setHeader("Retry-After", Math.ceil(ttl / 1000));
-    
+
     throw new ThrottlerException("Too many requests. Please try again later.");
   }
-  
+
   /**
    * Get TTL based on category
    */
@@ -78,7 +82,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     };
     return ttlMap[category] || 60000;
   }
-  
+
   /**
    * Get limit based on category
    */

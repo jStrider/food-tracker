@@ -73,7 +73,9 @@ describe("AuthController", () => {
 
       mockAuthService.login.mockRejectedValue(new Error("Invalid credentials"));
 
-      await expect(controller.login(loginDto)).rejects.toThrow("Invalid credentials");
+      await expect(controller.login(loginDto)).rejects.toThrow(
+        "Invalid credentials",
+      );
     });
   });
 
@@ -133,9 +135,13 @@ describe("AuthController", () => {
         password: "password123",
       };
 
-      mockAuthService.register.mockRejectedValue(new Error("User already exists"));
+      mockAuthService.register.mockRejectedValue(
+        new Error("User already exists"),
+      );
 
-      await expect(controller.register(registerDto)).rejects.toThrow("User already exists");
+      await expect(controller.register(registerDto)).rejects.toThrow(
+        "User already exists",
+      );
     });
   });
 
@@ -166,7 +172,9 @@ describe("AuthController", () => {
 
       mockAuthService.getProfile.mockRejectedValue(new Error("User not found"));
 
-      await expect(controller.getProfile(req)).rejects.toThrow("User not found");
+      await expect(controller.getProfile(req)).rejects.toThrow(
+        "User not found",
+      );
     });
   });
 });

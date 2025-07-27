@@ -2,7 +2,7 @@ import { ThrottlerModuleOptions } from "@nestjs/throttler";
 
 export const getRateLimitConfig = (): ThrottlerModuleOptions => {
   const isProduction = process.env.NODE_ENV === "production";
-  
+
   return [
     {
       // Default global rate limit
@@ -39,7 +39,7 @@ export const getRateLimitConfig = (): ThrottlerModuleOptions => {
       name: "burst",
       ttl: 1000, // 1 second
       limit: 10, // 10 requests per second max
-    }
+    },
   ];
 };
 
@@ -52,4 +52,5 @@ export const RATE_LIMIT_CATEGORIES = {
   DEFAULT: "default",
 } as const;
 
-export type RateLimitCategory = typeof RATE_LIMIT_CATEGORIES[keyof typeof RATE_LIMIT_CATEGORIES];
+export type RateLimitCategory =
+  (typeof RATE_LIMIT_CATEGORIES)[keyof typeof RATE_LIMIT_CATEGORIES];

@@ -19,10 +19,9 @@ export class RateLimitHeadersInterceptor implements NestInterceptor {
     const response = context.switchToHttp().getResponse();
 
     // Get the rate limit category for this endpoint
-    const category = this.reflector.get<string>(
-      RATE_LIMIT_KEY,
-      context.getHandler(),
-    ) || RATE_LIMIT_CATEGORIES.DEFAULT;
+    const category =
+      this.reflector.get<string>(RATE_LIMIT_KEY, context.getHandler()) ||
+      RATE_LIMIT_CATEGORIES.DEFAULT;
 
     // Get rate limit configuration based on category
     const limit = this.getLimitFromCategory(category);

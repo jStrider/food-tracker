@@ -1,13 +1,18 @@
 import { applyDecorators } from "@nestjs/common";
 import { ApiHeader, ApiResponse } from "@nestjs/swagger";
-import { RateLimitCategory, RATE_LIMIT_CATEGORIES } from "../../config/rate-limit.config";
+import {
+  RateLimitCategory,
+  RATE_LIMIT_CATEGORIES,
+} from "../../config/rate-limit.config";
 
 /**
  * Swagger decorator to document rate limit headers
  */
-export const ApiRateLimit = (category: RateLimitCategory = RATE_LIMIT_CATEGORIES.DEFAULT) => {
+export const ApiRateLimit = (
+  category: RateLimitCategory = RATE_LIMIT_CATEGORIES.DEFAULT,
+) => {
   const limits = getRateLimitsByCategory(category);
-  
+
   return applyDecorators(
     ApiHeader({
       name: "X-RateLimit-Limit",
@@ -16,7 +21,8 @@ export const ApiRateLimit = (category: RateLimitCategory = RATE_LIMIT_CATEGORIES
     }),
     ApiHeader({
       name: "X-RateLimit-Remaining",
-      description: "Number of requests remaining in the current rate limit window",
+      description:
+        "Number of requests remaining in the current rate limit window",
       example: limits.limit - 1,
     }),
     ApiHeader({
@@ -37,26 +43,26 @@ export const ApiRateLimit = (category: RateLimitCategory = RATE_LIMIT_CATEGORIES
           schema: {
             type: "object",
             properties: {
-              message: { 
-                type: "string", 
-                example: "Too many requests. Please try again later." 
+              message: {
+                type: "string",
+                example: "Too many requests. Please try again later.",
               },
-              error: { 
-                type: "string", 
-                example: "Rate Limit Exceeded" 
+              error: {
+                type: "string",
+                example: "Rate Limit Exceeded",
               },
-              statusCode: { 
-                type: "number", 
-                example: 429 
+              statusCode: {
+                type: "number",
+                example: 429,
               },
-              retryAfter: { 
-                type: "number", 
+              retryAfter: {
+                type: "number",
                 example: Math.ceil(limits.ttl / 1000),
-                description: "Seconds until rate limit resets"
+                description: "Seconds until rate limit resets",
               },
-              category: { 
-                type: "string", 
-                example: category 
+              category: {
+                type: "string",
+                example: category,
               },
             },
           },
@@ -76,16 +82,19 @@ export const ApiRateLimit = (category: RateLimitCategory = RATE_LIMIT_CATEGORIES
  * Pre-configured Swagger decorators for common rate limit categories
  */
 export const ApiAuthRateLimit = () => ApiRateLimit(RATE_LIMIT_CATEGORIES.AUTH);
-export const ApiMutationRateLimit = () => ApiRateLimit(RATE_LIMIT_CATEGORIES.MUTATION);
-export const ApiQueryRateLimit = () => ApiRateLimit(RATE_LIMIT_CATEGORIES.QUERY);
-export const ApiExpensiveRateLimit = () => ApiRateLimit(RATE_LIMIT_CATEGORIES.EXPENSIVE);
+export const ApiMutationRateLimit = () =>
+  ApiRateLimit(RATE_LIMIT_CATEGORIES.MUTATION);
+export const ApiQueryRateLimit = () =>
+  ApiRateLimit(RATE_LIMIT_CATEGORIES.QUERY);
+export const ApiExpensiveRateLimit = () =>
+  ApiRateLimit(RATE_LIMIT_CATEGORIES.EXPENSIVE);
 
 /**
  * Get rate limit configuration by category
  */
 function getRateLimitsByCategory(category: RateLimitCategory) {
   const isProduction = process.env.NODE_ENV === "production";
-  
+
   const configs = {
     [RATE_LIMIT_CATEGORIES.DEFAULT]: {
       limit: isProduction ? 60 : 120,
@@ -113,6 +122,6 @@ function getRateLimitsByCategory(category: RateLimitCategory) {
       window: "5 minutes",
     },
   };
-  
+
   return configs[category] || configs[RATE_LIMIT_CATEGORIES.DEFAULT];
 }

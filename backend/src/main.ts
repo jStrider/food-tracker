@@ -12,7 +12,8 @@ async function bootstrap() {
   // Setup Swagger documentation
   const config = new DocumentBuilder()
     .setTitle("FoodTracker API")
-    .setDescription(`API documentation for FoodTracker application
+    .setDescription(
+      `API documentation for FoodTracker application
     
 ## Rate Limiting
 This API implements rate limiting to ensure fair usage and protect against abuse.
@@ -36,7 +37,8 @@ When rate limit is exceeded, the API returns:
 - Status Code: 429 Too Many Requests
 - Header: \`Retry-After\` with seconds until rate limit resets
 - Body: Error message with retry information
-    `)
+    `,
+    )
     .setVersion("1.0")
     .addTag("auth", "Authentication endpoints")
     .addTag("users", "User management endpoints")
@@ -45,14 +47,16 @@ When rate limit is exceeded, the API returns:
     .addTag("health", "Health check endpoints")
     .addBearerAuth()
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`🚀 FoodTracker Backend running on port ${port}`);
-  console.log(`📚 API Documentation available at http://localhost:${port}/api/docs`);
+  console.log(
+    `📚 API Documentation available at http://localhost:${port}/api/docs`,
+  );
 }
 
 bootstrap();

@@ -1,13 +1,13 @@
-import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 
 export const getCorsConfig = (): CorsOptions => {
-  const nodeEnv = process.env.NODE_ENV || 'development';
-  const isDevelopment = nodeEnv === 'development';
-  const isProduction = nodeEnv === 'production';
+  const nodeEnv = process.env.NODE_ENV || "development";
+  const isDevelopment = nodeEnv === "development";
+  const isProduction = nodeEnv === "production";
 
   // Parse allowed origins from environment variable
   const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+    ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
     : [];
 
   // Add frontend URL if provided
@@ -19,8 +19,10 @@ export const getCorsConfig = (): CorsOptions => {
   // Add default development origins
   if (isDevelopment) {
     // Get development ports from environment or use defaults
-    const devPorts = process.env.DEV_PORTS ? process.env.DEV_PORTS.split(',') : ['3000', '3003', '5173'];
-    devPorts.forEach(port => {
+    const devPorts = process.env.DEV_PORTS
+      ? process.env.DEV_PORTS.split(",")
+      : ["3000", "3003", "5173"];
+    devPorts.forEach((port) => {
       const origin = `http://localhost:${port.trim()}`;
       if (!allowedOrigins.includes(origin)) {
         allowedOrigins.push(origin);
@@ -44,15 +46,15 @@ export const getCorsConfig = (): CorsOptions => {
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'X-Requested-With',
-      'Accept',
-      'Origin',
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
     ],
-    exposedHeaders: ['X-Total-Count', 'X-Page-Count'],
+    exposedHeaders: ["X-Total-Count", "X-Page-Count"],
     maxAge: isProduction ? 86400 : 3600, // 24 hours in production, 1 hour in development
     preflightContinue: false,
     optionsSuccessStatus: 204,
@@ -60,7 +62,7 @@ export const getCorsConfig = (): CorsOptions => {
 
   // Log CORS configuration for debugging
   if (isDevelopment) {
-    console.log('🔒 CORS Configuration:', {
+    console.log("🔒 CORS Configuration:", {
       environment: nodeEnv,
       allowedOrigins,
     });

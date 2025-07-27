@@ -16,8 +16,14 @@ import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RegisterDto } from "./dto/register.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
-import { AuthRateLimit, QueryRateLimit } from "../../common/decorators/rate-limit.decorator";
-import { ApiAuthRateLimit, ApiQueryRateLimit } from "../../common/decorators/api-rate-limit.decorator";
+import {
+  AuthRateLimit,
+  QueryRateLimit,
+} from "../../common/decorators/rate-limit.decorator";
+import {
+  ApiAuthRateLimit,
+  ApiQueryRateLimit,
+} from "../../common/decorators/api-rate-limit.decorator";
 import { Public } from "./decorators/public.decorator";
 
 @ApiTags("auth")
