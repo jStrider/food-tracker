@@ -38,6 +38,9 @@ The TODO.md file is the single source of truth for project tasks and should be k
 - Lorsque tu identifie des ameliorations possibles sur le projet, fais intervenir un subagent pour identifier le sujet et créer une tache associé dans la TODO.md
 - Lorsqu'une modification doit être fait dans la TODO, assure toi que ce soit repercuté sur github
 
+### Version Control & Code Management
+- Aucun commit ne doit être fait directement sur main. Toute modification du code doit passer par une PR (Crée une Issue lorsque c'est necessaire)
+
 ### Tech Stack
 - **Frontend**: React + Tailwind + shadcn/ui + Calendar views
 - **Backend**: NestJS + PostgreSQL + OpenFoodFacts API
