@@ -17,6 +17,14 @@ import AddFoodToMealModal from './AddFoodToMealModal';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
+// Helper function to safely format nutrition values
+const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return `0${unit}`;
+  }
+  return `${Math.round(value)}${unit}`;
+};
+
 const FoodSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [barcode, setBarcode] = useState('');
@@ -192,19 +200,19 @@ const FoodSearch = () => {
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
                       <span>Calories:</span>
-                      <span className="font-medium">{food.calories}/100g</span>
+                      <span className="font-medium">{formatNutritionValue(food.calories, '/100g')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Protein:</span>
-                      <span className="font-medium">{food.protein}g</span>
+                      <span className="font-medium">{formatNutritionValue(food.protein, 'g')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Carbs:</span>
-                      <span className="font-medium">{food.carbs}g</span>
+                      <span className="font-medium">{formatNutritionValue(food.carbs, 'g')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Fat:</span>
-                      <span className="font-medium">{food.fat}g</span>
+                      <span className="font-medium">{formatNutritionValue(food.fat, 'g')}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -249,19 +257,19 @@ const FoodSearch = () => {
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Calories:</span>
-                  <span className="font-medium">{barcodeResult.calories}/100g</span>
+                  <span className="font-medium">{formatNutritionValue(barcodeResult.calories, '/100g')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Protein:</span>
-                  <span className="font-medium">{barcodeResult.protein}g</span>
+                  <span className="font-medium">{formatNutritionValue(barcodeResult.protein, 'g')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Carbs:</span>
-                  <span className="font-medium">{barcodeResult.carbs}g</span>
+                  <span className="font-medium">{formatNutritionValue(barcodeResult.carbs, 'g')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Fat:</span>
-                  <span className="font-medium">{barcodeResult.fat}g</span>
+                  <span className="font-medium">{formatNutritionValue(barcodeResult.fat, 'g')}</span>
                 </div>
               </div>
             </CardContent>

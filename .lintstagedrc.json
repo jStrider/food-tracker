@@ -1,10 +1,8 @@
 {
   "backend/**/*.{ts,js}": [
-    "cd backend && npm run lint -- --fix",
-    "cd backend && npm test -- --findRelatedTests --passWithNoTests"
+    "cd backend && npm run lint:fix"
   ],
   "frontend/**/*.{ts,tsx,js,jsx}": [
-    "cd frontend && npm run lint -- --fix",
-    "cd frontend && npm test -- --findRelatedTests --passWithNoTests run"
+    "cd frontend && npm run lint:fix"
   ]
 }

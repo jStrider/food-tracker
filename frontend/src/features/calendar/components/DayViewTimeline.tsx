@@ -28,6 +28,13 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { formatCalendarDate } from '@/utils/date';
 
+// Helper function to safely format nutrition values
+const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return `0${unit}`;
+  }
+  return `${Math.round(value)}${unit}`;
+};
 
 interface FoodEntry {
   id: string;
@@ -270,19 +277,19 @@ const DayViewTimeline: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-2xl font-bold text-blue-600">{dayData.calories}</div>
+                <div className="text-2xl font-bold text-blue-600">{formatNutritionValue(dayData.calories, '')}</div>
                 <div className="text-sm text-gray-500">Calories</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600">{dayData.protein}g</div>
+                <div className="text-2xl font-bold text-green-600">{formatNutritionValue(dayData.protein, 'g')}</div>
                 <div className="text-sm text-gray-500">Protein</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-orange-600">{dayData.carbs}g</div>
+                <div className="text-2xl font-bold text-orange-600">{formatNutritionValue(dayData.carbs, 'g')}</div>
                 <div className="text-sm text-gray-500">Carbs</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-purple-600">{dayData.fat}g</div>
+                <div className="text-2xl font-bold text-purple-600">{formatNutritionValue(dayData.fat, 'g')}</div>
                 <div className="text-sm text-gray-500">Fat</div>
               </div>
             </div>
@@ -349,10 +356,10 @@ const DayViewTimeline: React.FC = () => {
                                     </div>
                                     
                                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                                      <span>{meal.calories} cal</span>
-                                      <span>P: {meal.protein}g</span>
-                                      <span>C: {meal.carbs}g</span>
-                                      <span>F: {meal.fat}g</span>
+                                      <span>{formatNutritionValue(meal.calories, ' cal')}</span>
+                                      <span>P: {formatNutritionValue(meal.protein, 'g')}</span>
+                                      <span>C: {formatNutritionValue(meal.carbs, 'g')}</span>
+                                      <span>F: {formatNutritionValue(meal.fat, 'g')}</span>
                                     </div>
                                     
                                     {foodEntries.length > 0 && (
@@ -406,7 +413,7 @@ const DayViewTimeline: React.FC = () => {
                                           </span>
                                         </div>
                                         <div className="text-gray-600">
-                                          {Math.round(entry.calculatedCalories)} cal
+                                          {formatNutritionValue(entry.calculatedCalories, ' cal')}
                                         </div>
                                       </div>
                                     ))}

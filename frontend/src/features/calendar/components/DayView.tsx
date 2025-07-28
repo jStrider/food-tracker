@@ -128,6 +128,14 @@ const DayView: React.FC = () => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  // Helper function to safely format nutrition values
+  const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return `0${unit}`;
+    }
+    return `${Math.round(value)}${unit}`;
+  };
+
   // Group meals by category
   const mealsByCategory = React.useMemo(() => {
     const defaultCategories: Record<MealType, any[]> = {
@@ -196,7 +204,7 @@ const DayView: React.FC = () => {
             {MACRO_CONFIG.map((macro) => (
               <div key={macro.key} className="text-center">
                 <div className={cn("text-2xl font-bold", macro.color)}>
-                  {(dayData as any)[macro.key]}{macro.unit}
+                  {formatNutritionValue((dayData as any)[macro.key], macro.unit)}
                 </div>
                 <div className="text-sm text-gray-500">{macro.label}</div>
               </div>
@@ -204,23 +212,23 @@ const DayView: React.FC = () => {
           </div>
           
           {/* Additional nutrients if available */}
-          {(dayData.fiber || dayData.sugar || dayData.sodium) && (
+          {((dayData.fiber && dayData.fiber > 0) || (dayData.sugar && dayData.sugar > 0) || (dayData.sodium && dayData.sodium > 0)) && (
             <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
-              {dayData.fiber !== undefined && (
+              {dayData.fiber && dayData.fiber > 0 && (
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-700">{dayData.fiber}g</div>
+                  <div className="text-lg font-semibold text-gray-700">{formatNutritionValue(dayData.fiber, 'g')}</div>
                   <div className="text-xs text-gray-500">Fiber</div>
                 </div>
               )}
-              {dayData.sugar !== undefined && (
+              {dayData.sugar && dayData.sugar > 0 && (
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-700">{dayData.sugar}g</div>
+                  <div className="text-lg font-semibold text-gray-700">{formatNutritionValue(dayData.sugar, 'g')}</div>
                   <div className="text-xs text-gray-500">Sugar</div>
                 </div>
               )}
-              {dayData.sodium !== undefined && (
+              {dayData.sodium && dayData.sodium > 0 && (
                 <div className="text-center">
-                  <div className="text-lg font-semibold text-gray-700">{dayData.sodium}mg</div>
+                  <div className="text-lg font-semibold text-gray-700">{formatNutritionValue(dayData.sodium, 'mg')}</div>
                   <div className="text-xs text-gray-500">Sodium</div>
                 </div>
               )}
@@ -324,7 +332,7 @@ const DayView: React.FC = () => {
                             {MACRO_CONFIG.map((macro) => (
                               <div key={macro.key} className="text-center">
                                 <div className={cn("font-medium", macro.color)}>
-                                  {(meal as any)[macro.key]}{macro.unit}
+                                  {formatNutritionValue((meal as any)[macro.key], macro.unit)}
                                 </div>
                                 <div className="text-xs text-gray-500">{macro.label}</div>
                               </div>
@@ -346,7 +354,7 @@ const DayView: React.FC = () => {
                                     </span>
                                   </div>
                                   <div className="text-right text-gray-600">
-                                    {Math.round(entry.calculatedCalories)} cal
+                                    {formatNutritionValue(entry.calculatedCalories, ' cal')}
                                   </div>
                                 </div>
                               ))}

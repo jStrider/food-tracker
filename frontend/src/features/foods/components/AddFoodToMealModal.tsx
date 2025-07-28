@@ -20,6 +20,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { foodsApi, Food } from '@/features/foods/api/foodsApi';
 import { useToast } from '@/hooks/use-toast';
 
+// Helper function to safely format nutrition values
+const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return `0${unit}`;
+  }
+  return `${Math.round(value)}${unit}`;
+};
+
 interface AddFoodToMealModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -151,10 +159,10 @@ const AddFoodToMealModal: React.FC<AddFoodToMealModalProps> = ({
           <div className="bg-gray-50 p-3 rounded-lg space-y-2">
             <h4 className="text-sm font-medium">Nutrition for {quantity}{unit}:</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Calories: {calculateNutrition(food.calories)}</div>
-              <div>Protein: {calculateNutrition(food.protein)}g</div>
-              <div>Carbs: {calculateNutrition(food.carbs)}g</div>
-              <div>Fat: {calculateNutrition(food.fat)}g</div>
+              <div>Calories: {formatNutritionValue(calculateNutrition(food.calories), 'kcal')}</div>
+              <div>Protein: {formatNutritionValue(calculateNutrition(food.protein), 'g')}</div>
+              <div>Carbs: {formatNutritionValue(calculateNutrition(food.carbs), 'g')}</div>
+              <div>Fat: {formatNutritionValue(calculateNutrition(food.fat), 'g')}</div>
             </div>
           </div>
 

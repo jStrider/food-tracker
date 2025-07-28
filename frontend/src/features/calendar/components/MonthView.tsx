@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
+// import { useNavigate, useParams } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent} from '@/components/ui/card'; //CardHeader,CardTitle
 import { useQuery } from '@tanstack/react-query';
 import { calendarApi } from '@/features/calendar/api/calendarApi';
-import { Link } from 'react-router-dom';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
+
+// Helper function to safely format nutrition values
+const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return `0${unit}`;
+  }
+  return `${Math.round(value)}${unit}`;
+};
 
 const MonthView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -131,7 +140,7 @@ const MonthView: React.FC = () => {
       )}
 
       <div className="grid grid-cols-7 gap-2 sm:gap-4">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day: string) => (
           <div key={day} className="text-center font-medium text-gray-500 py-2">
             {day}
           </div>
@@ -168,14 +177,14 @@ const MonthView: React.FC = () => {
                     {dayData?.hasData && (
                       <div className="space-y-0.5 flex-1 text-xs overflow-hidden">
                         <div className="text-blue-600 font-medium">
-                          {dayData.totalCalories} cal
+                          {formatNutritionValue(dayData.totalCalories, ' cal')}
                         </div>
                         
                         {/* Meal indicators */}
                         {dayData.meals && dayData.meals.length > 0 && (
                           <div className="flex flex-wrap gap-0.5">
                             {['breakfast', 'lunch', 'dinner', 'snack'].map((category) => {
-                              const mealsInCategory = dayData.meals?.filter(m => m.category === category) || [];
+                              const mealsInCategory = dayData.meals?.filter((m: any) => m.category === category) || [];
                               if (mealsInCategory.length === 0) return null;
                               
                               return (

@@ -8,6 +8,14 @@ import { calendarApi } from '@/features/calendar/api/calendarApi';
 import { Link } from 'react-router-dom';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
 
+// Helper function to safely format nutrition values
+const formatNutritionValue = (value: number | undefined | null, unit: string): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return `0${unit}`;
+  }
+  return `${Math.round(value)}${unit}`;
+};
+
 const WeekView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
@@ -120,7 +128,7 @@ const WeekView: React.FC = () => {
                       <div className="space-y-1 flex-1 overflow-hidden">
                         <div className="text-xs text-center">
                           <div className="text-blue-600 font-medium">
-                            {dayData.totalCalories} cal
+                            {formatNutritionValue(dayData.totalCalories, ' cal')}
                           </div>
                         </div>
                         
