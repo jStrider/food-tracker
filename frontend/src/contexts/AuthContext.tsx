@@ -47,33 +47,91 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Check if user is logged in on mount
   useEffect(() => {
+    let isMounted = true; // Prevent state updates if component unmounted
+    
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('/auth/me');
-          setUser(response.data);
-        } catch (error) {
-          localStorage.removeItem('token');
+          // Add retry logic for rate limiting
+          let retries = 3;
+          let response;
+          
+          while (retries > 0) {
+            try {
+              response = await axios.get('/auth/me');
+              break;
+            } catch (error: any) {
+              if (error.response?.status === 429 && retries > 1) {
+                // Rate limited, wait and retry
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                retries--;
+                continue;
+              }
+              throw error;
+            }
+          }
+          
+          if (isMounted && response) {
+            setUser(response.data);
+          }
+        } catch (error: any) {
+          console.warn('Auth check failed:', error.response?.status, error.message);
+          if (isMounted) {
+            localStorage.removeItem('token');
+            setUser(null);
+          }
         }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
+    
     checkAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post('/auth/login', { email, password });
-      const { access_token, user } = response.data;
+      // Add retry logic for rate limiting
+      let retries = 3;
+      let response;
       
-      localStorage.setItem('token', access_token);
-      setUser(user);
+      while (retries > 0) {
+        try {
+          response = await axios.post('/auth/login', { email, password });
+          break;
+        } catch (error: any) {
+          if (error.response?.status === 429 && retries > 1) {
+            // Rate limited, wait and retry
+            toast({
+              title: 'Rate limited',
+              description: `Too many requests, retrying in 3 seconds... (${retries - 1} attempts left)`,
+              variant: 'destructive',
+            });
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            retries--;
+            continue;
+          }
+          throw error;
+        }
+      }
       
-      toast({
-        title: 'Success',
-        description: 'Logged in successfully',
-      });
+      if (response) {
+        const { access_token, user } = response.data;
+        
+        localStorage.setItem('token', access_token);
+        setUser(user);
+        
+        toast({
+          title: 'Success',
+          description: 'Logged in successfully',
+        });
+      }
     } catch (error: any) {
       toast({
         title: 'Error',

@@ -18,11 +18,10 @@ import { RegisterDto } from "./dto/register.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import {
   AuthRateLimit,
-  QueryRateLimit,
+  SkipRateLimit,
 } from "../../common/decorators/rate-limit.decorator";
 import {
   ApiAuthRateLimit,
-  ApiQueryRateLimit,
 } from "../../common/decorators/api-rate-limit.decorator";
 import { Public } from "./decorators/public.decorator";
 
@@ -55,8 +54,7 @@ export class AuthController {
 
   @Get("me")
   @UseGuards(JwtAuthGuard)
-  @QueryRateLimit()
-  @ApiQueryRateLimit()
+  @SkipRateLimit() // Skip rate limiting for auth verification calls
   @ApiBearerAuth()
   @ApiOperation({ summary: "Get current user profile" })
   @ApiResponse({ status: 200, description: "User profile" })
