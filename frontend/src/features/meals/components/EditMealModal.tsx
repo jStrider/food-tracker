@@ -1,26 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { mealsApi } from '@/features/meals/api/mealsApi';
+import { mealsApi, Meal, MealType, UpdateMealRequest } from '@/features/meals/api/mealsApi';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { formatDate, DATE_FORMATS } from '@/utils/date';
+import { Separator } from '@/components/ui/separator';
 
-interface Meal {
-  id: string;
-  name: string;
-  date: string;
-  time: string;
-  category: string;
-  description?: string;
-}
 
 interface EditMealModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meal: Meal | null;
 }
+
+const MEAL_TYPES: { value: MealType; label: string }[] = [
+  { value: 'breakfast', label: 'Breakfast' },
+  { value: 'lunch', label: 'Lunch' },
+  { value: 'dinner', label: 'Dinner' },
+  { value: 'snack', label: 'Snack' },
+];
 
 const EditMealModal: React.FC<EditMealModalProps> = ({
   open,
@@ -31,9 +41,16 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     name: '',
     date: '',
     time: '',
-    category: '',
-    description: ''
+    category: '' as MealType | '',
+    notes: '',
+    // Macro overrides - if not provided, will use calculated values from food entries
+    customCalories: undefined as number | undefined,
+    customProtein: undefined as number | undefined,
+    customCarbs: undefined as number | undefined,
+    customFat: undefined as number | undefined,
   });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [useCustomMacros, setUseCustomMacros] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,30 +62,44 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         name: meal.name || '',
         date: meal.date || '',
         time: meal.time || '',
-        category: meal.category || '',
-        description: meal.description || ''
+        category: meal.type || '',
+        notes: '',
+        customCalories: undefined,
+        customProtein: undefined,
+        customCarbs: undefined,
+        customFat: undefined,
       });
+      setSelectedDate(meal.date ? new Date(meal.date) : undefined);
+      setUseCustomMacros(false);
     } else {
       setFormData({
         name: '',
         date: '',
         time: '',
         category: '',
-        description: ''
+        notes: '',
+        customCalories: undefined,
+        customProtein: undefined,
+        customCarbs: undefined,
+        customFat: undefined,
       });
+      setSelectedDate(undefined);
+      setUseCustomMacros(false);
     }
   }, [meal]);
 
   const editMealMutation = useMutation({
-    mutationFn: (data: any) => mealsApi.updateMeal(meal!.id, data),
-    onSuccess: () => {
+    mutationFn: (data: UpdateMealRequest) => mealsApi.updateMeal(meal!.id, data),
+    onSuccess: (_, variables) => {
       // Invalidate the specific date query that DayView uses
-      if (meal?.date) {
-        queryClient.invalidateQueries({ queryKey: ['daily-nutrition', meal.date] });
+      if (variables.date || meal?.date) {
+        const dateToInvalidate = variables.date || meal!.date;
+        queryClient.invalidateQueries({ queryKey: ['daily-nutrition', dateToInvalidate] });
       }
       // Also invalidate the general daily-nutrition queries
       queryClient.invalidateQueries({ queryKey: ['daily-nutrition'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-month'] });
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
       toast({
         title: 'Success',
         description: 'Meal updated successfully',
@@ -87,29 +118,47 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.date || !formData.time) {
+    if (!formData.name.trim()) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields',
+        description: 'Please enter a meal name',
         variant: 'destructive',
       });
       return;
     }
 
-    editMealMutation.mutate({
+    if (!selectedDate) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a date',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Format the date for API submission (YYYY-MM-DD)
+    const formattedDate = formatDate(selectedDate, DATE_FORMATS.API_DATE);
+
+    const updateData: UpdateMealRequest = {
       name: formData.name.trim(),
-      date: formData.date,
-      time: formData.time,
-      category: formData.category || undefined,
-      description: formData.description.trim() || undefined,
-    });
+      date: formattedDate,
+      ...(formData.time && { time: formData.time }),
+      ...(formData.category && { category: formData.category }),
+    };
+
+    editMealMutation.mutate(updateData);
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | number | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleClose = () => {
+    setUseCustomMacros(false);
+    onOpenChange(false);
   };
 
   return (
@@ -117,95 +166,166 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Meal</DialogTitle>
+          <DialogDescription>
+            Update meal details and optionally override calculated macros.
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Meal Name *
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="meal-name">Meal Name</Label>
             <Input
-              id="name"
+              id="meal-name"
+              placeholder="e.g., Chicken salad"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="e.g., Breakfast, Lunch, Snack"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-                Date *
-              </label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleChange('date', e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
-                Time *
-              </label>
-              <Input
-                id="time"
-                type="time"
-                value={formData.time}
-                onChange={(e) => handleChange('time', e.target.value)}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="meal-time">Time (Optional)</Label>
+            <Input
+              id="meal-time"
+              type="time"
+              value={formData.time}
+              onChange={(e) => handleChange('time', e.target.value)}
+              placeholder="HH:MM"
+            />
+            <p className="text-xs text-gray-500">
+              If no meal type is selected, it will be auto-categorized based on time
+            </p>
           </div>
 
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
+          <div className="space-y-2">
+            <Label htmlFor="meal-type">Meal Type (Optional)</Label>
+            <Select value={formData.category} onValueChange={(value: MealType | '') => handleChange('category', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Auto-categorized by time (optional override)" />
+                <SelectValue placeholder="Auto-categorize based on time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="breakfast">Breakfast</SelectItem>
-                <SelectItem value="lunch">Lunch</SelectItem>
-                <SelectItem value="dinner">Dinner</SelectItem>
-                <SelectItem value="snack">Snack</SelectItem>
+                <SelectItem value="">Auto-categorize based on time</SelectItem>
+                {MEAL_TYPES.map((mealType) => (
+                  <SelectItem key={mealType.value} value={mealType.value}>
+                    {mealType.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Optional description"
+          <div className="space-y-2">
+            <Label htmlFor="meal-date">Date</Label>
+            <DatePicker
+              id="meal-date"
+              value={selectedDate}
+              onChange={setSelectedDate}
+              placeholder="Select a date"
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
+          <Separator />
+          
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="use-custom-macros"
+                checked={useCustomMacros}
+                onChange={(e) => setUseCustomMacros(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <Label htmlFor="use-custom-macros" className="text-sm font-medium">
+                Override calculated macros with custom values
+              </Label>
+            </div>
+            
+            {meal && (
+              <div className="bg-gray-50 p-3 rounded-md text-sm">
+                <p className="font-medium mb-2">Current calculated values:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <span>Calories: {meal.calories}</span>
+                  <span>Protein: {meal.protein}g</span>
+                  <span>Carbs: {meal.carbs}g</span>
+                  <span>Fat: {meal.fat}g</span>
+                </div>
+              </div>
+            )}
+            
+            {useCustomMacros && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-calories">Calories</Label>
+                    <Input
+                      id="custom-calories"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={formData.customCalories || ''}
+                      onChange={(e) => handleChange('customCalories', e.target.value ? parseInt(e.target.value) : undefined)}
+                      placeholder="e.g., 350"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-protein">Protein (g)</Label>
+                    <Input
+                      id="custom-protein"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.customProtein || ''}
+                      onChange={(e) => handleChange('customProtein', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder="e.g., 25.5"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-carbs">Carbs (g)</Label>
+                    <Input
+                      id="custom-carbs"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.customCarbs || ''}
+                      onChange={(e) => handleChange('customCarbs', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder="e.g., 30.2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-fat">Fat (g)</Label>
+                    <Input
+                      id="custom-fat"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={formData.customFat || ''}
+                      onChange={(e) => handleChange('customFat', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder="e.g., 15.8"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-yellow-600">
+                  ⚠️ Custom values will override calculations from food entries
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
               disabled={editMealMutation.isPending}
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={editMealMutation.isPending}
-            >
+            <Button type="submit" disabled={editMealMutation.isPending}>
               {editMealMutation.isPending ? 'Updating...' : 'Update Meal'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

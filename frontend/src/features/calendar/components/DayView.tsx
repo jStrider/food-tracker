@@ -208,7 +208,9 @@ const DayView: React.FC = () => {
               </div>
               
               {/* Additional nutrients if available */}
-              {(dayData.fiber || dayData.sugar || dayData.sodium) && (
+              {((dayData.fiber !== undefined && dayData.fiber !== null) || 
+                (dayData.sugar !== undefined && dayData.sugar !== null) || 
+                (dayData.sodium !== undefined && dayData.sodium !== null)) && (
                 <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t">
                   {dayData.fiber !== undefined && (
                     <div className="text-center">
