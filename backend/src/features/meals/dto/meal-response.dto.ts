@@ -116,6 +116,19 @@ export class MealResponseDto {
   @Expose()
   totalSodium: number;
 
+  // Custom macro overrides
+  @Expose()
+  customCalories?: number;
+
+  @Expose()
+  customProtein?: number;
+
+  @Expose()
+  customCarbs?: number;
+
+  @Expose()
+  customFat?: number;
+
   @Expose()
   createdAt: Date;
 

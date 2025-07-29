@@ -8,6 +8,8 @@ import {
   Matches,
   IsArray,
   ValidateNested,
+  IsNumber,
+  Min,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { MealCategory } from "../entities/meal.entity";
@@ -44,6 +46,27 @@ export class UpdateMealDto {
   @ValidateNested({ each: true })
   @Type(() => UpdateFoodEntryDto)
   foods?: UpdateFoodEntryDto[];
+
+  // Custom macro overrides
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customCalories?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customProtein?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customCarbs?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customFat?: number;
 }
 
 export class UpdateFoodEntryDto extends PartialType(CreateFoodEntryDto) {

@@ -85,7 +85,7 @@ const FoodSearch = () => {
               <SelectContent>
                 {meals?.map((meal) => (
                   <SelectItem key={meal.id} value={meal.id}>
-                    {meal.name} ({meal.type})
+                    {meal.name} ({meal.category})
                   </SelectItem>
                 ))}
               </SelectContent>

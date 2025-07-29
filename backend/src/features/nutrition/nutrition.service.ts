@@ -80,14 +80,19 @@ export class NutritionService {
       throw new Error("Meal not found");
     }
 
-    const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
-
+    // Use the meal's getters which account for custom values
     return {
       id: meal.id,
       name: meal.name,
       category: meal.category,
       foodCount: meal.foods.length,
-      ...nutrition,
+      calories: meal.totalCalories,
+      protein: meal.totalProtein,
+      carbs: meal.totalCarbs,
+      fat: meal.totalFat,
+      fiber: meal.totalFiber,
+      sugar: meal.totalSugar,
+      sodium: meal.totalSodium,
     };
   }
 
@@ -105,13 +110,19 @@ export class NutritionService {
       .getMany();
 
     const mealSummaries: MealSummary[] = meals.map((meal) => {
-      const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
+      // Use the meal's getters which account for custom values
       return {
         id: meal.id,
         name: meal.name,
         category: meal.category,
         foodCount: meal.foods.length,
-        ...nutrition,
+        calories: meal.totalCalories,
+        protein: meal.totalProtein,
+        carbs: meal.totalCarbs,
+        fat: meal.totalFat,
+        fiber: meal.totalFiber,
+        sugar: meal.totalSugar,
+        sodium: meal.totalSodium,
       };
     });
 
@@ -160,13 +171,19 @@ export class NutritionService {
       const dayMeals = mealsByDate.get(dateKey) || [];
 
       const mealSummaries: MealSummary[] = dayMeals.map((meal) => {
-        const nutrition = this.calculateNutritionFromFoodEntries(meal.foods);
+        // Use the meal's getters which account for custom values
         return {
           id: meal.id,
           name: meal.name,
           category: meal.category,
           foodCount: meal.foods.length,
-          ...nutrition,
+          calories: meal.totalCalories,
+          protein: meal.totalProtein,
+          carbs: meal.totalCarbs,
+          fat: meal.totalFat,
+          fiber: meal.totalFiber,
+          sugar: meal.totalSugar,
+          sodium: meal.totalSodium,
         };
       });
 

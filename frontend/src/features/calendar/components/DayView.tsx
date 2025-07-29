@@ -272,7 +272,7 @@ const DayView: React.FC = () => {
                 <div className="space-y-3">
                     {meals.map((meal: any) => {
                       const isExpanded = expandedMeals.has(meal.id);
-                      const foodEntries = (meal as any).foodEntries || [];
+                      const foodEntries = meal.foods || [];
                       
                       return (
                         <Card key={meal.id} className="overflow-hidden">

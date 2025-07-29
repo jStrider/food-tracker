@@ -6,6 +6,8 @@ import {
   IsNotEmpty,
   Length,
   Matches,
+  IsNumber,
+  Min,
 } from "class-validator";
 import { Transform } from "class-transformer";
 import { MealCategory } from "../entities/meal.entity";
@@ -42,6 +44,27 @@ export class CreateMealDto {
   @IsOptional()
   @Transform(({ value }) => (Array.isArray(value) ? value : []))
   foods?: CreateFoodEntryDto[];
+
+  // Custom macro overrides
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customCalories?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customProtein?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customCarbs?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customFat?: number;
 }
 
 export class CreateFoodEntryDto {
