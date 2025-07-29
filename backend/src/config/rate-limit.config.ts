@@ -2,6 +2,18 @@ import { ThrottlerModuleOptions } from "@nestjs/throttler";
 
 export const getRateLimitConfig = (): ThrottlerModuleOptions => {
   const isProduction = process.env.NODE_ENV === "production";
+  const isRateLimitingDisabled = process.env.DISABLE_RATE_LIMITING === "true";
+
+  // Emergency disable option
+  if (isRateLimitingDisabled) {
+    return [
+      {
+        name: "disabled",
+        ttl: 1000,
+        limit: 99999,
+      },
+    ];
+  }
 
   return [
     {
@@ -11,10 +23,10 @@ export const getRateLimitConfig = (): ThrottlerModuleOptions => {
       limit: isProduction ? 60 : 120, // 60 requests per minute in production, 120 in dev
     },
     {
-      // Strict rate limit for authentication endpoints
+      // Reasonable rate limit for authentication endpoints
       name: "auth",
       ttl: 60000, // 1 minute
-      limit: 5, // 5 attempts per minute
+      limit: isProduction ? 10 : 20, // 10 attempts per minute in production, 20 in dev
     },
     {
       // Moderate rate limit for data mutations
