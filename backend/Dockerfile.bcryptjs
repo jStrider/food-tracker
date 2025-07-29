@@ -1,16 +1,12 @@
-# Backend Production Dockerfile
+# Backend Production Dockerfile - Alternative with bcryptjs
 # Multi-stage build for optimized production image
 FROM node:18-alpine AS base
 
-# Install system dependencies and security updates
+# Install system dependencies and security updates (no build tools needed for bcryptjs)
 RUN apk update && apk upgrade && \
     apk add --no-cache \
     dumb-init \
     curl \
-    python3 \
-    py3-setuptools \
-    make \
-    g++ \
     && rm -rf /var/cache/apk/*
 
 # Install dependencies only when needed
@@ -22,12 +18,13 @@ COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
 # Install production dependencies only (ignore prepare script for husky)
-# Install bcrypt with retry mechanism and fallback to pre-built binaries
+# Use bcryptjs instead of bcrypt to avoid native compilation
 RUN npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
     npm config set fetch-retries 5 && \
     npm install --only=production --ignore-scripts && \
-    (npm rebuild bcrypt --build-from-source || npm install bcrypt@latest --force) && \
+    npm uninstall bcrypt --save && \
+    npm install bcryptjs --save && \
     npm cache clean --force && \
     rm -rf ~/.npm
 
@@ -40,7 +37,9 @@ COPY backend/package*.json ./
 COPY shared/package*.json ./shared/
 
 # Install all dependencies (including dev, ignore prepare script for husky)
-RUN npm install --ignore-scripts
+RUN npm install --ignore-scripts && \
+    npm uninstall bcrypt --save && \
+    npm install bcryptjs --save
 
 # Copy source code
 COPY backend/src ./src
@@ -49,16 +48,15 @@ COPY backend/tsconfig*.json ./
 
 # Build application with optimizations
 RUN npm run build && \
-    npm prune --production && \
-    (npm rebuild bcrypt --build-from-source || npm install bcrypt@latest --force)
+    npm prune --production
 
 # Production runtime image
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Install security updates and build dependencies for sqlite3
+# Install security updates only (no build tools needed)
 RUN apk update && apk upgrade && \
-    apk add --no-cache dumb-init curl python3 py3-setuptools make g++ && \
+    apk add --no-cache dumb-init curl && \
     rm -rf /var/cache/apk/*
 
 # Create non-root user for security
@@ -69,12 +67,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
-
-# Rebuild native dependencies for the runtime environment with fallback
-RUN npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5 && \
-    (npm rebuild bcrypt --build-from-source || npm install bcrypt@latest --force)
 
 # Create data directory with proper permissions
 RUN mkdir -p /app/data /app/logs && \

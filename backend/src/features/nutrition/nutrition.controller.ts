@@ -1,6 +1,14 @@
 import { Controller, Get, Query, Post, Body, Param } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { NutritionService, NutritionGoals } from "./nutrition.service";
+import {
+  QueryRateLimit,
+  MutationRateLimit,
+} from "../../common/decorators/rate-limit.decorator";
+import {
+  ApiQueryRateLimit,
+  ApiMutationRateLimit,
+} from "../../common/decorators/api-rate-limit.decorator";
 
 @ApiTags("nutrition")
 @Controller("nutrition")
@@ -8,6 +16,8 @@ export class NutritionController {
   constructor(private readonly nutritionService: NutritionService) {}
 
   @Get("daily")
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiOperation({ summary: "Get daily nutrition summary" })
   @ApiResponse({ status: 200, description: "Daily nutrition data" })
   getDailyNutrition(@Query("date") date: string) {
@@ -15,6 +25,8 @@ export class NutritionController {
   }
 
   @Get("weekly")
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiOperation({ summary: "Get weekly nutrition summary" })
   @ApiResponse({ status: 200, description: "Weekly nutrition data" })
   getWeeklyNutrition(@Query("startDate") startDate: string) {
@@ -22,6 +34,8 @@ export class NutritionController {
   }
 
   @Get("monthly")
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiOperation({ summary: "Get monthly nutrition summary" })
   @ApiResponse({ status: 200, description: "Monthly nutrition data" })
   getMonthlyNutrition(
@@ -35,6 +49,8 @@ export class NutritionController {
   }
 
   @Get("meal/:id")
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiOperation({ summary: "Get nutrition for a specific meal" })
   @ApiResponse({ status: 200, description: "Meal nutrition data" })
   getMealNutrition(@Param("id") id: string) {
@@ -42,6 +58,8 @@ export class NutritionController {
   }
 
   @Post("goals/compare")
+  @MutationRateLimit()
+  @ApiMutationRateLimit()
   @ApiOperation({ summary: "Compare daily nutrition to goals" })
   @ApiResponse({ status: 200, description: "Goal comparison data" })
   compareToGoals(@Query("date") date: string, @Body() goals: NutritionGoals) {
@@ -49,6 +67,8 @@ export class NutritionController {
   }
 
   @Get("macro-breakdown")
+  @QueryRateLimit()
+  @ApiQueryRateLimit()
   @ApiOperation({ summary: "Get macronutrient breakdown percentages" })
   @ApiResponse({ status: 200, description: "Macro breakdown data" })
   async getMacroBreakdown(@Query("date") date: string) {
