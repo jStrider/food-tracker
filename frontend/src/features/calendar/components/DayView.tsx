@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   Plus, 
@@ -62,7 +62,6 @@ const DayView: React.FC = () => {
   const [expandedMeals, setExpandedMeals] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   // Fetch daily nutrition data
   const { data: dayData, isLoading, error } = useQuery({
@@ -150,10 +149,6 @@ const DayView: React.FC = () => {
     }, defaultCategories);
   }, [dayData?.meals]);
 
-  const handleAddFoodToMeal = (mealId: string) => {
-    navigate(`/meals/${mealId}/foods`);
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -184,6 +179,13 @@ const DayView: React.FC = () => {
         <h1 className="text-2xl font-semibold">
           {formatCalendarDate(date!)}
         </h1>
+        <Button 
+          onClick={() => setIsCreateMealModalOpen(true)}
+          className="flex items-center"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Meal
+        </Button>
       </div>
 
       {/* Two-column layout for desktop, stacked for mobile */}
@@ -244,6 +246,11 @@ const DayView: React.FC = () => {
           {MEAL_CATEGORIES.map(category => {
             const meals = mealsByCategory[category.value] || [];
             
+            // Skip empty categories
+            if (meals.length === 0) {
+              return null;
+            }
+            
             return (
               <div key={category.value} className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -258,21 +265,11 @@ const DayView: React.FC = () => {
                     variant="outline"
                     onClick={() => handleAddMealClick(category.value)}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add {category.label}
+                    + Add {category.label}
                   </Button>
                 </div>
 
-                {(!meals || meals.length === 0) ? (
-                  <Card className="border-dashed">
-                    <CardContent className="text-center py-6">
-                      <div className="text-gray-500 text-sm">
-                        No {category.label.toLowerCase()} recorded
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-3">
+                <div className="space-y-3">
                     {meals.map((meal: any) => {
                       const isExpanded = expandedMeals.has(meal.id);
                       const foodEntries = (meal as any).foodEntries || [];
@@ -358,36 +355,14 @@ const DayView: React.FC = () => {
                                   </div>
                                 ))}
                                 
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="w-full mt-2"
-                                  onClick={() => handleAddFoodToMeal(meal.id)}
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Add Food
-                                </Button>
                               </div>
                             )}
 
-                            {/* Add food button when collapsed */}
-                            {!isExpanded && (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="w-full mt-3"
-                                onClick={() => handleAddFoodToMeal(meal.id)}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Food
-                              </Button>
-                            )}
                           </CardContent>
                         </Card>
                       );
                     })}
                   </div>
-                )}
               </div>
             );
           })}
@@ -406,6 +381,7 @@ const DayView: React.FC = () => {
         open={isEditMealModalOpen}
         onOpenChange={setIsEditMealModalOpen}
         meal={selectedMeal}
+        currentDate={date || format(new Date(), 'yyyy-MM-dd')}
       />
     </div>
   );

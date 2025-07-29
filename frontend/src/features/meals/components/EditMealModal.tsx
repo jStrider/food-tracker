@@ -23,6 +23,7 @@ interface EditMealModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meal: Meal | null;
+  currentDate?: string;
 }
 
 const MEAL_TYPES: { value: MealType; label: string }[] = [
@@ -35,7 +36,8 @@ const MEAL_TYPES: { value: MealType; label: string }[] = [
 const EditMealModal: React.FC<EditMealModalProps> = ({
   open,
   onOpenChange,
-  meal
+  meal,
+  currentDate
 }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -59,16 +61,16 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     if (meal) {
       setFormData({
         name: meal.name || '',
-        date: meal.date || '',
+        date: meal.date || currentDate || '',
         time: meal.time || '',
-        category: meal.type || '',
+        category: (meal.type || (meal as any).category || '') as MealType | '',
         notes: '',
-        customCalories: undefined,
-        customProtein: undefined,
-        customCarbs: undefined,
-        customFat: undefined,
+        customCalories: (meal as any).customCalories || undefined,
+        customProtein: (meal as any).customProtein || undefined,
+        customCarbs: (meal as any).customCarbs || undefined,
+        customFat: (meal as any).customFat || undefined,
       });
-      setSelectedDate(meal.date ? new Date(meal.date) : undefined);
+      setSelectedDate(meal.date ? new Date(meal.date) : (currentDate ? new Date(currentDate) : undefined));
     } else {
       setFormData({
         name: '',
@@ -83,7 +85,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
       });
       setSelectedDate(undefined);
     }
-  }, [meal]);
+  }, [meal, currentDate]);
 
   const editMealMutation = useMutation({
     mutationFn: (data: UpdateMealRequest) => mealsApi.updateMeal(meal!.id, data),
