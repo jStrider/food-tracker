@@ -23,16 +23,24 @@ export DISABLE_RATE_LIMITING=true
 # Restart backend service
 ```
 
-### 2. Reset Rate Limit Counters (Development)
+### 2. Check Rate Limit Information (Development)
 ```bash
-# POST request to reset endpoint
+# POST request to get rate limit info
 curl -X POST http://localhost:3001/health/reset-rate-limits
 
 # Response
 {
-  "status": "ok",
-  "message": "All rate limiting counters have been reset",
-  "timestamp": "2025-01-29T..."
+  "status": "info",
+  "message": "Rate limits automatically expire based on TTL configuration",
+  "ttl": {
+    "auth": "1 minute",
+    "query": "1 minute", 
+    "mutation": "1 minute",
+    "default": "1 minute",
+    "expensive": "5 minutes",
+    "burst": "1 second"
+  },
+  "note": "Wait for the TTL period to pass, or restart the backend service to reset all counters"
 }
 ```
 
@@ -53,22 +61,26 @@ curl http://localhost:3001/health
 ## Troubleshooting
 
 ### "Too many requests" Error
-1. **Wait 1 minute** for auth limits to reset
-2. **Check if in development**:
+1. **Wait for TTL expiry** (1-5 minutes depending on endpoint type)
+2. **Check rate limit info** (development):
    ```bash
    curl -X POST http://localhost:3001/health/reset-rate-limits
    ```
-3. **Temporary disable** (emergency):
+3. **Restart backend service** to clear all rate limit counters
+4. **Temporary disable** (emergency):
    ```bash
    export DISABLE_RATE_LIMITING=true
    # Restart backend
    ```
 
-### Production Reset (if needed)
+### Production Options
 ```bash
-# Enable rate limit reset in production (use with caution)
-export ALLOW_RATE_RESET=true
-curl -X POST https://your-domain.com/health/reset-rate-limits
+# Disable rate limiting in production (emergency only)
+export DISABLE_RATE_LIMITING=true
+# Restart service
+
+# Or restart service to clear all rate limit counters
+docker restart foodtracker-backend
 ```
 
 ## Configuration Files
