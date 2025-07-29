@@ -25,7 +25,7 @@ import { DailyNutrition } from "../features/nutrition/entities/daily-nutrition.e
         migrations: ["dist/database/migrations/*.js"],
         migrationsTableName: "typeorm_migrations",
         synchronize: true, // TEMPORARY: Should use migrations in production
-        logging: configService.get("NODE_ENV") === "development",
+        logging: configService.get<string>("DB_LOGGING") === "true",
         ssl:
           configService.get("DATABASE_SSL") === "true"
             ? {

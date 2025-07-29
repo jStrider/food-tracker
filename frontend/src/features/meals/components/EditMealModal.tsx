@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { mealsApi, Meal, MealType, UpdateMealRequest } from '@/features/meals/api/mealsApi';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { formatDate, DATE_FORMATS } from '@/utils/date';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 interface EditMealModalProps {
@@ -50,7 +50,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     customFat: undefined as number | undefined,
   });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [useCustomMacros, setUseCustomMacros] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -70,7 +69,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         customFat: undefined,
       });
       setSelectedDate(meal.date ? new Date(meal.date) : undefined);
-      setUseCustomMacros(false);
     } else {
       setFormData({
         name: '',
@@ -84,7 +82,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         customFat: undefined,
       });
       setSelectedDate(undefined);
-      setUseCustomMacros(false);
     }
   }, [meal]);
 
@@ -146,7 +143,24 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
       ...(formData.category && { category: formData.category }),
     };
 
-    editMealMutation.mutate(updateData);
+    // Add custom macros if provided
+    const hasCustomMacros = formData.customCalories !== undefined || 
+                           formData.customProtein !== undefined || 
+                           formData.customCarbs !== undefined || 
+                           formData.customFat !== undefined;
+    
+    if (hasCustomMacros) {
+      const extendedUpdateData = {
+        ...updateData,
+        ...(formData.customCalories !== undefined && { customCalories: formData.customCalories }),
+        ...(formData.customProtein !== undefined && { customProtein: formData.customProtein }),
+        ...(formData.customCarbs !== undefined && { customCarbs: formData.customCarbs }),
+        ...(formData.customFat !== undefined && { customFat: formData.customFat }),
+      };
+      editMealMutation.mutate(extendedUpdateData);
+    } else {
+      editMealMutation.mutate(updateData);
+    }
   };
 
   const handleChange = (field: string, value: string | number | undefined) => {
@@ -157,7 +171,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
   };
 
   const handleClose = () => {
-    setUseCustomMacros(false);
     onOpenChange(false);
   };
 
@@ -172,146 +185,140 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="meal-name">Meal Name</Label>
-            <Input
-              id="meal-name"
-              placeholder="e.g., Chicken salad"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="meal-time">Time (Optional)</Label>
-            <Input
-              id="meal-time"
-              type="time"
-              value={formData.time}
-              onChange={(e) => handleChange('time', e.target.value)}
-              placeholder="HH:MM"
-            />
-            <p className="text-xs text-gray-500">
-              If no meal type is selected, it will be auto-categorized based on time
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="meal-type">Meal Type (Optional)</Label>
-            <Select value={formData.category} onValueChange={(value: MealType | '') => handleChange('category', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Auto-categorize based on time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Auto-categorize based on time</SelectItem>
-                {MEAL_TYPES.map((mealType) => (
-                  <SelectItem key={mealType.value} value={mealType.value}>
-                    {mealType.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="meal-date">Date</Label>
-            <DatePicker
-              id="meal-date"
-              value={selectedDate}
-              onChange={setSelectedDate}
-              placeholder="Select a date"
-            />
-          </div>
-
-          <Separator />
-          
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="use-custom-macros"
-                checked={useCustomMacros}
-                onChange={(e) => setUseCustomMacros(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <Label htmlFor="use-custom-macros" className="text-sm font-medium">
-                Override calculated macros with custom values
-              </Label>
-            </div>
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="nutrition">Nutrition (Optional)</TabsTrigger>
+            </TabsList>
             
-            {meal && (
-              <div className="bg-gray-50 p-3 rounded-md text-sm">
-                <p className="font-medium mb-2">Current calculated values:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <span>Calories: {meal.calories}</span>
-                  <span>Protein: {meal.protein}g</span>
-                  <span>Carbs: {meal.carbs}g</span>
-                  <span>Fat: {meal.fat}g</span>
-                </div>
+            <TabsContent value="general" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="meal-name-edit">Meal Name</Label>
+                <Input
+                  id="meal-name-edit"
+                  placeholder="e.g., Chicken salad"
+                  value={formData.name}
+                  onChange={(e) => handleChange('name', e.target.value)}
+                  required
+                />
               </div>
-            )}
-            
-            {useCustomMacros && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="custom-calories">Calories</Label>
-                    <Input
-                      id="custom-calories"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={formData.customCalories || ''}
-                      onChange={(e) => handleChange('customCalories', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder="e.g., 350"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="custom-protein">Protein (g)</Label>
-                    <Input
-                      id="custom-protein"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={formData.customProtein || ''}
-                      onChange={(e) => handleChange('customProtein', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="e.g., 25.5"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="custom-carbs">Carbs (g)</Label>
-                    <Input
-                      id="custom-carbs"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={formData.customCarbs || ''}
-                      onChange={(e) => handleChange('customCarbs', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="e.g., 30.2"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="custom-fat">Fat (g)</Label>
-                    <Input
-                      id="custom-fat"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={formData.customFat || ''}
-                      onChange={(e) => handleChange('customFat', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="e.g., 15.8"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-yellow-600">
-                  ⚠️ Custom values will override calculations from food entries
+
+              <div className="space-y-2">
+                <Label htmlFor="meal-time-edit">Time (Optional)</Label>
+                <Input
+                  id="meal-time-edit"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => handleChange('time', e.target.value)}
+                  placeholder="HH:MM"
+                />
+                <p className="text-xs text-gray-500">
+                  If no meal type is selected, it will be auto-categorized based on time
                 </p>
               </div>
-            )}
-          </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meal-type-edit">Meal Type (Optional)</Label>
+                <Select value={formData.category} onValueChange={(value: MealType | '') => handleChange('category', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Auto-categorize based on time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Auto-categorize based on time</SelectItem>
+                    {MEAL_TYPES.map((mealType) => (
+                      <SelectItem key={mealType.value} value={mealType.value}>
+                        {mealType.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meal-date-edit">Date</Label>
+                <DatePicker
+                  id="meal-date-edit"
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  placeholder="Select a date"
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="nutrition" className="space-y-4">
+              {meal && (
+                <div className="bg-gray-50 p-3 rounded-md text-sm">
+                  <p className="font-medium mb-2">Current calculated values:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <span>Calories: {meal.calories}</span>
+                    <span>Protein: {meal.protein}g</span>
+                    <span>Carbs: {meal.carbs}g</span>
+                    <span>Fat: {meal.fat}g</span>
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-sm text-gray-600">
+                Override calculated nutritional values with custom values. Leave blank to keep calculated values from food entries.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="custom-calories-edit">Calories</Label>
+                  <Input
+                    id="custom-calories-edit"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={formData.customCalories || ''}
+                    onChange={(e) => handleChange('customCalories', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder="e.g., 350"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="custom-protein-edit">Protein (g)</Label>
+                  <Input
+                    id="custom-protein-edit"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={formData.customProtein || ''}
+                    onChange={(e) => handleChange('customProtein', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    placeholder="e.g., 25.5"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="custom-carbs-edit">Carbs (g)</Label>
+                  <Input
+                    id="custom-carbs-edit"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={formData.customCarbs || ''}
+                    onChange={(e) => handleChange('customCarbs', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    placeholder="e.g., 30.2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="custom-fat-edit">Fat (g)</Label>
+                  <Input
+                    id="custom-fat-edit"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={formData.customFat || ''}
+                    onChange={(e) => handleChange('customFat', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    placeholder="e.g., 15.8"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-yellow-600">
+                ⚠️ Custom values will override calculations from food entries
+              </p>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter>
             <Button

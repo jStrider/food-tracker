@@ -18,6 +18,13 @@
 - [x] Implement login/logout functionality - [#47](https://github.com/jStrider/food-tracker/issues/47) ✅ Completed 2025-01-27
 - [x] Add user registration flow - [#64](https://github.com/jStrider/food-tracker/issues/64) ✅ Completed 2025-01-27 (PR #78)
 
+#### Recent Fixes and Improvements
+- [x] Auto-fill current time in meal creation form - [#87](https://github.com/jStrider/food-tracker/issues/87) ✅ Completed 2025-01-29
+- [x] Allow manual editing of macros and calories in meal forms - [#88](https://github.com/jStrider/food-tracker/issues/88) ✅ Completed 2025-01-29
+- [x] Fix 500 Internal Server Error when creating meals - [#89](https://github.com/jStrider/food-tracker/issues/89) ✅ Completed 2025-01-29
+- [x] Replace checkbox expansion with tab-based UI for meal macros - [#90](https://github.com/jStrider/food-tracker/issues/90) ✅ Completed 2025-01-29
+- [x] Optimize SQL queries and disable verbose logging - [#91](https://github.com/jStrider/food-tracker/issues/91) ✅ Completed 2025-01-29
+
 #### Database Migration Setup
 - [ ] Set up proper database migrations - [#49](https://github.com/jStrider/food-tracker/issues/49)
 - [ ] Disable `synchronize: true` in production - [#49](https://github.com/jStrider/food-tracker/issues/49)

@@ -31,7 +31,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - DISABLE_RATE_LIMITING=true
+      - DB_LOGGING=false
       - PORT=3001
       - DATABASE_TYPE=postgres
       - DATABASE_HOST=postgres
