@@ -17,10 +17,10 @@ export const getRateLimitConfig = (): ThrottlerModuleOptions => {
 
   return [
     {
-      // Default global rate limit
+      // Default global rate limit - increased for normal app usage
       name: "default",
       ttl: 60000, // 1 minute
-      limit: isProduction ? 60 : 120, // 60 requests per minute in production, 120 in dev
+      limit: isProduction ? 200 : 400, // 200 requests per minute in production, 400 in dev
     },
     {
       // Reasonable rate limit for authentication endpoints
@@ -32,13 +32,13 @@ export const getRateLimitConfig = (): ThrottlerModuleOptions => {
       // Moderate rate limit for data mutations
       name: "mutation",
       ttl: 60000, // 1 minute
-      limit: isProduction ? 30 : 60, // 30 mutations per minute in production
+      limit: isProduction ? 100 : 200, // 100 mutations per minute in production
     },
     {
-      // Relaxed rate limit for read operations
+      // Relaxed rate limit for read operations (calendar, nutrition data)
       name: "query",
       ttl: 60000, // 1 minute
-      limit: isProduction ? 100 : 200, // 100 queries per minute in production
+      limit: isProduction ? 300 : 600, // 300 queries per minute in production
     },
     {
       // Very strict rate limit for expensive operations
