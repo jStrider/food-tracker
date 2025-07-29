@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { foodsApi, Food } from '@/features/foods/api/foodsApi';
+import { mealsApi } from '@/features/meals/api/mealsApi';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddFoodToMealModalProps {
@@ -50,6 +51,14 @@ const AddFoodToMealModal: React.FC<AddFoodToMealModalProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch meal data to get the date for proper cache invalidation
+  // This ensures the NutritionGoalsCard refreshes when adding food to meals
+  const { data: mealData } = useQuery({
+    queryKey: ['meal', mealId],
+    queryFn: () => mealsApi.getMeal(mealId),
+    enabled: !!mealId && open,
+  });
+
   const addFoodMutation = useMutation({
     mutationFn: () => foodsApi.addFoodToMeal(mealId, {
       quantity: parseFloat(quantity),
@@ -57,6 +66,11 @@ const AddFoodToMealModal: React.FC<AddFoodToMealModalProps> = ({
       foodId: food.id,
     }),
     onSuccess: () => {
+      // Invalidate the specific date query if we have the meal date
+      if (mealData?.date) {
+        queryClient.invalidateQueries({ queryKey: ['daily-nutrition', mealData.date] });
+      }
+      // Also invalidate general queries
       queryClient.invalidateQueries({ queryKey: ['daily-nutrition'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-month'] });
       queryClient.invalidateQueries({ queryKey: ['meals'] });
