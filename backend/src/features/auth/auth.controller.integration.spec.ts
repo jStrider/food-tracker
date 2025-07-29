@@ -64,7 +64,9 @@ describe("AuthController (e2e)", () => {
         select: ["id", "email", "name", "password"],
       });
       expect(user).toBeDefined();
-      expect(await bcrypt.compare(registerDto.password, user!.password!)).toBe(true);
+      expect(await bcrypt.compare(registerDto.password, user!.password!)).toBe(
+        true,
+      );
     });
 
     it("should fail when email already exists", async () => {
@@ -249,9 +251,7 @@ describe("AuthController (e2e)", () => {
     });
 
     it("should fail without authentication token", async () => {
-      await request(app.getHttpServer())
-        .get("/auth/me")
-        .expect(401);
+      await request(app.getHttpServer()).get("/auth/me").expect(401);
     });
 
     it("should fail with invalid token", async () => {

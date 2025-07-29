@@ -64,7 +64,9 @@ describe("AuthService", () => {
       const password = "password123";
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, "compare").mockImplementation(() => Promise.resolve(true));
+      jest
+        .spyOn(bcrypt, "compare")
+        .mockImplementation(() => Promise.resolve(true));
 
       const result = await authService.validateUser(email, password);
 
@@ -77,16 +79,24 @@ describe("AuthService", () => {
     it("should return null when user not found", async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
 
-      const result = await authService.validateUser("nonexistent@example.com", "password");
+      const result = await authService.validateUser(
+        "nonexistent@example.com",
+        "password",
+      );
 
       expect(result).toBeNull();
     });
 
     it("should return null when password is invalid", async () => {
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, "compare").mockImplementation(() => Promise.resolve(false));
+      jest
+        .spyOn(bcrypt, "compare")
+        .mockImplementation(() => Promise.resolve(false));
 
-      const result = await authService.validateUser("test@example.com", "wrongpassword");
+      const result = await authService.validateUser(
+        "test@example.com",
+        "wrongpassword",
+      );
 
       expect(result).toBeNull();
     });
@@ -123,7 +133,9 @@ describe("AuthService", () => {
 
       jest.spyOn(authService, "validateUser").mockResolvedValue(null);
 
-      await expect(authService.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(authService.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -137,10 +149,16 @@ describe("AuthService", () => {
       };
       const hashedPassword = "$2b$10$newhashpassword";
       const token = "jwt-token";
-      const newUser = { ...mockUser, email: registerDto.email, name: registerDto.name };
+      const newUser = {
+        ...mockUser,
+        email: registerDto.email,
+        name: registerDto.name,
+      };
 
       mockUsersService.findByEmail.mockResolvedValue(null);
-      jest.spyOn(bcrypt, "hash").mockImplementation(() => Promise.resolve(hashedPassword));
+      jest
+        .spyOn(bcrypt, "hash")
+        .mockImplementation(() => Promise.resolve(hashedPassword));
       mockUsersService.create.mockResolvedValue(newUser);
       mockJwtService.sign.mockReturnValue(token);
 
@@ -172,7 +190,9 @@ describe("AuthService", () => {
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(authService.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(authService.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
       expect(mockUsersService.create).not.toHaveBeenCalled();
     });
 
@@ -185,7 +205,9 @@ describe("AuthService", () => {
       const hashedPassword = "$2b$10$hashedversion";
 
       mockUsersService.findByEmail.mockResolvedValue(null);
-      jest.spyOn(bcrypt, "hash").mockImplementation(() => Promise.resolve(hashedPassword));
+      jest
+        .spyOn(bcrypt, "hash")
+        .mockImplementation(() => Promise.resolve(hashedPassword));
       mockUsersService.create.mockResolvedValue({
         ...mockUser,
         email: registerDto.email,
