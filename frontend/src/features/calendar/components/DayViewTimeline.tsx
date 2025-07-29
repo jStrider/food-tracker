@@ -324,8 +324,8 @@ const DayViewTimeline: React.FC = () => {
                         <div className="space-y-2">
                           {meals.map(meal => {
                             const isExpanded = expandedMeals.has(meal.id);
-                            const foodEntries = meal.foodEntries || [];
-                            const category = meal.type || (meal as any).category || 'snack';
+                            const foodEntries = meal.foods || [];
+                            const category = meal.category || 'snack';
                             const categoryConfig = getCategoryConfig(category as MealType);
                             
                             return (
@@ -349,10 +349,10 @@ const DayViewTimeline: React.FC = () => {
                                     </div>
                                     
                                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                                      <span>{meal.calories} cal</span>
-                                      <span>P: {meal.protein}g</span>
-                                      <span>C: {meal.carbs}g</span>
-                                      <span>F: {meal.fat}g</span>
+                                      <span>{meal.totalCalories} cal</span>
+                                      <span>P: {meal.totalProtein}g</span>
+                                      <span>C: {meal.totalCarbs}g</span>
+                                      <span>F: {meal.totalFat}g</span>
                                     </div>
                                     
                                     {foodEntries.length > 0 && (

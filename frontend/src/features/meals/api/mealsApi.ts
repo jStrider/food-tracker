@@ -5,15 +5,23 @@ export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 export interface Meal {
   id: string;
   name: string;
-  type: MealType;
+  category: MealType; // Backend uses 'category' not 'type'
   date: string;
   time?: string; // HH:MM format
-  isCustomCategory: boolean;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  foodEntries: any[]; // Will be properly typed when we implement food entries
+  isCustomCategory?: boolean;
+  totalCalories: number; // Backend returns 'totalCalories' not 'calories'
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  totalFiber?: number;
+  totalSugar?: number;
+  totalSodium?: number;
+  foods?: any[]; // Backend returns 'foods' not 'foodEntries'
+  // Custom macro values
+  customCalories?: number;
+  customProtein?: number;
+  customCarbs?: number;
+  customFat?: number;
 }
 
 export interface CreateMealRequest {
@@ -22,6 +30,11 @@ export interface CreateMealRequest {
   date: string;
   time?: string; // HH:MM format
   userId?: string;
+  // Custom macro overrides
+  customCalories?: number;
+  customProtein?: number;
+  customCarbs?: number;
+  customFat?: number;
 }
 
 export interface UpdateMealRequest {
@@ -29,6 +42,11 @@ export interface UpdateMealRequest {
   category?: MealType;
   date?: string;
   time?: string; // HH:MM format
+  // Custom macro overrides
+  customCalories?: number;
+  customProtein?: number;
+  customCarbs?: number;
+  customFat?: number;
 }
 
 export const mealsApi = {

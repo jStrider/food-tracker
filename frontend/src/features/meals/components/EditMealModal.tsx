@@ -63,7 +63,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
         name: meal.name || '',
         date: meal.date || currentDate || '',
         time: meal.time || '',
-        category: (meal.type || (meal as any).category || '') as MealType | '',
+        category: meal.category || '' as MealType | '',
         notes: '',
         customCalories: (meal as any).customCalories || undefined,
         customProtein: (meal as any).customProtein || undefined,
@@ -252,10 +252,10 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
                 <div className="bg-gray-50 p-3 rounded-md text-sm">
                   <p className="font-medium mb-2">Current calculated values:</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <span>Calories: {meal.calories}</span>
-                    <span>Protein: {meal.protein}g</span>
-                    <span>Carbs: {meal.carbs}g</span>
-                    <span>Fat: {meal.fat}g</span>
+                    <span>Calories: {meal.totalCalories}</span>
+                    <span>Protein: {meal.totalProtein}g</span>
+                    <span>Carbs: {meal.totalCarbs}g</span>
+                    <span>Fat: {meal.totalFat}g</span>
                   </div>
                 </div>
               )}

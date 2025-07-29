@@ -271,6 +271,11 @@ export class MealsService {
         notes: createMealDto.notes,
         isCustomCategory: !!createMealDto.category, // Track if category was manually set
         userId: createMealDto.userId || TEMP_USER_ID, // TODO: Get from auth context
+        // Add custom macro values if provided
+        customCalories: createMealDto.customCalories,
+        customProtein: createMealDto.customProtein,
+        customCarbs: createMealDto.customCarbs,
+        customFat: createMealDto.customFat,
       };
 
       const meal = queryRunner.manager.create(Meal, mealData);
@@ -324,6 +329,16 @@ export class MealsService {
         updateData.time = updateMealDto.time;
       if (updateMealDto.notes !== undefined)
         updateData.notes = updateMealDto.notes;
+      
+      // Add custom macro values if provided
+      if (updateMealDto.customCalories !== undefined)
+        updateData.customCalories = updateMealDto.customCalories;
+      if (updateMealDto.customProtein !== undefined)
+        updateData.customProtein = updateMealDto.customProtein;
+      if (updateMealDto.customCarbs !== undefined)
+        updateData.customCarbs = updateMealDto.customCarbs;
+      if (updateMealDto.customFat !== undefined)
+        updateData.customFat = updateMealDto.customFat;
 
       // Auto-categorize if time changed but category not provided and not custom
       if (

@@ -42,7 +42,20 @@ export class Meal {
   time?: string; // HH:MM format for auto-categorization
 
   @Column({ default: false })
-  isCustomCategory: boolean; // If true, category was manually set
+  isCustomCategory: boolean;
+
+  // Custom macro overrides
+  @Column({ type: "int", nullable: true })
+  customCalories?: number;
+
+  @Column({ type: "decimal", precision: 5, scale: 1, nullable: true })
+  customProtein?: number;
+
+  @Column({ type: "decimal", precision: 5, scale: 1, nullable: true })
+  customCarbs?: number;
+
+  @Column({ type: "decimal", precision: 5, scale: 1, nullable: true })
+  customFat?: number; // If true, category was manually set
 
   @Column({ type: "text", nullable: true })
   notes?: string;
@@ -89,6 +102,10 @@ export class Meal {
 
   // Calculate total nutrition for this meal
   get totalCalories(): number {
+    // Use custom value if provided, otherwise calculate from food entries
+    if (this.customCalories !== null && this.customCalories !== undefined) {
+      return this.customCalories;
+    }
     return (
       this.foods?.reduce(
         (total, foodEntry) => total + foodEntry.calculatedCalories,
@@ -98,6 +115,10 @@ export class Meal {
   }
 
   get totalProtein(): number {
+    // Use custom value if provided, otherwise calculate from food entries
+    if (this.customProtein !== null && this.customProtein !== undefined) {
+      return Number(this.customProtein);
+    }
     return (
       this.foods?.reduce(
         (total, foodEntry) => total + foodEntry.calculatedProtein,
@@ -107,6 +128,10 @@ export class Meal {
   }
 
   get totalCarbs(): number {
+    // Use custom value if provided, otherwise calculate from food entries
+    if (this.customCarbs !== null && this.customCarbs !== undefined) {
+      return Number(this.customCarbs);
+    }
     return (
       this.foods?.reduce(
         (total, foodEntry) => total + foodEntry.calculatedCarbs,
@@ -116,6 +141,10 @@ export class Meal {
   }
 
   get totalFat(): number {
+    // Use custom value if provided, otherwise calculate from food entries
+    if (this.customFat !== null && this.customFat !== undefined) {
+      return Number(this.customFat);
+    }
     return (
       this.foods?.reduce(
         (total, foodEntry) => total + foodEntry.calculatedFat,
