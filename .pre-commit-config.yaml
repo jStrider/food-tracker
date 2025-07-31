@@ -1,0 +1,70 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: pretty-format-json
+        args: ['--autofix']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: backend-lint
+        name: Backend Lint
+        entry: bash -c 'cd backend && npm run lint'
+        language: system
+        files: ^backend/.*\.(js|ts)$
+        pass_filenames: false
+
+      - id: frontend-lint
+        name: Frontend Lint
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/.*\.(js|ts|tsx)$
+        pass_filenames: false
+
+      - id: backend-typecheck
+        name: Backend TypeScript Check
+        entry: bash -c 'cd backend && npm run typecheck'
+        language: system
+        files: ^backend/.*\.ts$
+        pass_filenames: false
+
+      - id: frontend-typecheck
+        name: Frontend TypeScript Check
+        entry: bash -c 'cd frontend && npm run typecheck'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: backend-test
+        name: Backend Unit Tests
+        entry: bash -c 'cd backend && npm test -- --watchAll=false --passWithNoTests'
+        language: system
+        files: ^backend/.*\.(js|ts)$
+        pass_filenames: false
+
+      - id: frontend-test
+        name: Frontend Unit Tests
+        entry: bash -c 'cd frontend && npm test -- --watchAll=false --passWithNoTests'
+        language: system
+        files: ^frontend/.*\.(js|ts|tsx)$
+        pass_filenames: false
+
+      - id: security-check
+        name: Security Audit
+        entry: bash -c 'cd backend && npm audit --audit-level moderate && cd ../frontend && npm audit --audit-level moderate'
+        language: system
+        files: ^(backend|frontend)/package(-lock)?\.json$
+        pass_filenames: false
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.42.1
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
