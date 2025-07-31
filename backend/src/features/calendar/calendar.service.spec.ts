@@ -19,11 +19,11 @@ describe("CalendarService", () => {
   let mealsRepository: Repository<Meal>;
   let nutritionService: NutritionService;
 
-  const _mockMealsRepository = {
+  const mockMealsRepository = {
     find: jest.fn(),
   };
 
-  const _mockNutritionService = {
+  const mockNutritionService = {
     getDailyNutrition: jest.fn(),
     getWeeklyNutrition: jest.fn(),
   };
@@ -61,12 +61,12 @@ describe("CalendarService", () => {
 
   describe("getMonthView", () => {
     it("should return month view with nutrition data", async () => {
-      const _month = 1;
-      const _year = 2024;
-      const _startDate = startOfMonth(new Date(year, month - 1));
-      const _endDate = endOfMonth(new Date(year, month - 1));
+      const month = 1;
+      const year = 2024;
+      const startDate = startOfMonth(new Date(year, month - 1));
+      const endDate = endOfMonth(new Date(year, month - 1));
 
-      const _mockMeals = [
+      const mockMeals = [
         {
           ...fixtures.meals.breakfast,
           date: new Date("2024-01-15"),
@@ -97,7 +97,7 @@ describe("CalendarService", () => {
           mealCount: 1,
         });
 
-      const _result = await service.getMonthView(month, year);
+      const result = await service.getMonthView(month, year);
 
       expect(result.month).toBe(month);
       expect(result.year).toBe(year);
@@ -116,14 +116,14 @@ describe("CalendarService", () => {
     });
 
     it("should include goal progress when goals provided", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const _mockMeals = [
+      const mockMeals = [
         {
           ...fixtures.meals.breakfast,
           date: new Date("2024-01-15"),
@@ -142,9 +142,9 @@ describe("CalendarService", () => {
         mealCount: 1,
       });
 
-      const _result = await service.getMonthView(1, 2024, goals);
+      const result = await service.getMonthView(1, 2024, goals);
 
-      const _dayWithData = result.days.find((day) => day.date === "2024-01-15");
+      const dayWithData = result.days.find((day) => day.date === "2024-01-15");
       expect(dayWithData.goalProgress).toBeDefined();
       expect(dayWithData.goalProgress.calories).toBe(90); // 1800/2000 * 100
       expect(dayWithData.goalProgress.protein).toBe(90);
@@ -155,7 +155,7 @@ describe("CalendarService", () => {
     it("should handle empty month", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getMonthView(1, 2024);
+      const result = await service.getMonthView(1, 2024);
 
       expect(result.days).toHaveLength(31);
       expect(result.summary.daysWithData).toBe(0);
@@ -166,7 +166,7 @@ describe("CalendarService", () => {
     it("should handle errors gracefully", async () => {
       mockMealsRepository.find.mockRejectedValue(new Error("Database error"));
 
-      const _result = await service.getMonthView(1, 2024);
+      const result = await service.getMonthView(1, 2024);
 
       expect(result.month).toBe(1);
       expect(result.year).toBe(2024);
@@ -177,8 +177,8 @@ describe("CalendarService", () => {
 
   describe("getWeekView", () => {
     it("should return week view with nutrition data", async () => {
-      const _startDate = "2024-01-15";
-      const _mockWeeklyNutrition = {
+      const startDate = "2024-01-15";
+      const mockWeeklyNutrition = {
         startDate: "2024-01-14",
         endDate: "2024-01-20",
         days: [
@@ -232,7 +232,7 @@ describe("CalendarService", () => {
       );
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getWeekView(startDate);
+      const result = await service.getWeekView(startDate);
 
       expect(result.startDate).toBe("2024-01-14");
       expect(result.endDate).toBe("2024-01-20");
@@ -243,14 +243,14 @@ describe("CalendarService", () => {
     });
 
     it("should include goal progress when goals provided", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const _mockWeeklyNutrition = {
+      const mockWeeklyNutrition = {
         startDate: "2024-01-14",
         endDate: "2024-01-20",
         days: [
@@ -292,9 +292,9 @@ describe("CalendarService", () => {
       );
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getWeekView("2024-01-15", goals);
+      const result = await service.getWeekView("2024-01-15", goals);
 
-      const _dayWithData = result.days[0];
+      const dayWithData = result.days[0];
       expect(dayWithData.goalProgress).toBeDefined();
       expect(dayWithData.goalProgress.calories).toBe(90);
       expect(dayWithData.goalProgress.protein).toBe(90);
@@ -303,7 +303,7 @@ describe("CalendarService", () => {
 
   describe("getDayView", () => {
     it("should return daily nutrition data", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         calories: 1800,
         protein: 90,
@@ -320,7 +320,7 @@ describe("CalendarService", () => {
         mockDailyNutrition,
       );
 
-      const _result = await service.getDayView("2024-01-15");
+      const result = await service.getDayView("2024-01-15");
 
       expect(result).toEqual(mockDailyNutrition);
       expect(nutritionService.getDailyNutrition).toHaveBeenCalledWith(
@@ -331,8 +331,8 @@ describe("CalendarService", () => {
 
   describe("getNutritionStreaks", () => {
     it("should calculate nutrition streaks correctly", async () => {
-      const _endDate = "2024-01-20";
-      const _mockMeals = [
+      const endDate = "2024-01-20";
+      const mockMeals = [
         { date: new Date("2024-01-18") },
         { date: new Date("2024-01-19") },
         { date: new Date("2024-01-20") },
@@ -346,7 +346,7 @@ describe("CalendarService", () => {
 
       mockMealsRepository.find.mockResolvedValue(mockMeals);
 
-      const _result = await service.getNutritionStreaks(endDate);
+      const result = await service.getNutritionStreaks(endDate);
 
       expect(result.currentStreak).toBe(3); // Last 3 consecutive days
       expect(result.longestStreak).toBe(5); // Days 10-14
@@ -360,7 +360,7 @@ describe("CalendarService", () => {
     it("should handle no streak", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getNutritionStreaks("2024-01-20");
+      const result = await service.getNutritionStreaks("2024-01-20");
 
       expect(result.currentStreak).toBe(0);
       expect(result.longestStreak).toBe(0);
@@ -374,17 +374,17 @@ describe("CalendarService", () => {
 
       expect(mockMealsRepository.find).toHaveBeenCalled();
       // Verify date range is reasonable (90 days back from today)
-      const _callArgs = mockMealsRepository.find.mock.calls[0][0];
+      const callArgs = mockMealsRepository.find.mock.calls[0][0];
       expect(callArgs.where.date).toBeDefined();
     });
   });
 
   describe("getCalendarStats", () => {
     it("should calculate calendar statistics", async () => {
-      const _startDate = "2024-01-01";
-      const _endDate = "2024-01-31";
+      const startDate = "2024-01-01";
+      const endDate = "2024-01-31";
 
-      const _mockMeals = [
+      const mockMeals = [
         {
           ...fixtures.meals.breakfast,
           date: new Date("2024-01-15"),
@@ -425,7 +425,7 @@ describe("CalendarService", () => {
 
       mockMealsRepository.find.mockResolvedValue(mockMeals);
 
-      const _result = await service.getCalendarStats(startDate, endDate);
+      const result = await service.getCalendarStats(startDate, endDate);
 
       expect(result.totalDays).toBe(31); // January has 31 days
       expect(result.daysWithData).toBe(2); // 2 unique days with meals
@@ -439,7 +439,7 @@ describe("CalendarService", () => {
     it("should handle empty date range", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getCalendarStats(
+      const result = await service.getCalendarStats(
         "2024-01-01",
         "2024-01-31",
       );

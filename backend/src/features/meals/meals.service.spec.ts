@@ -1,5 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { NotFoundException } from "@nestjs/common";
 import {
   Repository,
   DataSource,
@@ -20,7 +21,7 @@ describe("MealsService", () => {
   let dataSource: DataSource;
   let queryRunner: QueryRunner;
 
-  const _mockQueryBuilder = {
+  const mockQueryBuilder = {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
@@ -33,7 +34,7 @@ describe("MealsService", () => {
     getManyAndCount: jest.fn(),
   };
 
-  const _mockQueryRunner = {
+  const mockQueryRunner = {
     connect: jest.fn(),
     startTransaction: jest.fn(),
     commitTransaction: jest.fn(),
@@ -105,15 +106,15 @@ describe("MealsService", () => {
 
   describe("findAll", () => {
     it("should return paginated meals", async () => {
-      const _mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
-      const _mockTotal = 2;
+      const mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
+      const mockTotal = 2;
 
       mockQueryBuilder.getManyAndCount.mockResolvedValue([
         mockMeals,
         mockTotal,
       ]);
 
-      const _result = await service.findAll({ page: 1, limit: 10 });
+      const result = await service.findAll({ page: 1, limit: 10 });
 
       expect(result).toEqual({
         data: mockMeals,
@@ -125,7 +126,7 @@ describe("MealsService", () => {
     });
 
     it("should filter by date", async () => {
-      const _mockMeals = [fixtures.meals.breakfast];
+      const mockMeals = [fixtures.meals.breakfast];
       mockQueryBuilder.getManyAndCount.mockResolvedValue([mockMeals, 1]);
 
       await service.findAll({ date: "2024-01-15", page: 1, limit: 10 });
@@ -137,7 +138,7 @@ describe("MealsService", () => {
     });
 
     it("should filter by date range", async () => {
-      const _mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
+      const mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
       mockQueryBuilder.getManyAndCount.mockResolvedValue([mockMeals, 2]);
 
       await service.findAll({
@@ -154,7 +155,7 @@ describe("MealsService", () => {
     });
 
     it("should filter by category", async () => {
-      const _mockMeals = [fixtures.meals.breakfast];
+      const mockMeals = [fixtures.meals.breakfast];
       mockQueryBuilder.getManyAndCount.mockResolvedValue([mockMeals, 1]);
 
       await service.findAll({
@@ -170,7 +171,7 @@ describe("MealsService", () => {
     });
 
     it("should include foods when requested", async () => {
-      const _mockMeals = [fixtures.meals.breakfast];
+      const mockMeals = [fixtures.meals.breakfast];
       mockQueryBuilder.getManyAndCount.mockResolvedValue([mockMeals, 1]);
 
       await service.findAll({ includeFoods: true, page: 1, limit: 10 });
@@ -188,10 +189,10 @@ describe("MealsService", () => {
 
   describe("findOne", () => {
     it("should return a meal by id", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       mockQueryBuilder.getOne.mockResolvedValue(mockMeal);
 
-      const _result = await service.findOne("1");
+      const result = await service.findOne("1");
 
       expect(result).toEqual(mockMeal);
       expect(mockQueryBuilder.where).toHaveBeenCalledWith("meal.id = :id", {
@@ -206,7 +207,7 @@ describe("MealsService", () => {
     });
 
     it("should include foods by default", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       mockQueryBuilder.getOne.mockResolvedValue(mockMeal);
 
       await service.findOne("1");
@@ -222,7 +223,7 @@ describe("MealsService", () => {
     });
 
     it("should not include foods when includeFoods is false", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       mockQueryBuilder.getOne.mockResolvedValue(mockMeal);
 
       await service.findOne("1", false);
@@ -233,10 +234,10 @@ describe("MealsService", () => {
 
   describe("findByDate", () => {
     it("should return meals for a specific date", async () => {
-      const _mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
+      const mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
-      const _result = await service.findByDate({ date: "2024-01-15" });
+      const result = await service.findByDate({ date: "2024-01-15" });
 
       expect(result).toEqual(mockMeals);
       expect(mockQueryBuilder.where).toHaveBeenCalledWith("meal.date = :date", {
@@ -246,7 +247,7 @@ describe("MealsService", () => {
     });
 
     it("should include foods by default", async () => {
-      const _mockMeals = [fixtures.meals.breakfast];
+      const mockMeals = [fixtures.meals.breakfast];
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
       await service.findByDate({ date: "2024-01-15" });
@@ -264,7 +265,7 @@ describe("MealsService", () => {
 
   describe("getDailyNutrition", () => {
     it("should calculate daily nutrition summary", async () => {
-      const _mockMeals = [
+      const mockMeals = [
         {
           ...fixtures.meals.breakfast,
           totalCalories: 300,
@@ -289,7 +290,7 @@ describe("MealsService", () => {
 
       jest.spyOn(service, "findByDate").mockResolvedValue(mockMeals as any);
 
-      const _result = await service.getDailyNutrition("2024-01-15");
+      const result = await service.getDailyNutrition("2024-01-15");
 
       expect(result).toEqual({
         date: "2024-01-15",
@@ -308,7 +309,7 @@ describe("MealsService", () => {
     it("should return zero totals for no meals", async () => {
       jest.spyOn(service, "findByDate").mockResolvedValue([]);
 
-      const _result = await service.getDailyNutrition("2024-01-15");
+      const result = await service.getDailyNutrition("2024-01-15");
 
       expect(result.totalCalories).toBe(0);
       expect(result.mealCount).toBe(0);
@@ -317,7 +318,7 @@ describe("MealsService", () => {
 
   describe("create", () => {
     it("should create a meal successfully", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         category: MealCategory.LUNCH,
         date: "2024-01-15",
@@ -325,13 +326,13 @@ describe("MealsService", () => {
         notes: "Test notes",
       };
 
-      const _mockMeal = { id: "1", ...createDto };
+      const mockMeal = { id: "1", ...createDto };
 
       mockQueryRunner.manager.create.mockReturnValue(mockMeal);
       mockQueryRunner.manager.save.mockResolvedValue(mockMeal);
       jest.spyOn(service, "findOne").mockResolvedValue(mockMeal as any);
 
-      const _result = await service.create(createDto);
+      const result = await service.create(createDto);
 
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
@@ -339,13 +340,13 @@ describe("MealsService", () => {
     });
 
     it("should auto-categorize meal by time when category not provided", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         date: "2024-01-15",
         time: "08:30", // Should be breakfast
       };
 
-      const _mockMeal = {
+      const mockMeal = {
         id: "1",
         ...createDto,
         category: MealCategory.BREAKFAST,
@@ -366,7 +367,7 @@ describe("MealsService", () => {
     });
 
     it("should create meal with food entries", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         category: MealCategory.LUNCH,
         date: "2024-01-15",
@@ -377,8 +378,8 @@ describe("MealsService", () => {
         ],
       };
 
-      const _mockMeal = { id: "1", ...createDto };
-      const _mockFood = fixtures.foods.apple;
+      const mockMeal = { id: "1", ...createDto };
+      const mockFood = fixtures.foods.apple;
 
       mockQueryRunner.manager.create.mockReturnValue(mockMeal);
       mockQueryRunner.manager.save.mockResolvedValue(mockMeal);
@@ -400,7 +401,7 @@ describe("MealsService", () => {
     });
 
     it("should rollback transaction on error", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         category: MealCategory.LUNCH,
         date: "2024-01-15",
@@ -418,20 +419,20 @@ describe("MealsService", () => {
 
   describe("update", () => {
     it("should update a meal successfully", async () => {
-      const _updateDto = {
+      const updateDto = {
         name: "Updated Meal",
         notes: "Updated notes",
       };
 
-      const _existingMeal = fixtures.meals.breakfast;
-      const _updatedMeal = { ...existingMeal, ...updateDto };
+      const existingMeal = fixtures.meals.breakfast;
+      const updatedMeal = { ...existingMeal, ...updateDto };
 
       jest
         .spyOn(service, "findOne")
         .mockResolvedValueOnce(existingMeal as any)
         .mockResolvedValueOnce(updatedMeal as any);
 
-      const _result = await service.update("1", updateDto);
+      const result = await service.update("1", updateDto);
 
       expect(mockQueryRunner.manager.update).toHaveBeenCalledWith(
         Meal,
@@ -445,11 +446,11 @@ describe("MealsService", () => {
     });
 
     it("should auto-categorize when time changes but category not provided", async () => {
-      const _updateDto = {
+      const updateDto = {
         time: "08:30", // Should be breakfast
       };
 
-      const _existingMeal = {
+      const existingMeal = {
         ...fixtures.meals.lunch,
         category: MealCategory.LUNCH,
       };
@@ -469,20 +470,20 @@ describe("MealsService", () => {
     });
 
     it("should update food entries", async () => {
-      const _updateDto = {
+      const updateDto = {
         foods: [
           { id: "1", quantity: 150 }, // Update existing
           { foodId: "3", quantity: 100, unit: "g" }, // Add new
         ],
       };
 
-      const _existingMeal = fixtures.meals.breakfast;
-      const _existingEntries = [
+      const existingMeal = fixtures.meals.breakfast;
+      const existingEntries = [
         { id: "1", mealId: "1", foodId: "1" },
         { id: "2", mealId: "1", foodId: "2" },
       ];
-      const _mockFood = fixtures.foods.brownRice;
-      const _updatedMeal = { ...existingMeal, foods: updateDto.foods };
+      const mockFood = fixtures.foods.brownRice;
+      const updatedMeal = { ...existingMeal, foods: updateDto.foods };
 
       jest
         .spyOn(service, "findOne")
@@ -528,7 +529,7 @@ describe("MealsService", () => {
 
   describe("remove", () => {
     it("should delete a meal", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       jest.spyOn(service, "findOne").mockResolvedValue(mockMeal as any);
 
       await service.remove("1");
@@ -545,7 +546,7 @@ describe("MealsService", () => {
 
   describe("getStats", () => {
     it("should calculate meal statistics", async () => {
-      const _mockMeals = [
+      const mockMeals = [
         {
           ...fixtures.meals.breakfast,
           totalCalories: 300,
@@ -574,7 +575,7 @@ describe("MealsService", () => {
 
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
-      const _result = await service.getStats({
+      const result = await service.getStats({
         startDate: "2024-01-01",
         endDate: "2024-01-31",
       });
@@ -596,7 +597,7 @@ describe("MealsService", () => {
     it("should return empty stats when no meals found", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
-      const _result = await service.getStats({
+      const result = await service.getStats({
         startDate: "2024-01-01",
         endDate: "2024-01-31",
       });
@@ -606,7 +607,7 @@ describe("MealsService", () => {
     });
 
     it("should filter by category", async () => {
-      const _mockMeals = [fixtures.meals.breakfast];
+      const mockMeals = [fixtures.meals.breakfast];
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
       await service.getStats({
@@ -635,14 +636,14 @@ describe("MealsService", () => {
       ["23:30", MealCategory.SNACK],
       ["02:00", MealCategory.SNACK],
     ])("should categorize %s as %s", (time, expectedCategory) => {
-      const _result = (service as any).autoCategorizeByTime(time);
+      const result = (service as any).autoCategorizeByTime(time);
       expect(result).toBe(expectedCategory);
     });
   });
 
   describe("getCategorization", () => {
     it("should return default categorization logic", async () => {
-      const _result = await service.getCategorization();
+      const result = await service.getCategorization();
 
       expect(result).toEqual({
         defaultRanges: {
@@ -657,14 +658,14 @@ describe("MealsService", () => {
     });
 
     it("should return custom ranges when provided", async () => {
-      const _customRanges = {
+      const customRanges = {
         breakfast: { start: "06:00", end: "10:00" },
         lunch: { start: "12:00", end: "14:00" },
         dinner: { start: "18:00", end: "20:00" },
         snack: "Other times",
       };
 
-      const _result = await service.getCategorization(customRanges);
+      const result = await service.getCategorization(customRanges);
 
       expect(result.defaultRanges).toEqual(customRanges);
     });
