@@ -47,6 +47,9 @@ describe("CustomThrottlerGuard", () => {
           provide: ThrottlerStorage,
           useValue: {
             increment: jest.fn().mockResolvedValue({ totalHits: 1, timeToExpire: 60000 }),
+            storage: {
+              clear: jest.fn(),
+            },
           },
         },
       ],
