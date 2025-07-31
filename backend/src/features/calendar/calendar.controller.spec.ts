@@ -6,7 +6,7 @@ describe("CalendarController", () => {
   let controller: CalendarController;
   let calendarService: CalendarService;
 
-  const _mockCalendarService = {
+  const mockCalendarService = {
     getMonthView: jest.fn(),
     getWeekView: jest.fn(),
     getDayView: jest.fn(),
@@ -33,7 +33,7 @@ describe("CalendarController", () => {
 
   describe("getMonthView", () => {
     it("should return month view data", async () => {
-      const _mockMonthData = {
+      const mockMonthData = {
         month: 1,
         year: 2024,
         days: [],
@@ -50,7 +50,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getMonthView.mockResolvedValue(mockMonthData);
 
-      const _result = await controller.getMonthView("1", "2024");
+      const result = await controller.getMonthView("1", "2024");
 
       expect(result).toEqual(mockMonthData);
       expect(calendarService.getMonthView).toHaveBeenCalledWith(1, 2024);
@@ -67,14 +67,14 @@ describe("CalendarController", () => {
 
   describe("getMonthViewWithGoals", () => {
     it("should return month view with goal progress", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const _mockMonthData = {
+      const mockMonthData = {
         month: 1,
         year: 2024,
         days: [
@@ -109,7 +109,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getMonthView.mockResolvedValue(mockMonthData);
 
-      const _result = await controller.getMonthViewWithGoals(
+      const result = await controller.getMonthViewWithGoals(
         "1",
         "2024",
         goals,
@@ -122,7 +122,7 @@ describe("CalendarController", () => {
 
   describe("getWeekView", () => {
     it("should return week view data", async () => {
-      const _mockWeekData = {
+      const mockWeekData = {
         startDate: "2024-01-14",
         endDate: "2024-01-20",
         days: [],
@@ -138,7 +138,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getWeekView.mockResolvedValue(mockWeekData);
 
-      const _result = await controller.getWeekView("2024-01-15");
+      const result = await controller.getWeekView("2024-01-15");
 
       expect(result).toEqual(mockWeekData);
       expect(calendarService.getWeekView).toHaveBeenCalledWith("2024-01-15");
@@ -147,14 +147,14 @@ describe("CalendarController", () => {
 
   describe("getWeekViewWithGoals", () => {
     it("should return week view with goal progress", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
         fat: 65,
       };
 
-      const _mockWeekData = {
+      const mockWeekData = {
         startDate: "2024-01-14",
         endDate: "2024-01-20",
         days: [
@@ -188,7 +188,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getWeekView.mockResolvedValue(mockWeekData);
 
-      const _result = await controller.getWeekViewWithGoals(
+      const result = await controller.getWeekViewWithGoals(
         "2024-01-15",
         goals,
       );
@@ -203,7 +203,7 @@ describe("CalendarController", () => {
 
   describe("getDayView", () => {
     it("should return detailed day view", async () => {
-      const _mockDayData = {
+      const mockDayData = {
         date: "2024-01-15",
         meals: [],
         mealCount: 3,
@@ -218,7 +218,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getDayView.mockResolvedValue(mockDayData);
 
-      const _result = await controller.getDayView("2024-01-15");
+      const result = await controller.getDayView("2024-01-15");
 
       expect(result).toEqual(mockDayData);
       expect(calendarService.getDayView).toHaveBeenCalledWith("2024-01-15");
@@ -227,7 +227,7 @@ describe("CalendarController", () => {
 
   describe("getNutritionStreaks", () => {
     it("should return nutrition streaks with end date", async () => {
-      const _mockStreaks = {
+      const mockStreaks = {
         currentStreak: 5,
         longestStreak: 12,
         streakDates: [
@@ -241,7 +241,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getNutritionStreaks.mockResolvedValue(mockStreaks);
 
-      const _result = await controller.getNutritionStreaks("2024-01-20");
+      const result = await controller.getNutritionStreaks("2024-01-20");
 
       expect(result).toEqual(mockStreaks);
       expect(calendarService.getNutritionStreaks).toHaveBeenCalledWith(
@@ -250,7 +250,7 @@ describe("CalendarController", () => {
     });
 
     it("should return nutrition streaks without end date", async () => {
-      const _mockStreaks = {
+      const mockStreaks = {
         currentStreak: 3,
         longestStreak: 10,
         streakDates: ["2024-01-18", "2024-01-19", "2024-01-20"],
@@ -258,7 +258,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getNutritionStreaks.mockResolvedValue(mockStreaks);
 
-      const _result = await controller.getNutritionStreaks();
+      const result = await controller.getNutritionStreaks();
 
       expect(result).toEqual(mockStreaks);
       expect(calendarService.getNutritionStreaks).toHaveBeenCalledWith(
@@ -269,7 +269,7 @@ describe("CalendarController", () => {
 
   describe("getCalendarStats", () => {
     it("should return calendar statistics", async () => {
-      const _mockStats = {
+      const mockStats = {
         totalDays: 31,
         daysWithData: 20,
         completionRate: 65,
@@ -281,7 +281,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getCalendarStats.mockResolvedValue(mockStats);
 
-      const _result = await controller.getCalendarStats(
+      const result = await controller.getCalendarStats(
         "2024-01-01",
         "2024-01-31",
       );

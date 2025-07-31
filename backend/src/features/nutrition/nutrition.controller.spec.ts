@@ -6,7 +6,7 @@ describe("NutritionController", () => {
   let controller: NutritionController;
   let nutritionService: NutritionService;
 
-  const _mockNutritionService = {
+  const mockNutritionService = {
     getDailyNutrition: jest.fn(),
     getWeeklyNutrition: jest.fn(),
     getMonthlyNutrition: jest.fn(),
@@ -34,7 +34,7 @@ describe("NutritionController", () => {
 
   describe("getDailyNutrition", () => {
     it("should return daily nutrition summary", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         meals: [],
         mealCount: 2,
@@ -51,7 +51,7 @@ describe("NutritionController", () => {
         mockDailyNutrition,
       );
 
-      const _result = await controller.getDailyNutrition("2024-01-15");
+      const result = await controller.getDailyNutrition("2024-01-15");
 
       expect(result).toEqual(mockDailyNutrition);
       expect(nutritionService.getDailyNutrition).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe("NutritionController", () => {
 
   describe("getWeeklyNutrition", () => {
     it("should return weekly nutrition summary", async () => {
-      const _mockWeeklyNutrition = {
+      const mockWeeklyNutrition = {
         startDate: "2024-01-14",
         endDate: "2024-01-20",
         days: [],
@@ -90,7 +90,7 @@ describe("NutritionController", () => {
         mockWeeklyNutrition,
       );
 
-      const _result = await controller.getWeeklyNutrition("2024-01-15");
+      const result = await controller.getWeeklyNutrition("2024-01-15");
 
       expect(result).toEqual(mockWeeklyNutrition);
       expect(nutritionService.getWeeklyNutrition).toHaveBeenCalledWith(
@@ -101,7 +101,7 @@ describe("NutritionController", () => {
 
   describe("getMonthlyNutrition", () => {
     it("should return monthly nutrition data", async () => {
-      const _mockMonthlyData = [
+      const mockMonthlyData = [
         {
           date: "2024-01-01",
           meals: [],
@@ -120,7 +120,7 @@ describe("NutritionController", () => {
         mockMonthlyData,
       );
 
-      const _result = await controller.getMonthlyNutrition("1", "2024");
+      const result = await controller.getMonthlyNutrition("1", "2024");
 
       expect(result).toEqual(mockMonthlyData);
       expect(nutritionService.getMonthlyNutrition).toHaveBeenCalledWith(
@@ -143,7 +143,7 @@ describe("NutritionController", () => {
 
   describe("getMealNutrition", () => {
     it("should return nutrition for a specific meal", async () => {
-      const _mockMealNutrition = {
+      const mockMealNutrition = {
         id: "1",
         name: "Breakfast",
         category: "breakfast",
@@ -161,7 +161,7 @@ describe("NutritionController", () => {
         mockMealNutrition,
       );
 
-      const _result = await controller.getMealNutrition("1");
+      const result = await controller.getMealNutrition("1");
 
       expect(result).toEqual(mockMealNutrition);
       expect(nutritionService.getMealNutrition).toHaveBeenCalledWith("1");
@@ -170,7 +170,7 @@ describe("NutritionController", () => {
 
   describe("compareToGoals", () => {
     it("should compare daily nutrition to goals", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
@@ -179,7 +179,7 @@ describe("NutritionController", () => {
         sodium: 2300,
       };
 
-      const _mockComparison = {
+      const mockComparison = {
         nutrition: {
           date: "2024-01-15",
           meals: [],
@@ -213,7 +213,7 @@ describe("NutritionController", () => {
 
       mockNutritionService.compareToGoals.mockResolvedValue(mockComparison);
 
-      const _result = await controller.compareToGoals("2024-01-15", goals);
+      const result = await controller.compareToGoals("2024-01-15", goals);
 
       expect(result).toEqual(mockComparison);
       expect(nutritionService.compareToGoals).toHaveBeenCalledWith(
@@ -225,7 +225,7 @@ describe("NutritionController", () => {
 
   describe("getMacroBreakdown", () => {
     it("should return macro breakdown percentages", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         meals: [],
         mealCount: 3,
@@ -238,7 +238,7 @@ describe("NutritionController", () => {
         sodium: 2300,
       };
 
-      const _mockMacroBreakdown = {
+      const mockMacroBreakdown = {
         protein: 20,
         carbs: 50,
         fat: 30,
@@ -251,7 +251,7 @@ describe("NutritionController", () => {
         mockMacroBreakdown,
       );
 
-      const _result = await controller.getMacroBreakdown("2024-01-15");
+      const result = await controller.getMacroBreakdown("2024-01-15");
 
       expect(result).toEqual(mockMacroBreakdown);
       expect(nutritionService.getDailyNutrition).toHaveBeenCalledWith(

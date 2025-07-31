@@ -38,6 +38,9 @@ describe("CustomThrottlerGuard", () => {
           provide: ThrottlerStorage,
           useValue: {
             increment: jest.fn(),
+            storage: {
+              clear: jest.fn(),
+            },
           },
         },
       ],

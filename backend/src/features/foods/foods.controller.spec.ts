@@ -12,7 +12,7 @@ describe("FoodsController", () => {
   let foodCacheService: FoodCacheService;
   let foodsHealthService: FoodsHealthService;
 
-  const _mockFoodsService = {
+  const mockFoodsService = {
     searchByName: jest.fn(),
     searchByBarcode: jest.fn(),
     findAll: jest.fn(),
@@ -25,7 +25,7 @@ describe("FoodsController", () => {
     removeFoodEntry: jest.fn(),
   };
 
-  const _mockFoodCacheService = {
+  const mockFoodCacheService = {
     getCacheStats: jest.fn(),
     getFrequentlyUsedFoods: jest.fn(),
     cleanupOldCache: jest.fn(),
@@ -33,7 +33,7 @@ describe("FoodsController", () => {
     markFoodAsUsed: jest.fn(),
   };
 
-  const _mockFoodsHealthService = {
+  const mockFoodsHealthService = {
     getHealthStatus: jest.fn(),
   };
 
@@ -66,20 +66,20 @@ describe("FoodsController", () => {
 
   describe("searchFoods", () => {
     it("should search by name when query provided", async () => {
-      const _mockResults = [fixtures.foods.apple];
+      const mockResults = [fixtures.foods.apple];
       mockFoodsService.searchByName.mockResolvedValue(mockResults);
 
-      const _result = await controller.searchFoods("apple", undefined);
+      const result = await controller.searchFoods("apple", undefined);
 
       expect(result).toEqual(mockResults);
       expect(foodsService.searchByName).toHaveBeenCalledWith("apple");
     });
 
     it("should search by barcode when barcode provided", async () => {
-      const _mockResult = fixtures.foods.apple;
+      const mockResult = fixtures.foods.apple;
       mockFoodsService.searchByBarcode.mockResolvedValue(mockResult);
 
-      const _result = await controller.searchFoods(undefined, "1234567890");
+      const result = await controller.searchFoods(undefined, "1234567890");
 
       expect(result).toEqual(mockResult);
       expect(foodsService.searchByBarcode).toHaveBeenCalledWith("1234567890");
@@ -112,10 +112,10 @@ describe("FoodsController", () => {
 
   describe("findAll", () => {
     it("should return all foods", async () => {
-      const _mockFoods = Object.values(fixtures.foods);
+      const mockFoods = Object.values(fixtures.foods);
       mockFoodsService.findAll.mockResolvedValue(mockFoods);
 
-      const _result = await controller.findAll();
+      const result = await controller.findAll();
 
       expect(result).toEqual(mockFoods);
       expect(foodsService.findAll).toHaveBeenCalled();
@@ -124,10 +124,10 @@ describe("FoodsController", () => {
 
   describe("findOne", () => {
     it("should return a food by id", async () => {
-      const _mockFood = fixtures.foods.apple;
+      const mockFood = fixtures.foods.apple;
       mockFoodsService.findOne.mockResolvedValue(mockFood);
 
-      const _result = await controller.findOne("1");
+      const result = await controller.findOne("1");
 
       expect(result).toEqual(mockFood);
       expect(foodsService.findOne).toHaveBeenCalledWith("1");
@@ -144,7 +144,7 @@ describe("FoodsController", () => {
 
   describe("create", () => {
     it("should create a new food", async () => {
-      const _createDto = {
+      const createDto = {
         name: "New Food",
         brand: "New Brand",
         calories: 100,
@@ -158,10 +158,10 @@ describe("FoodsController", () => {
         servingUnit: "g",
       };
 
-      const _mockFood = { id: "1", ...createDto };
+      const mockFood = { id: "1", ...createDto };
       mockFoodsService.create.mockResolvedValue(mockFood);
 
-      const _result = await controller.create(createDto);
+      const result = await controller.create(createDto);
 
       expect(result).toEqual(mockFood);
       expect(foodsService.create).toHaveBeenCalledWith(createDto);
@@ -170,15 +170,15 @@ describe("FoodsController", () => {
 
   describe("update", () => {
     it("should update an existing food", async () => {
-      const _updateDto = {
+      const updateDto = {
         name: "Updated Food",
         calories: 150,
       };
 
-      const _mockFood = { ...fixtures.foods.apple, ...updateDto };
+      const mockFood = { ...fixtures.foods.apple, ...updateDto };
       mockFoodsService.update.mockResolvedValue(mockFood);
 
-      const _result = await controller.update("1", updateDto);
+      const result = await controller.update("1", updateDto);
 
       expect(result).toEqual(mockFood);
       expect(foodsService.update).toHaveBeenCalledWith("1", updateDto);
@@ -198,16 +198,16 @@ describe("FoodsController", () => {
   describe("Food Entries", () => {
     describe("addFoodToMeal", () => {
       it("should add food entry to meal", async () => {
-        const _createDto = {
+        const createDto = {
           foodId: "1",
           quantity: 150,
           unit: "g",
         };
 
-        const _mockEntry = { id: "entry-1", mealId: "meal-1", ...createDto };
+        const mockEntry = { id: "entry-1", mealId: "meal-1", ...createDto };
         mockFoodsService.addFoodToMeal.mockResolvedValue(mockEntry);
 
-        const _result = await controller.addFoodToMeal("meal-1", createDto);
+        const result = await controller.addFoodToMeal("meal-1", createDto);
 
         expect(result).toEqual(mockEntry);
         expect(foodsService.addFoodToMeal).toHaveBeenCalledWith(
@@ -219,11 +219,11 @@ describe("FoodsController", () => {
 
     describe("updateFoodEntry", () => {
       it("should update food entry", async () => {
-        const _updateDto = { quantity: 200 };
-        const _mockEntry = { id: "entry-1", quantity: 200 };
+        const updateDto = { quantity: 200 };
+        const mockEntry = { id: "entry-1", quantity: 200 };
         mockFoodsService.updateFoodEntry.mockResolvedValue(mockEntry);
 
-        const _result = await controller.updateFoodEntry("entry-1", updateDto);
+        const result = await controller.updateFoodEntry("entry-1", updateDto);
 
         expect(result).toEqual(mockEntry);
         expect(foodsService.updateFoodEntry).toHaveBeenCalledWith(
@@ -247,7 +247,7 @@ describe("FoodsController", () => {
   describe("Cache Management", () => {
     describe("getCacheStats", () => {
       it("should return cache statistics", async () => {
-        const _mockStats = {
+        const mockStats = {
           totalCached: 100,
           recentlyUsed: 25,
           cacheHitRate: 0.75,
@@ -256,7 +256,7 @@ describe("FoodsController", () => {
 
         mockFoodCacheService.getCacheStats.mockResolvedValue(mockStats);
 
-        const _result = await controller.getCacheStats();
+        const result = await controller.getCacheStats();
 
         expect(result).toEqual(mockStats);
         expect(foodCacheService.getCacheStats).toHaveBeenCalled();
@@ -265,12 +265,12 @@ describe("FoodsController", () => {
 
     describe("getFrequentlyUsedFoods", () => {
       it("should return frequently used foods with default limit", async () => {
-        const _mockFoods = [fixtures.foods.apple, fixtures.foods.chickenBreast];
+        const mockFoods = [fixtures.foods.apple, fixtures.foods.chickenBreast];
         mockFoodCacheService.getFrequentlyUsedFoods.mockResolvedValue(
           mockFoods,
         );
 
-        const _result = await controller.getFrequentlyUsedFoods(undefined);
+        const result = await controller.getFrequentlyUsedFoods(undefined);
 
         expect(result).toEqual(mockFoods);
         expect(foodCacheService.getFrequentlyUsedFoods).toHaveBeenCalledWith(
@@ -279,12 +279,12 @@ describe("FoodsController", () => {
       });
 
       it("should use custom limit when provided", async () => {
-        const _mockFoods = [fixtures.foods.apple];
+        const mockFoods = [fixtures.foods.apple];
         mockFoodCacheService.getFrequentlyUsedFoods.mockResolvedValue(
           mockFoods,
         );
 
-        const _result = await controller.getFrequentlyUsedFoods("10");
+        const result = await controller.getFrequentlyUsedFoods("10");
 
         expect(result).toEqual(mockFoods);
         expect(foodCacheService.getFrequentlyUsedFoods).toHaveBeenCalledWith(
@@ -301,10 +301,10 @@ describe("FoodsController", () => {
 
     describe("cleanupCache", () => {
       it("should cleanup old cache", async () => {
-        const _mockResult = { removed: 15, freedSpace: "5MB" };
+        const mockResult = { removed: 15, freedSpace: "5MB" };
         mockFoodCacheService.cleanupOldCache.mockResolvedValue(mockResult);
 
-        const _result = await controller.cleanupCache();
+        const result = await controller.cleanupCache();
 
         expect(result).toEqual(mockResult);
         expect(foodCacheService.cleanupOldCache).toHaveBeenCalled();
@@ -313,10 +313,10 @@ describe("FoodsController", () => {
 
     describe("optimizeCache", () => {
       it("should optimize cache", async () => {
-        const _mockResult = { optimized: true, duration: 250 };
+        const mockResult = { optimized: true, duration: 250 };
         mockFoodCacheService.optimizeCache.mockResolvedValue(mockResult);
 
-        const _result = await controller.optimizeCache();
+        const result = await controller.optimizeCache();
 
         expect(result).toEqual(mockResult);
         expect(foodCacheService.optimizeCache).toHaveBeenCalled();
@@ -329,7 +329,7 @@ describe("FoodsController", () => {
           success: true,
         });
 
-        const _result = await controller.markFoodAsUsed("1");
+        const result = await controller.markFoodAsUsed("1");
 
         expect(result).toEqual({ success: true });
         expect(foodCacheService.markFoodAsUsed).toHaveBeenCalledWith("1");
@@ -339,7 +339,7 @@ describe("FoodsController", () => {
 
   describe("getHealthStatus", () => {
     it("should return health status", async () => {
-      const _mockHealth = {
+      const mockHealth = {
         status: "healthy",
         database: { connected: true },
         cache: { available: true },
@@ -348,7 +348,7 @@ describe("FoodsController", () => {
 
       mockFoodsHealthService.getHealthStatus.mockResolvedValue(mockHealth);
 
-      const _result = await controller.getHealthStatus();
+      const result = await controller.getHealthStatus();
 
       expect(result).toEqual(mockHealth);
       expect(foodsHealthService.getHealthStatus).toHaveBeenCalled();
