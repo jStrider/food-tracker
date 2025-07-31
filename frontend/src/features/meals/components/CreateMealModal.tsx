@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDate, DATE_FORMATS } from '@/utils/date';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { getMealTypeFromTime } from '@/utils/mealHelpers'; // TODO: Use for auto-categorization
 
 interface CreateMealModalProps {
   open: boolean;
@@ -54,7 +55,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   defaultTime = getCurrentTime(),
 }) => {
   const [name, setName] = useState('');
-  const [type, setType] = useState<MealType | ''>(defaultType);
+  const [type, setType] = useState<MealType | ''>(''); // Empty by default for auto-categorization
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     defaultDate ? new Date(defaultDate) : new Date()
   );
@@ -72,7 +73,13 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
   useEffect(() => {
     if (open && defaultDate) {
       setSelectedDate(new Date(defaultDate));
-      setType(defaultType);
+      // Only set type if explicitly provided (from DayView's Add button)
+      // Otherwise, leave empty for auto-categorization
+      if (defaultType && defaultType !== 'breakfast') {
+        setType(defaultType);
+      } else {
+        setType(''); // Let backend auto-categorize
+      }
       // Auto-fill current time if no defaultTime provided
       setTime(defaultTime || getCurrentTime());
       // Reset custom macros

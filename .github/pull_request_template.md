@@ -1,60 +1,82 @@
-# Pull Request
-
 ## 📝 Description
+<!-- Provide a brief description of the changes in this PR -->
 
-Décrivez clairement les changements apportés et le problème résolu.
+## 🎯 Type of Change
+<!-- Mark the relevant option with an "x" -->
+- [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
+- [ ] ✨ New feature (non-breaking change which adds functionality)
+- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] 📚 Documentation update
+- [ ] 🔧 Configuration change
+- [ ] ♻️ Code refactoring
+- [ ] ⚡ Performance improvement
+- [ ] 🧪 Test update
 
-Fixes #(numéro de l'issue)
+## 🧪 Testing Performed
+<!-- Mark all tests that have been completed -->
+- [ ] ✅ Unit tests pass (`npm run test`)
+- [ ] ✅ TypeScript compilation (`npm run typecheck`)
+- [ ] ✅ Linting passes (`npm run lint`)
+- [ ] ✅ E2E tests pass (`npm run test:e2e`)
+- [ ] ✅ Manual testing completed
+- [ ] 📱 Responsive testing (mobile/tablet/desktop)
+- [ ] ♿ Accessibility checked (keyboard nav, screen reader)
+- [ ] 🚀 Performance validated (no regressions)
 
-## 🔧 Type de changement
+## 📋 PR Checklist
+<!-- Ensure all items are completed before submitting -->
+- [ ] 🏃 I have run `./scripts/pr-validate.sh` and all checks pass
+- [ ] 🔍 I have performed a self-review of my code
+- [ ] 💬 I have added comments to complex code sections
+- [ ] 📚 I have updated the documentation (if needed)
+- [ ] 🧪 I have added/updated tests for my changes
+- [ ] ⚠️ My changes generate no new warnings
+- [ ] 🔐 I have not committed any secrets or sensitive data
+- [ ] 📝 I have updated the CHANGELOG.md (if user-facing changes)
 
-Sélectionnez les types qui s'appliquent :
+## 🖼️ Screenshots
+<!-- If UI changes, add before/after screenshots -->
+<!-- You can paste images directly or drag and drop -->
 
-- [ ] 🐛 Correction de bug (changement qui corrige un problème)
-- [ ] ✨ Nouvelle fonctionnalité (changement qui ajoute une fonctionnalité)
-- [ ] 💥 Breaking change (correction ou fonctionnalité qui casserait la compatibilité)
-- [ ] 📚 Documentation (mise à jour de la documentation)
-- [ ] 🎨 Refactoring (changement de code qui ne corrige pas de bug ni n'ajoute de fonctionnalité)
-- [ ] ⚡ Performance (changement qui améliore les performances)
-- [ ] 🧪 Tests (ajout ou correction de tests)
+## 🏗️ Database Changes
+<!-- If this PR includes database changes -->
+- [ ] Migration files created
+- [ ] Seed data updated (if needed)
+- [ ] Backward compatible
 
-## 🧪 Tests
+## 🌐 API Changes
+<!-- If this PR includes API changes -->
+- [ ] Swagger/OpenAPI docs updated
+- [ ] Breaking changes documented
+- [ ] Backward compatible (or version bumped)
 
-Décrivez les tests effectués pour vérifier vos changements :
+## 🚀 Performance Impact
+<!-- Describe any performance implications -->
+- [ ] No performance impact
+- [ ] Performance improved (describe how)
+- [ ] Performance degraded (justify why acceptable)
 
-- [ ] Tests unitaires
-- [ ] Tests d'intégration
-- [ ] Tests manuels
-- [ ] Tests E2E
+## 🔗 Related Issues
+<!-- Link any related issues -->
+Closes #<!-- issue number -->
 
-**Détails des tests :**
+## 👀 Review Focus Areas
+<!-- Guide reviewers on what to focus on -->
+<!-- Example: "Please pay special attention to the error handling in the new API endpoint" -->
 
-## 📋 Checklist
-
-- [ ] Mon code suit les conventions du projet
-- [ ] J'ai effectué une auto-review de mon code
-- [ ] J'ai commenté mon code dans les parties difficiles à comprendre
-- [ ] J'ai mis à jour la documentation si nécessaire
-- [ ] Mes changements ne génèrent pas de nouveaux warnings
-- [ ] J'ai ajouté des tests qui prouvent que ma correction est efficace ou que ma fonctionnalité fonctionne
-- [ ] Les tests unitaires nouveaux et existants passent en local
-- [ ] Tous les changements dépendants ont été mergés et publiés
-
-## 🖼️ Captures d'écran (si applicable)
-
-Ajoutez des captures d'écran pour montrer les changements visuels.
-
-## 📝 Notes supplémentaires
-
-Ajoutez toute information supplémentaire pertinente pour les reviewers.
-
-## 🚀 Déploiement
-
-- [ ] Cette PR nécessite des migrations de base de données
-- [ ] Cette PR nécessite des changements de configuration
-- [ ] Cette PR nécessite une mise à jour de la documentation
-- [ ] Cette PR peut être déployée immédiatement
+## 🚦 Post-Deployment Tasks
+<!-- List any tasks that need to be done after deployment -->
+- [ ] Monitor error rates
+- [ ] Check performance metrics
+- [ ] Verify in production
+- [ ] Update documentation site
 
 ---
+<!-- Do not edit below this line -->
+<details>
+<summary>PR Validation Results</summary>
 
-/cc @jStrider <!-- Mentionnez les reviewers pertinents -->
+```
+Run ./scripts/pr-validate.sh locally to validate
+```
+</details>

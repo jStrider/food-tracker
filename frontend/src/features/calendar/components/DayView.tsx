@@ -246,11 +246,6 @@ const DayView: React.FC = () => {
           {MEAL_CATEGORIES.map(category => {
             const meals = mealsByCategory[category.value] || [];
             
-            // Skip empty categories
-            if (meals.length === 0) {
-              return null;
-            }
-            
             return (
               <div key={category.value} className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -260,13 +255,6 @@ const DayView: React.FC = () => {
                       {meals.length} {meals.length === 1 ? 'meal' : 'meals'}
                     </Badge>
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleAddMealClick(category.value)}
-                  >
-                    + Add {category.label}
-                  </Button>
                 </div>
 
                 <div className="space-y-3">
@@ -279,19 +267,17 @@ const DayView: React.FC = () => {
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center space-x-2">
-                                  <CardTitle className="text-base">{meal.name}</CardTitle>
-                                  {meal.time && (
-                                    <Badge variant="outline" className="text-xs">
-                                      <Clock className="h-3 w-3 mr-1" />
-                                      {formatTime(meal.time)}
-                                    </Badge>
-                                  )}
-                                </div>
+                                <CardTitle className="text-base mb-1">{meal.name}</CardTitle>
+                                {meal.time && (
+                                  <div className="flex items-center text-sm text-gray-600">
+                                    <Clock className="h-4 w-4 mr-1" />
+                                    <span className="font-medium">{formatTime(meal.time)}</span>
+                                  </div>
+                                )}
                                 {foodEntries.length > 0 && (
                                   <button
                                     onClick={() => toggleMealExpanded(meal.id)}
-                                    className="text-sm text-gray-500 mt-1 flex items-center hover:text-gray-700 transition-colors"
+                                    className="text-sm text-gray-500 mt-2 flex items-center hover:text-gray-700 transition-colors"
                                   >
                                     {foodEntries.length} food{foodEntries.length !== 1 ? 's' : ''}
                                     {isExpanded ? (
@@ -362,6 +348,21 @@ const DayView: React.FC = () => {
                         </Card>
                       );
                     })}
+                    
+                    {/* Add Meal Button as Card */}
+                    <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer border-dashed">
+                      <CardContent className="p-0">
+                        <Button 
+                          size="default" 
+                          variant="ghost"
+                          className="w-full h-auto min-h-[4rem] py-6 hover:bg-gray-50"
+                          onClick={() => handleAddMealClick(category.value)}
+                        >
+                          <Plus className="h-5 w-5 mr-2" />
+                          Add {category.label}
+                        </Button>
+                      </CardContent>
+                    </Card>
                   </div>
               </div>
             );

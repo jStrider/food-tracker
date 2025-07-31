@@ -10,6 +10,40 @@
 
 ---
 
+## 🚨 MANDATORY PR WORKFLOW — MUST FOLLOW FOR EVERY PR
+
+### ⚡ Quick Validation (ALWAYS RUN FIRST)
+```bash
+./scripts/pr-validate.sh
+```
+This script MUST pass before ANY pull request. No exceptions.
+
+### 📋 PR Checklist Enforcement
+The following items MUST be checked (with [x]) in EVERY PR description:
+- [ ] 🏃 I have run `./scripts/pr-validate.sh` and all checks pass
+- [ ] ✅ Unit tests pass (`npm run test`)
+- [ ] ✅ TypeScript compilation (`npm run typecheck`)
+- [ ] 🔍 I have performed a self-review of my code
+
+GitHub Actions will BLOCK the PR if these are not checked.
+
+### 🔒 Validation Steps
+1. **ALWAYS** run `./scripts/pr-validate.sh` first
+2. **ALWAYS** fix any errors before committing
+3. **ALWAYS** update PR template checkboxes
+4. **ALWAYS** wait for CI checks to pass
+
+### ❌ PR Will Be AUTO-REJECTED If:
+- Validation script not run
+- TypeScript errors exist
+- Tests are failing
+- Required checkboxes not marked
+- CI checks fail
+
+See `/docs/PR_TEST_WORKFLOW.md` for complete workflow details.
+
+---
+
 ## 🚀 EXECUTION MODEL — PARALLEL PAR DÉFAUT
 
 ### ✅ Obligations de coordination
@@ -20,7 +54,7 @@
 - [x] Grouper les commandes shell dans un bloc `Bash`
 - [x] Activer les hooks sur chaque tâche (pre/edit/post)
 
-> ❗ Si l’exécution reste séquentielle : forcer `swarm_init`, `agent_spawn` et `task_orchestrate`.
+> ❗ Si l'exécution reste séquentielle : forcer `swarm_init`, `agent_spawn` et `task_orchestrate`.
 
 ---
 
@@ -60,7 +94,7 @@
 | `nutrition_logic`  | Calculs nutritionnels                    |
 | `qa_automation`    | Tests unitaires / intégration / e2e      |
 | `sparc-coord`      | Coordination méthodologie SPARC          |
-| `swarm-coordinator`| Gestion du graphe d’exécution            |
+| `swarm-coordinator`| Gestion du graphe d'exécution            |
 
 ---
 
@@ -100,7 +134,7 @@ post-task:       analyse de performance
 🐝 SWARM STATUS
 ├── Topologie: hierarchical
 ├── Agents actifs: 5/6
-├── Mode d’exécution: parallel
+├── Mode d'exécution: parallel
 ├── Tâches totales: 12 (✔ 4 done / 🔄 3 actives / ⭕ 5 à faire)
 └── Mémoire: 12/12 slots utilisés
 ```
@@ -129,6 +163,9 @@ post-task:       analyse de performance
 ## 🏗️ COMMANDES DE DÉVELOPPEMENT
 
 ```bash
+# ALWAYS RUN BEFORE PR
+./scripts/pr-validate.sh
+
 npm run dev         # Serveur frontend dev
 npm run test        # Exécution des tests
 npm run lint        # Vérification du code
@@ -147,7 +184,51 @@ npm run typecheck   # Validation TypeScript
 
 ---
 
+## 🔒 WORKFLOW PR AUTOMATISÉ - ENFORCEMENT 100%
+
+### Mécanismes de contrôle en place:
+
+1. **Git Pre-commit Hook** (`.git/hooks/pre-commit`)
+   - ✅ Bloque commits directs sur main/master
+   - ✅ Exécute `./scripts/pr-validate.sh` automatiquement
+   - ✅ Impossible de commit si validation échoue
+
+2. **GitHub Actions** (`.github/workflows/pr-validation-enforce.yml`)
+   - ✅ Vérifie checklist obligatoire dans PR
+   - ✅ Exécute validation automatique
+   - ✅ Bloque merge si échec
+
+3. **Protection des branches**
+   - ✅ main/master protégées
+   - ✅ PR obligatoire avec validation
+   - ✅ Auto-merge désactivé sauf exceptions
+
+### Commandes essentielles:
+```bash
+# Validation manuelle (toujours avant PR)
+./scripts/pr-validate.sh
+
+# Réinstaller le hook si nécessaire
+chmod +x .git/hooks/pre-commit
+
+# Urgence seulement (À ÉVITER!)
+git commit --no-verify -m "hotfix: critical issue"
+```
+
+### Garantie 100%:
+- Hook local = validation avant commit
+- CI/CD = validation avant merge
+- Protection branch = bloque push direct
+
+---
+
 ## 📚 RÉFÉRENCES
 
 - `/TODO.md` = fichier de tâches unique
 - `/api/docs` = Swagger API backend
+- `/docs/PR_TEST_WORKFLOW.md` = WORKFLOW OBLIGATOIRE POUR PR
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

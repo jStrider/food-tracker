@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,6 +11,7 @@ import RegisterPage from '@/pages/RegisterPage';
 import CalendarView from '@/features/calendar/components/CalendarView';
 import WeekView from '@/features/calendar/components/WeekView';
 import FoodSearch from '@/features/foods/components/FoodSearch';
+import { initializeApp } from '@/utils/initializeApp';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -22,6 +24,11 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  useEffect(() => {
+    // Initialize app on mount
+    initializeApp().catch(console.error);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
