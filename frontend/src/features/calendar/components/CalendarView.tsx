@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import MonthView from './MonthView';
+import MonthViewVirtualized from './MonthViewVirtualized';
 import WeekView from './WeekView';
 import DayView from './DayView';
+import { features } from '@/config/features';
 
 type ViewType = 'month' | 'week' | 'day';
 
@@ -65,7 +67,7 @@ const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {viewType === 'month' && <MonthView />}
+      {viewType === 'month' && (features.virtualizedCalendar ? <MonthViewVirtualized /> : <MonthView />)}
       {viewType === 'week' && <WeekView />}
       {viewType === 'day' && date && <DayView />}
     </div>

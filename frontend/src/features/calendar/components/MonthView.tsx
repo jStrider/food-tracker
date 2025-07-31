@@ -7,11 +7,15 @@ import { useQuery } from '@tanstack/react-query';
 import { calendarApi } from '@/features/calendar/api/calendarApi';
 import { Link } from 'react-router-dom';
 import CreateMealModal from '@/features/meals/components/CreateMealModal';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 const MonthView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateMealModalOpen, setIsCreateMealModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  
+  // Monitor performance for comparison with virtualized version
+  usePerformanceMonitor('MonthView');
 
   const { data: monthData, isLoading, error } = useQuery({
     queryKey: ['calendar-month', currentDate.getMonth() + 1, currentDate.getFullYear()],
