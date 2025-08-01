@@ -1,0 +1,132 @@
+name: PR Validation Enforcement
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  enforce-checklist:
+    name: Enforce PR Checklist
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check PR body for validation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prBody = context.payload.pull_request.body || '';
+            
+            // Required checklist items that MUST be checked
+            const requiredItems = [
+              '- [x] 🏃 I have run `./scripts/pr-validate.sh` and all checks pass',
+              '- [x] ✅ Unit tests pass',
+              '- [x] ✅ TypeScript compilation',
+              '- [x] 🔍 I have performed a self-review of my code'
+            ];
+            
+            const missingItems = requiredItems.filter(item => !prBody.includes(item));
+            
+            if (missingItems.length > 0) {
+              const comment = `❌ **PR Validation Failed**
+              
+              The following required items are not checked in your PR description:
+              ${missingItems.map(item => `\n${item.replace('[x]', '[ ]')}`).join('')}
+              
+              Please:
+              1. Run \`./scripts/pr-validate.sh\` locally
+              2. Complete all required checks
+              3. Update your PR description by checking the boxes
+              `;
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              
+              core.setFailed('Required PR checklist items are not completed');
+            }
+            
+  validation-script:
+    name: Run Validation Script
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+            
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+        
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+        
+      - name: Run validation script
+        id: validation
+        run: |
+          chmod +x ./scripts/pr-validate.sh
+          ./scripts/pr-validate.sh
+        continue-on-error: true
+        
+      - name: Comment validation results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.validation.outcome }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            const message = status === 'success' 
+              ? 'All validation checks passed!' 
+              : 'Validation checks failed. Please run `./scripts/pr-validate.sh` locally and fix any issues.';
+            
+            const comment = `${emoji} **Automated Validation Results**
+            
+            ${message}
+            
+            <details>
+            <summary>Validation Details</summary>
+            
+            - Frontend TypeScript: ${status === 'success' ? '✅' : '❌'}
+            - Frontend Tests: ${status === 'success' ? '✅' : '❌'}
+            - Backend Tests: ${status === 'success' ? '✅' : '❌'}
+            - Build Check: ${status === 'success' ? '✅' : '❌'}
+            
+            Run locally: \`./scripts/pr-validate.sh\`
+            </details>`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+            if (status !== 'success') {
+              core.setFailed('PR validation script failed');
+            }
+            
+  block-automerge:
+    name: Block Auto-merge Without Validation
+    runs-on: ubuntu-latest
+    needs: [enforce-checklist, validation-script]
+    
+    steps:
+      - name: Block merge if validation fails
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // This job only runs if previous jobs pass
+            console.log('All validations passed ✅');
