@@ -231,7 +231,6 @@ describe('RegisterPage', () => {
 
     // Test medium password (8+ chars with lowercase and numbers but no uppercase)
     await user.clear(passwordInput);
-    await user.type(passwordInput, 'medium12');
     await user.type(passwordInput, 'medium123');
     await waitFor(() => {
       expect(screen.getByText(/medium/i)).toBeInTheDocument();
