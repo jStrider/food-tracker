@@ -109,11 +109,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getMonthView.mockResolvedValue(mockMonthData);
 
-      const result = await controller.getMonthViewWithGoals(
-        "1",
-        "2024",
-        goals,
-      );
+      const result = await controller.getMonthViewWithGoals("1", "2024", goals);
 
       expect(result).toEqual(mockMonthData);
       expect(calendarService.getMonthView).toHaveBeenCalledWith(1, 2024, goals);
@@ -188,10 +184,7 @@ describe("CalendarController", () => {
 
       mockCalendarService.getWeekView.mockResolvedValue(mockWeekData);
 
-      const result = await controller.getWeekViewWithGoals(
-        "2024-01-15",
-        goals,
-      );
+      const result = await controller.getWeekViewWithGoals("2024-01-15", goals);
 
       expect(result).toEqual(mockWeekData);
       expect(calendarService.getWeekView).toHaveBeenCalledWith(

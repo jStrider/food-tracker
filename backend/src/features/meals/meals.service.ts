@@ -329,7 +329,7 @@ export class MealsService {
         updateData.time = updateMealDto.time;
       if (updateMealDto.notes !== undefined)
         updateData.notes = updateMealDto.notes;
-      
+
       // Add custom macro values if provided
       if (updateMealDto.customCalories !== undefined)
         updateData.customCalories = updateMealDto.customCalories;

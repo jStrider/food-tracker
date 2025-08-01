@@ -439,10 +439,7 @@ describe("CalendarService", () => {
     it("should handle empty date range", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const result = await service.getCalendarStats(
-        "2024-01-01",
-        "2024-01-31",
-      );
+      const result = await service.getCalendarStats("2024-01-01", "2024-01-31");
 
       expect(result.totalDays).toBe(31);
       expect(result.daysWithData).toBe(0);

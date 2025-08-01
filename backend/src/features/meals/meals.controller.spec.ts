@@ -389,8 +389,7 @@ describe("MealsController", () => {
           mockDistribution,
         );
 
-        const result =
-          await controller.getDailyMacroDistribution("2024-01-15");
+        const result = await controller.getDailyMacroDistribution("2024-01-15");
 
         expect(result).toEqual(mockDistribution);
         expect(nutritionService.getDailyMacroDistribution).toHaveBeenCalledWith(

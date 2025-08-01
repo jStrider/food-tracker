@@ -22,7 +22,7 @@ export const getDateLabel = (
 
   const { hasData, mealCount, totalCalories, isSelected } = additionalInfo || {};
   
-  let parts = [dateText + todayText];
+  const parts = [dateText + todayText];
   
   if (isSelected) {
     parts.push('selected');
@@ -69,7 +69,7 @@ export const getMealLabel = (
 ): string => {
   const { name, time, calories, category } = meal;
   
-  let parts = [name];
+  const parts = [name];
   
   if (time) {
     parts.push(`at ${time}`);

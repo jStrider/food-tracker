@@ -25,7 +25,9 @@ export class HealthController {
   @Post("reset-rate-limits")
   @Public()
   @SkipRateLimit()
-  @ApiOperation({ summary: "Rate limits will naturally expire (development info)" })
+  @ApiOperation({
+    summary: "Rate limits will naturally expire (development info)",
+  })
   @ApiResponse({ status: 200, description: "Rate limit info provided" })
   @ApiResponse({ status: 403, description: "Not allowed in production" })
   async resetRateLimits() {
@@ -42,11 +44,11 @@ export class HealthController {
       message: "Rate limits automatically expire based on TTL configuration",
       ttl: {
         auth: "1 minute",
-        query: "1 minute", 
+        query: "1 minute",
         mutation: "1 minute",
         default: "1 minute",
         expensive: "5 minutes",
-        burst: "1 second"
+        burst: "1 second",
       },
       note: "Wait for the TTL period to pass, or restart the backend service to reset all counters",
       timestamp: new Date().toISOString(),

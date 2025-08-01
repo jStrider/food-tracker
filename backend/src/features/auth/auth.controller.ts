@@ -20,9 +20,7 @@ import {
   AuthRateLimit,
   SkipRateLimit,
 } from "../../common/decorators/rate-limit.decorator";
-import {
-  ApiAuthRateLimit,
-} from "../../common/decorators/api-rate-limit.decorator";
+import { ApiAuthRateLimit } from "../../common/decorators/api-rate-limit.decorator";
 import { Public } from "./decorators/public.decorator";
 
 @ApiTags("auth")
