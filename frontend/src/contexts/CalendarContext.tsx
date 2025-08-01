@@ -105,13 +105,14 @@ const calendarReducer = (state: CalendarState, action: CalendarAction): Calendar
         error: action.payload
       };
     
-    case 'SET_CACHED_DATA':
+    case 'SET_CACHED_DATA': {
       const newCache = new Map(state.cachedData);
       newCache.set(action.payload.key, action.payload.data);
       return {
         ...state,
         cachedData: newCache
       };
+    }
     
     case 'CLEAR_CACHE':
       return {

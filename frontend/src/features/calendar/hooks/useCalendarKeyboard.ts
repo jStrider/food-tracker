@@ -76,7 +76,7 @@ export const useCalendarKeyboard = (options: UseCalendarKeyboardOptions = {}) =>
 
     const shortcutList = shortcuts
       .map(s => {
-        let keys = [];
+        const keys = [];
         if (s.ctrlKey) keys.push('Ctrl');
         if (s.altKey) keys.push('Alt');
         if (s.shiftKey) keys.push('Shift');

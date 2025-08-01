@@ -64,16 +64,6 @@ const CalendarContainerInner: React.FC<CalendarContainerInnerProps> = React.memo
     );
   }, [error, handleAddMeal]);
 
-  // Show loading skeleton
-  if (isLoading) {
-    return <CalendarSkeleton viewType={viewType} />;
-  }
-
-  // Show error state
-  if (error) {
-    return errorContent;
-  }
-
   // Memoize view component
   const viewComponent = useMemo(() => {
     switch (viewType) {
@@ -87,6 +77,16 @@ const CalendarContainerInner: React.FC<CalendarContainerInnerProps> = React.memo
         return null;
     }
   }, [viewType]);
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <CalendarSkeleton viewType={viewType} />;
+  }
+
+  // Show error state
+  if (error) {
+    return errorContent;
+  }
 
   return (
     <div id="calendar-container" className="space-y-6">

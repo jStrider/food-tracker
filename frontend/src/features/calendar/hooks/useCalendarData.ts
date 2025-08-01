@@ -29,9 +29,10 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
     switch (viewType) {
       case 'month':
         return `month-${currentDate.getFullYear()}-${currentDate.getMonth() + 1}`;
-      case 'week':
+      case 'week': {
         const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
         return `week-${format(weekStart, 'yyyy-MM-dd')}`;
+      }
       case 'day':
         return `day-${format(currentDate, 'yyyy-MM-dd')}`;
     }
@@ -93,7 +94,7 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
   // Prefetch adjacent periods for smoother navigation
   const prefetchAdjacentPeriods = async () => {
     switch (viewType) {
-      case 'month':
+      case 'month': {
         // Prefetch previous and next month
         const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
         const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
@@ -111,8 +112,9 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
           })
         ]);
         break;
+      }
         
-      case 'week':
+      case 'week': {
         // Prefetch previous and next week
         const prevWeek = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
         const nextWeek = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -132,6 +134,7 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
           })
         ]);
         break;
+      }
     }
   };
 
@@ -147,7 +150,7 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
     switch (viewType) {
       case 'month':
         return data.summary || null;
-      case 'week':
+      case 'week': {
         // Calculate week statistics from day data
         const weekDays = data.days || [];
         const totalCalories = weekDays.reduce((sum: number, day: any) => sum + (day.totalCalories || 0), 0);
@@ -160,6 +163,7 @@ export const useCalendarData = (options: UseCalendarDataOptions = {}) => {
           averageCalories,
           totalMeals: weekDays.reduce((sum: number, day: any) => sum + (day.mealCount || 0), 0)
         };
+      }
       case 'day':
         // Day view returns nutrition data directly
         return {

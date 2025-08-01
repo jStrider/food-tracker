@@ -34,12 +34,13 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = memo(({
     switch (viewType) {
       case 'month':
         return format(currentDate, 'MMMM yyyy');
-      case 'week':
+      case 'week': {
         const weekStart = new Date(currentDate);
         weekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1);
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
+      }
       case 'day':
         return format(currentDate, 'EEEE, MMMM d, yyyy');
       default:
