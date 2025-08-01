@@ -5,6 +5,38 @@ import CreateMealModal from './CreateMealModal';
 import { mealsApi } from '@/features/meals/api/mealsApi';
 import '@/test/mocks/ui-components';
 
+// Mock the toast hook
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+    toasts: [],
+    dismiss: vi.fn(),
+  }),
+}));
+
+// Mock the DatePicker component
+vi.mock('@/components/ui/DatePicker', () => ({
+  DatePicker: ({ value, onChange, placeholder, ...props }: any) => {
+    const formattedDate = value
+      ? new Intl.DateTimeFormat('fr-FR').format(new Date(value))
+      : '';
+    
+    return (
+      <button
+        {...props}
+        type="button"
+        aria-label="Date picker"
+        onClick={() => {
+          const newDate = new Date('2024-01-15');
+          onChange?.(newDate);
+        }}
+      >
+        {formattedDate || placeholder || 'Pick a date'}
+      </button>
+    );
+  },
+}));
+
 // Mock the API module
 vi.mock('@/features/meals/api/mealsApi', () => ({
   mealsApi: {
@@ -13,7 +45,7 @@ vi.mock('@/features/meals/api/mealsApi', () => ({
   MealType: {},
 }));
 
-describe.skip('CreateMealModal', () => {
+describe('CreateMealModal', () => {
   const mockOnOpenChange = vi.fn();
   const defaultProps = {
     open: true,

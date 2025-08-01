@@ -8,6 +8,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import HomePage from '@/pages/HomePage';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
+import NutritionGoalsPage from '@/pages/NutritionGoalsPage';
 import CalendarView from '@/features/calendar/components/CalendarView';
 import WeekView from '@/features/calendar/components/WeekView';
 import FoodSearch from '@/features/foods/components/FoodSearch';
@@ -62,6 +63,11 @@ function App() {
                 <Route path="/foods" element={
                   <ProtectedRoute>
                     <FoodSearch />
+                  </ProtectedRoute>
+                } />
+                <Route path="/nutrition-goals" element={
+                  <ProtectedRoute>
+                    <NutritionGoalsPage />
                   </ProtectedRoute>
                 } />
               </Route>

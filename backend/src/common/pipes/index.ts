@@ -1,0 +1,1 @@
+export { EnhancedValidationPipe } from './enhanced-validation.pipe';

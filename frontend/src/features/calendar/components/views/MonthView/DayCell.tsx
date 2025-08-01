@@ -50,8 +50,8 @@ export const DayCell: React.FC<DayCellProps> = memo(({
 
   // Memoize class names
   const cardClassName = useMemo(() => cn(
-    'h-24 sm:h-32 cursor-pointer transition-all hover:shadow-md group',
-    dateInfo.isCurrentDay && 'ring-2 ring-blue-500 ring-offset-2',
+    'h-20 sm:h-24 lg:h-32 cursor-pointer transition-all hover:shadow-md group',
+    dateInfo.isCurrentDay && 'ring-1 sm:ring-2 ring-blue-500 ring-offset-1 sm:ring-offset-2',
     !isCurrentMonth && 'opacity-40 hover:opacity-60'
   ), [dateInfo.isCurrentDay, isCurrentMonth]);
 

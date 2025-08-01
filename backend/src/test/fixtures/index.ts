@@ -1,57 +1,67 @@
 // Test fixtures for consistent test data across all tests
+// SECURITY FIX: Removed hardcoded user IDs, now using dynamic generation
+import { v4 as uuidv4 } from 'uuid';
 
-export const fixtures = {
-  users: {
-    john: {
-      id: "a3aa41df-b467-40c8-867c-beb5edc4d032", // Using TEMP_USER_ID from backend
-      username: "johndoe",
-      email: "john@example.com",
-      name: "John Doe",
-      password: "$2b$12$hashedpassword",
-    },
-    jane: {
-      id: "798f47e6-dba4-4fbd-934a-0aa2599e4242",
-      username: "janedoe",
-      email: "jane@example.com",
-      name: "Jane Doe",
-      password: "$2b$12$hashedpassword",
-    },
-  },
+/**
+ * Creates test fixtures with dynamic user IDs for security
+ * @param userId - The user ID to use for user-related data (generated if not provided)
+ */
+export const createTestFixtures = (userId?: string) => {
+  const testUserId = userId || uuidv4();
+  const secondaryUserId = uuidv4();
 
-  meals: {
-    breakfast: {
-      id: "1",
-      userId: "a3aa41df-b467-40c8-867c-beb5edc4d032",
-      category: "breakfast",
-      date: "2024-01-15",
-      time: "08:00",
-      notes: "Healthy breakfast",
+  return {
+    users: {
+      john: {
+        id: testUserId,
+        username: "johndoe",
+        email: "john@example.com",
+        name: "John Doe",
+        password: "$2b$12$hashedpassword",
+      },
+      jane: {
+        id: secondaryUserId,
+        username: "janedoe",
+        email: "jane@example.com",
+        name: "Jane Doe",
+        password: "$2b$12$hashedpassword",
+      },
     },
-    lunch: {
-      id: "2",
-      userId: "a3aa41df-b467-40c8-867c-beb5edc4d032",
-      category: "lunch",
-      date: "2024-01-15",
-      time: "12:30",
-      notes: "Light lunch",
+
+    meals: {
+      breakfast: {
+        id: "1",
+        userId: testUserId, // Dynamic user ID
+        category: "breakfast",
+        date: "2024-01-15",
+        time: "08:00",
+        notes: "Healthy breakfast",
+      },
+      lunch: {
+        id: "2",
+        userId: testUserId, // Dynamic user ID
+        category: "lunch",
+        date: "2024-01-15",
+        time: "12:30",
+        notes: "Light lunch",
+      },
+      dinner: {
+        id: "3",
+        userId: testUserId, // Dynamic user ID
+        category: "dinner",
+        date: "2024-01-15",
+        time: "19:00",
+        notes: "Family dinner",
+      },
+      snack: {
+        id: "4",
+        userId: testUserId, // Dynamic user ID
+        category: "snack",
+        date: "2024-01-15",
+        time: "15:00",
+        notes: "Afternoon snack",
+      },
     },
-    dinner: {
-      id: "3",
-      userId: "a3aa41df-b467-40c8-867c-beb5edc4d032",
-      category: "dinner",
-      date: "2024-01-15",
-      time: "19:00",
-      notes: "Family dinner",
-    },
-    snack: {
-      id: "4",
-      userId: "a3aa41df-b467-40c8-867c-beb5edc4d032",
-      category: "snack",
-      date: "2024-01-15",
-      time: "15:00",
-      notes: "Afternoon snack",
-    },
-  },
 
   foods: {
     apple: {
@@ -156,30 +166,30 @@ export const fixtures = {
     },
   },
 
-  nutritionGoals: {
-    standard: {
-      userId: "a3aa41df-b467-40c8-867c-beb5edc4d032",
-      dailyCalories: 2000,
-      dailyProtein: 50,
-      dailyCarbs: 250,
-      dailyFat: 65,
-      dailyFiber: 25,
-      dailySugar: 50,
-      dailySodium: 2300,
+    nutritionGoals: {
+      standard: {
+        userId: testUserId, // Dynamic user ID
+        dailyCalories: 2000,
+        dailyProtein: 50,
+        dailyCarbs: 250,
+        dailyFat: 65,
+        dailyFiber: 25,
+        dailySugar: 50,
+        dailySodium: 2300,
+      },
+      athletic: {
+        userId: secondaryUserId, // Dynamic user ID
+        dailyCalories: 2500,
+        dailyProtein: 100,
+        dailyCarbs: 300,
+        dailyFat: 80,
+        dailyFiber: 30,
+        dailySugar: 40,
+        dailySodium: 2500,
+      },
     },
-    athletic: {
-      userId: "798f47e6-dba4-4fbd-934a-0aa2599e4242",
-      dailyCalories: 2500,
-      dailyProtein: 100,
-      dailyCarbs: 300,
-      dailyFat: 80,
-      dailyFiber: 30,
-      dailySugar: 40,
-      dailySodium: 2500,
-    },
-  },
 
-  openFoodFactsResponses: {
+    openFoodFactsResponses: {
     found: {
       status: 1,
       product: {
@@ -201,6 +211,11 @@ export const fixtures = {
     notFound: {
       status: 0,
       status_verbose: "product not found",
+      },
     },
-  },
+  };
 };
+
+// Backwards compatibility - deprecated
+// @deprecated Use createTestFixtures() with dynamic user IDs instead
+export const fixtures = createTestFixtures();

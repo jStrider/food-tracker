@@ -70,7 +70,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = memo(({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 min-w-[200px] text-center">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 min-w-[150px] sm:min-w-[200px] text-center px-2">
           {title}
         </h1>
         
@@ -88,7 +88,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = memo(({
           variant="ghost"
           size="sm"
           onClick={navigateToToday}
-          className="hidden sm:flex items-center gap-1"
+          className="hidden md:flex items-center gap-1"
           aria-label="Go to today"
         >
           <Calendar className="h-4 w-4" />

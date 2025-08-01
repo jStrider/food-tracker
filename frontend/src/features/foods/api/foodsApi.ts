@@ -33,6 +33,11 @@ export const foodsApi = {
     return response.data;
   },
 
+  searchFoodsAutocomplete: async (query: string, limit: number = 8): Promise<Food[]> => {
+    const response = await apiClient.get(`/foods/search/autocomplete?q=${encodeURIComponent(query)}&limit=${limit}`);
+    return response.data;
+  },
+
   searchByBarcode: async (barcode: string): Promise<Food> => {
     const response = await apiClient.get(`/foods/search?barcode=${barcode}`);
     return response.data;

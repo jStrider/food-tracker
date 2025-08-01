@@ -55,7 +55,7 @@ export const MonthGrid: React.FC<MonthGridProps> = memo(({ monthData, onDateSele
     WEEKDAYS.map(day => (
       <div 
         key={day} 
-        className="text-center font-medium text-gray-500 text-sm py-2"
+        className="text-center font-medium text-gray-500 text-xs sm:text-sm py-1 sm:py-2"
         aria-label={day}
       >
         <span className="hidden sm:inline">{day}</span>
@@ -84,14 +84,14 @@ export const MonthGrid: React.FC<MonthGridProps> = memo(({ monthData, onDateSele
   ), [allDays, getDayData, currentDate, onDateSelect]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-white rounded-lg shadow-sm p-2 sm:p-4">
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-2 sm:gap-4 mb-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-4 mb-2">
         {weekdayHeaders}
       </div>
       
       {/* Calendar days grid */}
-      <div className="grid grid-cols-7 gap-2 sm:gap-4">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-4">
         {calendarCells}
       </div>
     </div>
