@@ -26,17 +26,18 @@ export const cleanupDatabase = async (dataSource: DataSource) => {
   }
 };
 
-// Test data factories
-export const createTestUser = () => ({
-  id: 1,
-  username: "testuser",
-  email: "test@example.com",
+// Test data factories - SECURITY FIX: No hardcoded user IDs
+export const createTestUser = (overrides = {}) => ({
+  id: Math.floor(Math.random() * 1000000), // Dynamic ID generation
+  username: `testuser_${Date.now()}`,
+  email: `test_${Date.now()}@example.com`,
   password: "hashedpassword",
   createdAt: new Date(),
   updatedAt: new Date(),
+  ...overrides,
 });
 
-export const createTestMeal = (userId: number = 1, overrides = {}) => ({
+export const createTestMeal = (userId: number, overrides = {}) => ({
   userId,
   category: "lunch",
   date: new Date().toISOString().split("T")[0],

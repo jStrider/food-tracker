@@ -108,7 +108,7 @@ describe('FoodSearch', () => {
     expect(selectTrigger).toBeInTheDocument();
   });
 
-  it.skip('searches for foods when typing', async () => {
+  it('searches for foods when typing', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockResolvedValue(mockFoods);
     
@@ -125,7 +125,7 @@ describe('FoodSearch', () => {
     expect(await screen.findByText('Banana')).toBeInTheDocument();
   });
 
-  it.skip('shows loading state while searching', async () => {
+  it('shows loading state while searching', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve(mockFoods), 100))
@@ -139,7 +139,7 @@ describe('FoodSearch', () => {
     expect(await screen.findByText('Searching foods...')).toBeInTheDocument();
   });
 
-  it.skip('displays error message when search fails', async () => {
+  it('displays error message when search fails', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockRejectedValue(new Error('Search failed'));
     
@@ -153,7 +153,7 @@ describe('FoodSearch', () => {
     });
   });
 
-  it.skip('searches by barcode when entering barcode', async () => {
+  it('searches by barcode when entering barcode', async () => {
     const user = userEvent.setup();
     const mockBarcodeFood = createMockFood({ id: '3', name: 'Barcode Product' });
     (foodsApi.searchByBarcode as any).mockResolvedValue(mockBarcodeFood);
@@ -170,7 +170,7 @@ describe('FoodSearch', () => {
     expect(await screen.findByText('Barcode Product')).toBeInTheDocument();
   });
 
-  it.skip('loads meals for the selected date', async () => {
+  it('loads meals for the selected date', async () => {
     render(<FoodSearch />);
     
     await waitFor(() => {
@@ -186,7 +186,7 @@ describe('FoodSearch', () => {
     expect(await screen.findByText('Lunch (lunch)')).toBeInTheDocument();
   });
 
-  it.skip('shows toast when trying to add food without selecting meal', async () => {
+  it('shows toast when trying to add food without selecting meal', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockResolvedValue(mockFoods);
     
@@ -210,7 +210,7 @@ describe('FoodSearch', () => {
     });
   });
 
-  it.skip('opens add food modal when meal is selected', async () => {
+  it('opens add food modal when meal is selected', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockResolvedValue(mockFoods);
     
@@ -247,7 +247,7 @@ describe('FoodSearch', () => {
     expect(screen.getByText('Meal ID: 1')).toBeInTheDocument();
   });
 
-  it.skip('closes add food modal when close is clicked', async () => {
+  it('closes add food modal when close is clicked', async () => {
     const user = userEvent.setup();
     (foodsApi.searchFoods as any).mockResolvedValue(mockFoods);
     

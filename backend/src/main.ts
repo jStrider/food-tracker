@@ -2,9 +2,32 @@ import { NestFactory } from "@nestjs/core";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { getCorsConfig } from "./config/cors.config";
+import * as helmet from "helmet";
+import * as compression from "compression";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Security middleware - Helmet for security headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allow for Swagger UI
+  }));
+
+  // Compression middleware
+  app.use(compression());
 
   // Enable CORS with environment-specific configuration
   app.enableCors(getCorsConfig());

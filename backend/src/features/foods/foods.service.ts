@@ -28,6 +28,44 @@ export class FoodsService {
     private foodCacheService: FoodCacheService,
   ) {}
 
+  async searchForAutocomplete(query: string, limit: number = 8): Promise<FoodSearchResultDto[]> {
+    this.logger.log(`Autocomplete search for: ${query} (limit: ${limit})`);
+
+    try {
+      // For autocomplete, prioritize local cache for fast response
+      const localFoods = await this.searchLocalFoods(query);
+      const localResults = localFoods
+        .slice(0, limit)
+        .map((food) => this.mapFoodToSearchResult(food, true));
+
+      // If we have enough local results, return them immediately
+      if (localResults.length >= Math.min(limit, 5)) {
+        this.logger.log(`Returning ${localResults.length} local autocomplete results`);
+        return localResults;
+      }
+
+      // Otherwise, search external API for additional results
+      try {
+        const externalResults = await this.openFoodFactsService.searchByName(query);
+        const additionalResults = externalResults
+          .slice(0, limit - localResults.length)
+          .filter(result => !localResults.some(local => 
+            local.name === result.name && local.brand === result.brand
+          ));
+
+        const combinedResults = [...localResults, ...additionalResults];
+        this.logger.log(`Returning ${combinedResults.length} combined autocomplete results`);
+        return combinedResults.slice(0, limit);
+      } catch (externalError) {
+        this.logger.warn(`External autocomplete search failed: ${externalError.message}`);
+        return localResults;
+      }
+    } catch (error) {
+      this.logger.error(`Autocomplete search failed for "${query}":`, error.message);
+      throw new Error(`Autocomplete search failed: ${error.message}`);
+    }
+  }
+
   async searchByName(query: string): Promise<FoodSearchResultDto[]> {
     this.logger.log(`Searching foods by name: ${query}`);
 

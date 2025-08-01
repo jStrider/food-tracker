@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, Between } from "typeorm";
 import { Meal } from "../meals/entities/meal.entity";
 import { FoodEntry } from "../foods/entities/food-entry.entity";
-import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
+// SECURITY FIX: Removed TEMP_USER_ID import - now using dynamic user context
 import {
   startOfDay,
   endOfDay,
@@ -67,11 +67,11 @@ export class NutritionService {
   /**
    * Calculate nutrition for a single meal
    */
-  async getMealNutrition(mealId: string): Promise<MealSummary> {
+  async getMealNutrition(mealId: string, userId: string): Promise<MealSummary> {
     const meal = await this.mealsRepository.findOne({
       where: {
         id: mealId,
-        userId: TEMP_USER_ID, // TODO: This should come from auth context
+        userId, // Dynamic user ID from auth context
       },
       relations: ["foods", "foods.food"],
     });
@@ -99,13 +99,13 @@ export class NutritionService {
   /**
    * Calculate daily nutrition summary
    */
-  async getDailyNutrition(date: string): Promise<DailyNutrition> {
+  async getDailyNutrition(date: string, userId: string): Promise<DailyNutrition> {
     const meals = await this.mealsRepository
       .createQueryBuilder("meal")
       .leftJoinAndSelect("meal.foods", "foods")
       .leftJoinAndSelect("foods.food", "food")
       .where("meal.date = :date", { date })
-      .andWhere("meal.userId = :userId", { userId: TEMP_USER_ID })
+      .andWhere("meal.userId = :userId", { userId })
       .orderBy("meal.createdAt", "ASC")
       .getMany();
 
@@ -139,14 +139,14 @@ export class NutritionService {
   /**
    * Calculate weekly nutrition summary
    */
-  async getWeeklyNutrition(startDate: string): Promise<WeeklyNutrition> {
+  async getWeeklyNutrition(startDate: string, userId: string): Promise<WeeklyNutrition> {
     const start = startOfWeek(new Date(startDate));
     const end = endOfWeek(new Date(startDate));
 
     const meals = await this.mealsRepository.find({
       where: {
         date: Between(startOfDay(start), endOfDay(end)),
-        userId: TEMP_USER_ID, // TODO: This should come from auth context
+        userId, // Dynamic user ID from auth context
       },
       relations: ["foods", "foods.food"],
       order: { date: "ASC", createdAt: "ASC" },
@@ -217,6 +217,7 @@ export class NutritionService {
   async getMonthlyNutrition(
     month: number,
     year: number,
+    userId: string,
   ): Promise<DailyNutrition[]> {
     const start = startOfMonth(new Date(year, month - 1));
     const end = endOfMonth(new Date(year, month - 1));
@@ -224,7 +225,7 @@ export class NutritionService {
 
     const monthlyData = await Promise.all(
       days.map((day) =>
-        this.getDailyNutrition(day.toISOString().split("T")[0]),
+        this.getDailyNutrition(day.toISOString().split("T")[0], userId),
       ),
     );
 
@@ -237,13 +238,14 @@ export class NutritionService {
   async compareToGoals(
     date: string,
     goals: NutritionGoals,
+    userId: string,
   ): Promise<{
     nutrition: DailyNutrition;
     goals: NutritionGoals;
     percentages: Record<keyof NutritionGoals, number>;
     status: Record<keyof NutritionGoals, "under" | "met" | "over">;
   }> {
-    const nutrition = await this.getDailyNutrition(date);
+    const nutrition = await this.getDailyNutrition(date, userId);
 
     const percentages = {
       calories: (nutrition.calories / goals.calories) * 100,

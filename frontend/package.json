@@ -16,7 +16,14 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:comprehensive": "./scripts/test-e2e-comprehensive.sh",
+    "test:e2e:accessibility": "./scripts/test-e2e-comprehensive.sh accessibility",
+    "test:e2e:performance": "./scripts/test-e2e-comprehensive.sh performance",
+    "test:e2e:visual": "./scripts/test-e2e-comprehensive.sh visual",
+    "test:e2e:functional": "./scripts/test-e2e-comprehensive.sh functional",
+    "test:e2e:cross-browser": "./scripts/test-e2e-comprehensive.sh cross-browser",
+    "test:e2e:enhanced": "playwright test --config=playwright.config.enhanced.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -42,6 +49,8 @@
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/experimental-ct-react": "^1.54.1",
     "@playwright/test": "^1.54.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -53,12 +62,15 @@
     "@vitejs/plugin-react": "^4.0.3",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.14",
+    "axe-playwright": "^2.0.3",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "happy-dom": "^18.0.1",
     "jsdom": "^26.1.0",
+    "lighthouse": "^12.2.1",
     "playwright": "^1.54.1",
+    "playwright-lighthouse": "^4.0.0",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",

@@ -5,8 +5,10 @@ import { Meal } from "../features/meals/entities/meal.entity";
 import { FoodEntry } from "../features/foods/entities/food-entry.entity";
 import { Food } from "../features/foods/entities/food.entity";
 
-// Default user ID that matches the one in backend constant
-const DEFAULT_USER_ID = "a3aa41df-b467-40c8-867c-beb5edc4d032";
+// SECURITY FIX: Generate dynamic user ID for development seeding
+// This is only for development seeding and will be replaced by proper user registration
+import { v4 as uuidv4 } from 'uuid';
+const DEFAULT_USER_ID = uuidv4(); // Dynamic ID generation
 
 async function seedDefaultUser() {
   const AppDataSource = new DataSource({

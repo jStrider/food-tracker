@@ -31,6 +31,26 @@ export class FoodsController {
     private readonly foodsHealthService: FoodsHealthService,
   ) {}
 
+  @Get("search/autocomplete")
+  autocomplete(@Query("q") query: string, @Query("limit") limit?: string) {
+    if (!query) {
+      throw new BadRequestException("Query parameter is required");
+    }
+
+    if (query.length < 2) {
+      throw new BadRequestException(
+        "Search query must be at least 2 characters long",
+      );
+    }
+
+    const limitNum = limit ? parseInt(limit, 10) : 8;
+    if (limitNum > 20) {
+      throw new BadRequestException("Limit cannot exceed 20 for autocomplete");
+    }
+
+    return this.foodsService.searchForAutocomplete(query, limitNum);
+  }
+
   @Get("search")
   searchFoods(@Query("q") query?: string, @Query("barcode") barcode?: string) {
     if (!query && !barcode) {

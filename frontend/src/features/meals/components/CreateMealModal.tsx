@@ -23,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDate, DATE_FORMATS } from '@/utils/date';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { getMealTypeFromTime } from '@/utils/mealHelpers'; // TODO: Use for auto-categorization
+import { getMealTypeFromTime } from '@/utils/mealHelpers';
 
 interface CreateMealModalProps {
   open: boolean;
@@ -60,6 +60,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
     defaultDate ? new Date(defaultDate) : new Date()
   );
   const [time, setTime] = useState<string>(defaultTime);
+  const [showMealTypePreview, setShowMealTypePreview] = useState<boolean>(false);
   const [customMacros, setCustomMacros] = useState({
     calories: undefined as number | undefined,
     protein: undefined as number | undefined,
@@ -81,7 +82,18 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
         setType(''); // Let backend auto-categorize
       }
       // Auto-fill current time if no defaultTime provided
-      setTime(defaultTime || getCurrentTime());
+      const newTime = defaultTime || getCurrentTime();
+      setTime(newTime);
+      
+      // Show meal type preview if auto-categorizing
+      if (!type || type === '') {
+        setShowMealTypePreview(true);
+        // Auto-suggest meal type based on time (but don't force it)
+        const suggestedType = getMealTypeFromTime(newTime);
+        if (!defaultType || defaultType === 'breakfast') {
+          // Only show preview, don't set the type automatically
+        }
+      }
       // Reset custom macros
       setCustomMacros({
         calories: undefined,
@@ -221,9 +233,23 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
                   id="meal-time"
                   type="time"
                   value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  onChange={(e) => {
+                    const newTime = e.target.value;
+                    setTime(newTime);
+                    // Update meal type preview when time changes
+                    if (!type || type === '') {
+                      setShowMealTypePreview(true);
+                    }
+                  }}
                   placeholder="HH:MM"
                 />
+                {showMealTypePreview && time && (!type || type === '') && (
+                  <div className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
+                    <span className="text-blue-700">
+                      💡 Based on time ({time}), this will be categorized as: <strong>{getMealTypeFromTime(time)}</strong>
+                    </span>
+                  </div>
+                )}
                 <p className="text-xs text-gray-500">
                   If no meal type is selected, it will be auto-categorized based on time
                 </p>
@@ -231,12 +257,22 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
 
               <div className="space-y-2">
                 <Label htmlFor="meal-type">Meal Type (Optional)</Label>
-                <Select value={type} onValueChange={(value: MealType | '') => setType(value)}>
+                <Select value={type} onValueChange={(value: MealType | '') => {
+                  setType(value);
+                  // Hide preview when user manually selects a type
+                  if (value !== '') {
+                    setShowMealTypePreview(false);
+                  } else {
+                    setShowMealTypePreview(true);
+                  }
+                }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Auto-categorize based on time" />
+                    <SelectValue placeholder={time ? `Auto: ${getMealTypeFromTime(time)}` : "Auto-categorize based on time"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto-categorize based on time</SelectItem>
+                    <SelectItem value="">
+                      {time ? `Auto: ${getMealTypeFromTime(time)}` : "Auto-categorize based on time"}
+                    </SelectItem>
                     {MEAL_TYPES.map((mealType) => (
                       <SelectItem key={mealType.value} value={mealType.value}>
                         {mealType.label}
@@ -258,9 +294,15 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
             </TabsContent>
             
             <TabsContent value="nutrition" className="space-y-4">
-              <p className="text-sm text-gray-600">
-                Add custom nutritional values for this meal. Leave blank to calculate from food entries.
-              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start space-x-2">
+                  <span className="text-amber-600 text-sm">⚠️</span>
+                  <div className="text-sm text-amber-700">
+                    <p className="font-medium mb-1">Custom Nutrition Override</p>
+                    <p>These values will override calculations from individual food entries. Only fill if you know the exact nutritional content.</p>
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="custom-calories-create">Calories</Label>

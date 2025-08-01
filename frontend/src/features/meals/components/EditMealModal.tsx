@@ -17,6 +17,7 @@ import { mealsApi, Meal, MealType, UpdateMealRequest } from '@/features/meals/ap
 import { DatePicker } from '@/components/ui/DatePicker';
 import { formatDate, DATE_FORMATS } from '@/utils/date';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getMealTypeFromTime } from '@/utils/mealHelpers';
 
 
 interface EditMealModalProps {
@@ -52,6 +53,7 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
     customFat: undefined as number | undefined,
   });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [showMealTypePreview, setShowMealTypePreview] = useState<boolean>(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -211,9 +213,23 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
                   id="meal-time-edit"
                   type="time"
                   value={formData.time}
-                  onChange={(e) => handleChange('time', e.target.value)}
+                  onChange={(e) => {
+                    const newTime = e.target.value;
+                    handleChange('time', newTime);
+                    // Update meal type preview when time changes
+                    if (!formData.category || formData.category === '') {
+                      setShowMealTypePreview(true);
+                    }
+                  }}
                   placeholder="HH:MM"
                 />
+                {showMealTypePreview && formData.time && (!formData.category || formData.category === '') && (
+                  <div className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
+                    <span className="text-blue-700">
+                      💡 Based on time ({formData.time}), this will be categorized as: <strong>{getMealTypeFromTime(formData.time)}</strong>
+                    </span>
+                  </div>
+                )}
                 <p className="text-xs text-gray-500">
                   If no meal type is selected, it will be auto-categorized based on time
                 </p>
@@ -221,12 +237,22 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
 
               <div className="space-y-2">
                 <Label htmlFor="meal-type-edit">Meal Type (Optional)</Label>
-                <Select value={formData.category} onValueChange={(value: MealType | '') => handleChange('category', value)}>
+                <Select value={formData.category} onValueChange={(value: MealType | '') => {
+                  handleChange('category', value);
+                  // Hide preview when user manually selects a type
+                  if (value !== '') {
+                    setShowMealTypePreview(false);
+                  } else {
+                    setShowMealTypePreview(true);
+                  }
+                }}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Auto-categorize based on time" />
+                    <SelectValue placeholder={formData.time ? `Auto: ${getMealTypeFromTime(formData.time)}` : "Auto-categorize based on time"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Auto-categorize based on time</SelectItem>
+                    <SelectItem value="">
+                      {formData.time ? `Auto: ${getMealTypeFromTime(formData.time)}` : "Auto-categorize based on time"}
+                    </SelectItem>
                     {MEAL_TYPES.map((mealType) => (
                       <SelectItem key={mealType.value} value={mealType.value}>
                         {mealType.label}
@@ -248,9 +274,19 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
             </TabsContent>
             
             <TabsContent value="nutrition" className="space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <div className="flex items-start space-x-2">
+                  <span className="text-amber-600 text-sm">⚠️</span>
+                  <div className="text-sm text-amber-700">
+                    <p className="font-medium mb-1">Custom Nutrition Override</p>
+                    <p>These values will override calculations from individual food entries. Only fill if you know the exact nutritional content.</p>
+                  </div>
+                </div>
+              </div>
+              
               {meal && (
                 <div className="bg-gray-50 p-3 rounded-md text-sm">
-                  <p className="font-medium mb-2">Current calculated values:</p>
+                  <p className="font-medium mb-2">Current calculated values from food entries:</p>
                   <div className="grid grid-cols-2 gap-2">
                     <span>Calories: {meal.totalCalories}</span>
                     <span>Protein: {meal.totalProtein}g</span>
@@ -259,10 +295,6 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
                   </div>
                 </div>
               )}
-              
-              <p className="text-sm text-gray-600">
-                Override calculated nutritional values with custom values. Leave blank to keep calculated values from food entries.
-              </p>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
