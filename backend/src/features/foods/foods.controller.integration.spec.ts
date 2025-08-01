@@ -38,7 +38,7 @@ describe.skip("FoodsController Integration", () => {
     authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
     // Seed test data
-    const _foodRepo = dataSource.getRepository(Food);
+    const foodRepo = dataSource.getRepository(Food);
     await foodRepo.save([
       { ...fixtures.foods.apple, id: undefined, source: FoodSource.MANUAL },
       {
@@ -56,7 +56,7 @@ describe.skip("FoodsController Integration", () => {
 
   describe("GET /foods/search", () => {
     it("should search foods by name", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/search?q=apple")
         .expect(200);
 
@@ -65,7 +65,7 @@ describe.skip("FoodsController Integration", () => {
     });
 
     it("should return empty array for no matches", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/search?q=pizza")
         .expect(200);
 
@@ -73,7 +73,7 @@ describe.skip("FoodsController Integration", () => {
     });
 
     it("should search by barcode", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/search?barcode=1111111111")
         .expect(200);
 
@@ -101,7 +101,7 @@ describe.skip("FoodsController Integration", () => {
         },
       ]);
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/search?q=apple&includeExternal=true")
         .expect(200);
 
@@ -112,7 +112,7 @@ describe.skip("FoodsController Integration", () => {
 
   describe("POST /foods", () => {
     it("should create a new food", async () => {
-      const _createFoodDto = {
+      const createFoodDto = {
         name: "New Food Item",
         barcode: "5555555555",
         brand: "Test Brand",
@@ -127,7 +127,7 @@ describe.skip("FoodsController Integration", () => {
         servingUnit: "g",
       };
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/foods")
         .send(createFoodDto)
         .expect(201);
@@ -140,7 +140,7 @@ describe.skip("FoodsController Integration", () => {
     });
 
     it("should validate required fields", async () => {
-      const _createFoodDto = {
+      const createFoodDto = {
         name: "Incomplete Food",
         // Missing required nutrition fields
       };
@@ -152,7 +152,7 @@ describe.skip("FoodsController Integration", () => {
     });
 
     it("should prevent duplicate barcodes", async () => {
-      const _createFoodDto = {
+      const createFoodDto = {
         name: "Duplicate Barcode Food",
         barcode: "1111111111", // Already exists
         calories: 100,
@@ -175,11 +175,11 @@ describe.skip("FoodsController Integration", () => {
 
   describe("GET /foods/:id", () => {
     it("should return a specific food", async () => {
-      const _foodRepo = dataSource.getRepository(Food);
-      const _foods = await foodRepo.find();
-      const _foodId = foods[0].id;
+      const foodRepo = dataSource.getRepository(Food);
+      const foods = await foodRepo.find();
+      const foodId = foods[0].id;
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get(`/foods/${foodId}`)
         .expect(200);
 
@@ -197,15 +197,15 @@ describe.skip("FoodsController Integration", () => {
 
   describe("PUT /foods/:id", () => {
     it("should update a food", async () => {
-      const _foodRepo = dataSource.getRepository(Food);
-      const _food = await foodRepo.findOne({ where: { name: "Apple" } });
+      const foodRepo = dataSource.getRepository(Food);
+      const food = await foodRepo.findOne({ where: { name: "Apple" } });
 
-      const _updateFoodDto = {
+      const updateFoodDto = {
         name: "Green Apple",
         calories: 55,
       };
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .put(`/foods/${food.id}`)
         .send(updateFoodDto)
         .expect(200);
@@ -218,8 +218,8 @@ describe.skip("FoodsController Integration", () => {
 
   describe("DELETE /foods/:id", () => {
     it("should delete a food", async () => {
-      const _foodRepo = dataSource.getRepository(Food);
-      const _food = await foodRepo.save({
+      const foodRepo = dataSource.getRepository(Food);
+      const food = await foodRepo.save({
         name: "Food to Delete",
         barcode: "6666666666",
         calories: 100,
@@ -245,7 +245,7 @@ describe.skip("FoodsController Integration", () => {
 
   describe("POST /foods/cache-external", () => {
     it("should cache an external food", async () => {
-      const _externalFood = {
+      const externalFood = {
         name: "External Food",
         barcode: "7777777777",
         source: "openfoodfacts",
@@ -261,7 +261,7 @@ describe.skip("FoodsController Integration", () => {
         servingUnit: "g",
       };
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/foods/cache-external")
         .send(externalFood)
         .expect(201);
@@ -272,7 +272,7 @@ describe.skip("FoodsController Integration", () => {
       });
 
       // Verify it's now searchable locally
-      const _searchResponse = await request(app.getHttpServer())
+      const searchResponse = await request(app.getHttpServer())
         .get("/foods/search?q=External Food")
         .expect(200);
 
@@ -284,7 +284,7 @@ describe.skip("FoodsController Integration", () => {
     it("should return foods for a specific meal", async () => {
       // This would require creating a meal with food entries
       // For now, we'll test the endpoint exists and returns proper format
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/meal/00000000-0000-0000-0000-000000000000")
         .expect(200);
 
@@ -294,7 +294,7 @@ describe.skip("FoodsController Integration", () => {
 
   describe("GET /foods/frequent", () => {
     it("should return frequently used foods", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/frequent")
         .expect(200);
 
@@ -302,7 +302,7 @@ describe.skip("FoodsController Integration", () => {
     });
 
     it("should limit results", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/foods/frequent?limit=2")
         .expect(200);
 
@@ -312,7 +312,7 @@ describe.skip("FoodsController Integration", () => {
 
   describe("POST /foods/batch", () => {
     it("should create multiple foods", async () => {
-      const _foods = [
+      const foods = [
         {
           name: "Batch Food 1",
           barcode: "8888888881",
@@ -341,7 +341,7 @@ describe.skip("FoodsController Integration", () => {
         },
       ];
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/foods/batch")
         .send(foods)
         .expect(201);

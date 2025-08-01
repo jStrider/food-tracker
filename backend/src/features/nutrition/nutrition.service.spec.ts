@@ -1,16 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { NutritionService } from "./nutrition.service";
 import { Meal } from "../meals/entities/meal.entity";
 import { FoodEntry } from "../foods/entities/food-entry.entity";
 import { fixtures } from "../../test/fixtures";
+import { startOfWeek, endOfWeek, format } from "date-fns";
 
 describe("NutritionService", () => {
   let service: NutritionService;
   let mealsRepository: Repository<Meal>;
   let foodEntriesRepository: Repository<FoodEntry>;
 
-  const _mockQueryBuilder = {
+  const mockQueryBuilder = {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
@@ -19,16 +21,16 @@ describe("NutritionService", () => {
     getOne: jest.fn(),
   };
 
-  const _mockMealsRepository = {
+  const mockMealsRepository = {
     findOne: jest.fn(),
     find: jest.fn(),
     createQueryBuilder: jest.fn(() => mockQueryBuilder),
   };
 
-  const _mockFoodEntriesRepository = {};
+  const mockFoodEntriesRepository = {};
 
   // Helper to create mock meal with calculated nutrition
-  const _createMockMealWithNutrition = (meal: any, foodEntries: any[]) => {
+  const createMockMealWithNutrition = (meal: any, foodEntries: any[]) => {
     return {
       ...meal,
       foods: foodEntries.map((entry) => ({
@@ -71,13 +73,13 @@ describe("NutritionService", () => {
 
   describe("getMealNutrition", () => {
     it("should calculate nutrition for a single meal", async () => {
-      const _mockMeal = createMockMealWithNutrition(fixtures.meals.breakfast, [
+      const mockMeal = createMockMealWithNutrition(fixtures.meals.breakfast, [
         { ...fixtures.foodEntries.breakfastApple, food: fixtures.foods.apple },
       ]);
 
       mockMealsRepository.findOne.mockResolvedValue(mockMeal);
 
-      const _result = await service.getMealNutrition("1");
+      const result = await service.getMealNutrition("1");
 
       expect(result).toEqual({
         id: mockMeal.id,
@@ -105,8 +107,8 @@ describe("NutritionService", () => {
 
   describe("getDailyNutrition", () => {
     it("should calculate daily nutrition summary", async () => {
-      const _date = "2024-01-15";
-      const _mockMeals = [
+      const date = "2024-01-15";
+      const mockMeals = [
         createMockMealWithNutrition(fixtures.meals.breakfast, [
           {
             ...fixtures.foodEntries.breakfastApple,
@@ -124,7 +126,7 @@ describe("NutritionService", () => {
 
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
-      const _result = await service.getDailyNutrition(date);
+      const result = await service.getDailyNutrition(date);
 
       expect(result.date).toBe(date);
       expect(result.mealCount).toBe(2);
@@ -143,7 +145,7 @@ describe("NutritionService", () => {
     it("should return empty nutrition for day with no meals", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
-      const _result = await service.getDailyNutrition("2024-01-15");
+      const result = await service.getDailyNutrition("2024-01-15");
 
       expect(result.mealCount).toBe(0);
       expect(result.calories).toBe(0);
@@ -153,11 +155,11 @@ describe("NutritionService", () => {
 
   describe("getWeeklyNutrition", () => {
     it("should calculate weekly nutrition summary", async () => {
-      const _startDate = "2024-01-15";
-      const _start = startOfWeek(new Date(startDate));
-      const _end = endOfWeek(new Date(startDate));
+      const startDate = "2024-01-15";
+      const start = startOfWeek(new Date(startDate));
+      const end = endOfWeek(new Date(startDate));
 
-      const _mockMeals = [
+      const mockMeals = [
         createMockMealWithNutrition(
           { ...fixtures.meals.breakfast, date: new Date("2024-01-15") },
           [
@@ -180,7 +182,7 @@ describe("NutritionService", () => {
 
       mockMealsRepository.find.mockResolvedValue(mockMeals);
 
-      const _result = await service.getWeeklyNutrition(startDate);
+      const result = await service.getWeeklyNutrition(startDate);
 
       expect(result.startDate).toBe(format(start, "yyyy-MM-dd"));
       expect(result.endDate).toBe(format(end, "yyyy-MM-dd"));
@@ -192,7 +194,7 @@ describe("NutritionService", () => {
     it("should handle empty week", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-      const _result = await service.getWeeklyNutrition("2024-01-15");
+      const result = await service.getWeeklyNutrition("2024-01-15");
 
       expect(result.days).toHaveLength(7);
       expect(result.totals.calories).toBe(0);
@@ -202,7 +204,7 @@ describe("NutritionService", () => {
 
   describe("getMonthlyNutrition", () => {
     it("should get nutrition for each day of the month", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-01",
         meals: [],
         mealCount: 0,
@@ -219,7 +221,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-      const _result = await service.getMonthlyNutrition(1, 2024);
+      const result = await service.getMonthlyNutrition(1, 2024);
 
       expect(result).toHaveLength(31); // January has 31 days
       expect(service.getDailyNutrition).toHaveBeenCalledTimes(31);
@@ -228,7 +230,7 @@ describe("NutritionService", () => {
 
   describe("compareToGoals", () => {
     it("should compare nutrition to goals", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         meals: [],
         mealCount: 1,
@@ -241,7 +243,7 @@ describe("NutritionService", () => {
         sodium: 2000,
       };
 
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
@@ -254,7 +256,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-      const _result = await service.compareToGoals("2024-01-15", goals);
+      const result = await service.compareToGoals("2024-01-15", goals);
 
       expect(result.nutrition).toEqual(mockDailyNutrition);
       expect(result.goals).toEqual(goals);
@@ -265,7 +267,7 @@ describe("NutritionService", () => {
     });
 
     it("should handle under goals", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         meals: [],
         mealCount: 1,
@@ -278,7 +280,7 @@ describe("NutritionService", () => {
         sodium: 1000,
       };
 
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
@@ -289,7 +291,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-      const _result = await service.compareToGoals("2024-01-15", goals);
+      const result = await service.compareToGoals("2024-01-15", goals);
 
       expect(result.percentages.calories).toBe(50); // 1000/2000 * 100
       expect(result.status.calories).toBe("under");
@@ -297,7 +299,7 @@ describe("NutritionService", () => {
     });
 
     it("should handle over goals", async () => {
-      const _mockDailyNutrition = {
+      const mockDailyNutrition = {
         date: "2024-01-15",
         meals: [],
         mealCount: 1,
@@ -310,7 +312,7 @@ describe("NutritionService", () => {
         sodium: 3000,
       };
 
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
@@ -321,7 +323,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-      const _result = await service.compareToGoals("2024-01-15", goals);
+      const result = await service.compareToGoals("2024-01-15", goals);
 
       expect(result.percentages.calories).toBe(125); // 2500/2000 * 100
       expect(result.status.calories).toBe("over");
@@ -331,7 +333,7 @@ describe("NutritionService", () => {
 
   describe("getMacroBreakdown", () => {
     it("should calculate macro breakdown percentages", () => {
-      const _nutrition = {
+      const nutrition = {
         calories: 2000,
         protein: 100, // 400 calories
         carbs: 250, // 1000 calories
@@ -341,7 +343,7 @@ describe("NutritionService", () => {
         sodium: 2000,
       };
 
-      const _result = service.getMacroBreakdown(nutrition);
+      const result = service.getMacroBreakdown(nutrition);
 
       expect(result.protein).toBe(20); // 400/2003 * 100 ≈ 20%
       expect(result.carbs).toBe(50); // 1000/2003 * 100 ≈ 50%
@@ -352,7 +354,7 @@ describe("NutritionService", () => {
     });
 
     it("should handle zero nutrition", () => {
-      const _nutrition = {
+      const nutrition = {
         calories: 0,
         protein: 0,
         carbs: 0,
@@ -362,7 +364,7 @@ describe("NutritionService", () => {
         sodium: 0,
       };
 
-      const _result = service.getMacroBreakdown(nutrition);
+      const result = service.getMacroBreakdown(nutrition);
 
       expect(result.protein).toBe(0);
       expect(result.carbs).toBe(0);
@@ -372,7 +374,7 @@ describe("NutritionService", () => {
 
   describe("Private Methods", () => {
     it("should calculate nutrition from food entries correctly", () => {
-      const _foodEntries = [
+      const foodEntries = [
         {
           ...fixtures.foodEntries.breakfastApple,
           calculatedCalories: 78,
@@ -384,7 +386,7 @@ describe("NutritionService", () => {
         },
       ];
 
-      const _result = (service as any).calculateNutritionFromFoodEntries(
+      const result = (service as any).calculateNutritionFromFoodEntries(
         foodEntries,
       );
 
@@ -398,7 +400,7 @@ describe("NutritionService", () => {
     });
 
     it("should aggregate nutrition correctly", () => {
-      const _summaries = [
+      const summaries = [
         {
           calories: 100,
           protein: 10,
@@ -419,7 +421,7 @@ describe("NutritionService", () => {
         },
       ];
 
-      const _result = (service as any).aggregateNutrition(summaries);
+      const result = (service as any).aggregateNutrition(summaries);
 
       expect(result.calories).toBe(300);
       expect(result.protein).toBe(30);
@@ -431,7 +433,7 @@ describe("NutritionService", () => {
     });
 
     it("should calculate averages correctly", () => {
-      const _totals = {
+      const totals = {
         calories: 7000,
         protein: 350,
         carbs: 875,
@@ -441,7 +443,7 @@ describe("NutritionService", () => {
         sodium: 8050,
       };
 
-      const _result = (service as any).calculateAverages(totals, 7);
+      const result = (service as any).calculateAverages(totals, 7);
 
       expect(result.calories).toBe(1000);
       expect(result.protein).toBe(50);
@@ -453,7 +455,7 @@ describe("NutritionService", () => {
     });
 
     it("should handle zero days in averages", () => {
-      const _totals = {
+      const totals = {
         calories: 0,
         protein: 0,
         carbs: 0,
@@ -463,7 +465,7 @@ describe("NutritionService", () => {
         sodium: 0,
       };
 
-      const _result = (service as any).calculateAverages(totals, 0);
+      const result = (service as any).calculateAverages(totals, 0);
 
       expect(result).toEqual(totals);
     });
@@ -477,7 +479,7 @@ describe("NutritionService", () => {
     ])(
       "should return %s status for %d%% of goal",
       (percentage, expectedStatus) => {
-        const _result = (service as any).getGoalStatus(percentage);
+        const result = (service as any).getGoalStatus(percentage);
         expect(result).toBe(expectedStatus);
       },
     );

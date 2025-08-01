@@ -3,7 +3,7 @@ import { validateEnvironment, validationSchema } from "./env.validation";
 describe("Environment Validation", () => {
   describe("validationSchema", () => {
     it("should validate a complete valid configuration", () => {
-      const _validConfig = {
+      const validConfig = {
         NODE_ENV: "development",
         PORT: "3001",
         DATABASE_PATH: "data/test.db",
@@ -26,7 +26,7 @@ describe("Environment Validation", () => {
     });
 
     it("should apply default values for missing optional fields", () => {
-      const _minimalConfig = {
+      const minimalConfig = {
         JWT_SECRET: "test-secret-key-with-32-characters",
       };
 
@@ -40,7 +40,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject invalid NODE_ENV values", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         NODE_ENV: "invalid",
         JWT_SECRET: "test-secret-key-with-32-characters",
       };
@@ -52,7 +52,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject JWT_SECRET that is too short", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         JWT_SECRET: "short",
       };
 
@@ -63,7 +63,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject invalid JWT_EXPIRES_IN format", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         JWT_SECRET: "test-secret-key-with-32-characters",
         JWT_EXPIRES_IN: "invalid-format",
       };
@@ -75,7 +75,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject invalid PORT values", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         PORT: "99999",
         JWT_SECRET: "test-secret-key-with-32-characters",
       };
@@ -87,7 +87,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject invalid URL format for OPENFOODFACTS_API_URL", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         JWT_SECRET: "test-secret-key-with-32-characters",
         OPENFOODFACTS_API_URL: "not-a-url",
       };
@@ -99,7 +99,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject negative THROTTLE_TTL", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         JWT_SECRET: "test-secret-key-with-32-characters",
         THROTTLE_TTL: "-1000",
       };
@@ -111,7 +111,7 @@ describe("Environment Validation", () => {
     });
 
     it("should reject invalid LOG_LEVEL values", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         JWT_SECRET: "test-secret-key-with-32-characters",
         LOG_LEVEL: "invalid",
       };
@@ -125,14 +125,14 @@ describe("Environment Validation", () => {
 
   describe("validateEnvironment", () => {
     it("should return validated configuration for valid input", () => {
-      const _validConfig = {
+      const validConfig = {
         NODE_ENV: "production",
         PORT: "8080",
         JWT_SECRET: "super-secure-secret-key-32-chars",
         DATABASE_PATH: "/app/data/production.db",
       };
 
-      const _result = validateEnvironment(validConfig);
+      const result = validateEnvironment(validConfig);
 
       expect(result).toBeDefined();
       expect(result.NODE_ENV).toBe("production");
@@ -141,7 +141,7 @@ describe("Environment Validation", () => {
     });
 
     it("should throw error for invalid configuration", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         NODE_ENV: "invalid",
         JWT_SECRET: "short",
       };
@@ -152,7 +152,7 @@ describe("Environment Validation", () => {
     });
 
     it("should throw error with all validation messages", () => {
-      const _invalidConfig = {
+      const invalidConfig = {
         NODE_ENV: "invalid",
         PORT: "not-a-number",
         JWT_SECRET: "short",
@@ -171,7 +171,7 @@ describe("Environment Validation", () => {
     });
 
     it("should allow unknown environment variables", () => {
-      const _configWithUnknown = {
+      const configWithUnknown = {
         JWT_SECRET: "test-secret-key-with-32-characters",
         UNKNOWN_VAR: "some-value",
         ANOTHER_UNKNOWN: "another-value",
@@ -179,7 +179,7 @@ describe("Environment Validation", () => {
 
       expect(() => validateEnvironment(configWithUnknown)).not.toThrow();
 
-      const _result = validateEnvironment(configWithUnknown);
+      const result = validateEnvironment(configWithUnknown);
       expect(result.JWT_SECRET).toBe("test-secret-key-with-32-characters");
     });
   });

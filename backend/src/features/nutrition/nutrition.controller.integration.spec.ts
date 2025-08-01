@@ -33,32 +33,32 @@ describe("NutritionController Integration", () => {
     testUser = await TestAuthHelper.createTestUser(dataSource);
     authToken = TestAuthHelper.generateToken(testUser, jwtService);
 
-    const _foodRepo = dataSource.getRepository(Food);
-    const _apple = await foodRepo.save({
+    const foodRepo = dataSource.getRepository(Food);
+    const apple = await foodRepo.save({
       ...fixtures.foods.apple,
       id: undefined,
       source: FoodSource.MANUAL,
     });
-    const _chickenBreast = await foodRepo.save({
+    const chickenBreast = await foodRepo.save({
       ...fixtures.foods.chickenBreast,
       id: undefined,
       source: FoodSource.MANUAL,
     });
-    const _brownRice = await foodRepo.save({
+    const brownRice = await foodRepo.save({
       ...fixtures.foods.brownRice,
       id: undefined,
       source: FoodSource.MANUAL,
     });
 
-    const _mealRepo = dataSource.getRepository(Meal);
-    const _breakfast = await mealRepo.save({
+    const mealRepo = dataSource.getRepository(Meal);
+    const breakfast = await mealRepo.save({
       name: "Breakfast",
       category: MealCategory.BREAKFAST,
       date: new Date("2024-01-15"),
       time: "08:00",
       userId: testUser.id,
     });
-    const _lunch = await mealRepo.save({
+    const lunch = await mealRepo.save({
       name: "Lunch",
       category: MealCategory.LUNCH,
       date: new Date("2024-01-15"),
@@ -66,7 +66,7 @@ describe("NutritionController Integration", () => {
       userId: testUser.id,
     });
 
-    const _foodEntryRepo = dataSource.getRepository(FoodEntry);
+    const foodEntryRepo = dataSource.getRepository(FoodEntry);
     await foodEntryRepo.save([
       {
         mealId: breakfast.id,
@@ -107,7 +107,7 @@ describe("NutritionController Integration", () => {
 
   describe("GET /nutrition/daily", () => {
     it("should return daily nutrition summary", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/daily?date=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -127,7 +127,7 @@ describe("NutritionController Integration", () => {
     });
 
     it("should return empty nutrition for day with no meals", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/daily?date=2024-01-20")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -145,7 +145,7 @@ describe("NutritionController Integration", () => {
 
   describe("GET /nutrition/weekly", () => {
     it("should return weekly nutrition summary", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/weekly?startDate=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -173,7 +173,7 @@ describe("NutritionController Integration", () => {
 
   describe("GET /nutrition/monthly", () => {
     it("should return monthly nutrition data", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/monthly?month=1&year=2024")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -182,7 +182,7 @@ describe("NutritionController Integration", () => {
       expect(response.body).toHaveLength(31); // January has 31 days
 
       // Find the day with data
-      const _dayWithData = response.body.find(
+      const dayWithData = response.body.find(
         (day) => day.date === "2024-01-15",
       );
       expect(dayWithData).toBeDefined();
@@ -192,7 +192,7 @@ describe("NutritionController Integration", () => {
 
   describe.skip("POST /nutrition/goals", () => {
     it("should compare nutrition to goals", async () => {
-      const _goals = {
+      const goals = {
         calories: 2000,
         protein: 100,
         carbs: 250,
@@ -201,7 +201,7 @@ describe("NutritionController Integration", () => {
         sodium: 2300,
       };
 
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post("/nutrition/goals?date=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .send(goals)
@@ -231,7 +231,7 @@ describe("NutritionController Integration", () => {
 
   describe.skip("GET /nutrition/macros", () => {
     it("should return macro breakdown for a date", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/macros?date=2024-01-15")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);
@@ -248,7 +248,7 @@ describe("NutritionController Integration", () => {
 
       // Verify percentages add up to approximately 100
       const { protein, carbs, fat } = response.body.macros;
-      const _total = protein + carbs + fat;
+      const total = protein + carbs + fat;
       expect(total).toBeGreaterThan(95);
       expect(total).toBeLessThanOrEqual(100);
     });
@@ -257,17 +257,17 @@ describe("NutritionController Integration", () => {
   describe.skip("GET /nutrition/trends", () => {
     beforeEach(async () => {
       // Add more meals for trend analysis
-      const _userRepo = dataSource.getRepository(User);
-      const _user = await userRepo.findOne({
+      const userRepo = dataSource.getRepository(User);
+      const user = await userRepo.findOne({
         where: { email: "test@example.com" },
       });
-      const _mealRepo = dataSource.getRepository(Meal);
-      const _foodEntryRepo = dataSource.getRepository(FoodEntry);
-      const _foodRepo = dataSource.getRepository(Food);
-      const _apple = await foodRepo.findOne({ where: { name: "Apple" } });
+      const mealRepo = dataSource.getRepository(Meal);
+      const foodEntryRepo = dataSource.getRepository(FoodEntry);
+      const foodRepo = dataSource.getRepository(Food);
+      const apple = await foodRepo.findOne({ where: { name: "Apple" } });
 
-      for (let _i = 1; i <= 7; i++) {
-        const _meal = await mealRepo.save({
+      for (let i = 1; i <= 7; i++) {
+        const meal = await mealRepo.save({
           name: `Day ${i} Breakfast`,
           category: MealCategory.BREAKFAST,
           date: new Date(`2024-01-${10 + i}`),
@@ -289,7 +289,7 @@ describe("NutritionController Integration", () => {
     });
 
     it("should return nutrition trends for date range", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get(
           "/nutrition/trends?startDate=2024-01-10&endDate=2024-01-20&period=daily",
         )
@@ -311,7 +311,7 @@ describe("NutritionController Integration", () => {
 
   describe.skip("GET /nutrition/summary", () => {
     it("should return comprehensive nutrition summary", async () => {
-      const _response = await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .get("/nutrition/summary?startDate=2024-01-01&endDate=2024-01-31")
         .set(TestAuthHelper.getAuthHeader(authToken))
         .expect(200);

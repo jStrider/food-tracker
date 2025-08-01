@@ -6,14 +6,14 @@ describe("AppConfigService", () => {
   let service: AppConfigService;
   let configService: ConfigService;
 
-  const _mockConfigService = {
+  const mockConfigService = {
     get: jest.fn(),
   };
 
   beforeEach(async () => {
     // Setup default valid values for validation
     mockConfigService.get.mockImplementation((key) => {
-      const _defaults = {
+      const defaults = {
         NODE_ENV: "test",
         PORT: 3001,
         DATABASE_PATH: "data/test.db",
@@ -59,7 +59,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue("development");
 
-      const _result = service.getNodeEnv();
+      const result = service.getNodeEnv();
 
       expect(result).toBe("development");
       expect(mockConfigService.get).toHaveBeenCalledWith("NODE_ENV", {
@@ -73,7 +73,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue(3001);
 
-      const _result = service.getPort();
+      const result = service.getPort();
 
       expect(result).toBe(3001);
       expect(mockConfigService.get).toHaveBeenCalledWith("PORT", {
@@ -84,11 +84,11 @@ describe("AppConfigService", () => {
 
   describe("getJwtSecret", () => {
     it("should return JWT_SECRET value", () => {
-      const _secret = "test-secret-key-32-characters-long";
+      const secret = "test-secret-key-32-characters-long";
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue(secret);
 
-      const _result = service.getJwtSecret();
+      const result = service.getJwtSecret();
 
       expect(result).toBe(secret);
       expect(mockConfigService.get).toHaveBeenCalledWith("JWT_SECRET", {
@@ -102,7 +102,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue("development");
 
-      const _result = service.isDevelopment();
+      const result = service.isDevelopment();
 
       expect(result).toBe(true);
     });
@@ -111,7 +111,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue("production");
 
-      const _result = service.isDevelopment();
+      const result = service.isDevelopment();
 
       expect(result).toBe(false);
     });
@@ -122,7 +122,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue("production");
 
-      const _result = service.isProduction();
+      const result = service.isProduction();
 
       expect(result).toBe(true);
     });
@@ -131,7 +131,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       mockConfigService.get.mockReturnValue("development");
 
-      const _result = service.isProduction();
+      const result = service.isProduction();
 
       expect(result).toBe(false);
     });
@@ -142,7 +142,7 @@ describe("AppConfigService", () => {
       mockConfigService.get.mockReset();
       // Setup mock implementation with specific return values
       mockConfigService.get.mockImplementation((key) => {
-        const _testValues = {
+        const testValues = {
           NODE_ENV: "development",
           PORT: 3001,
           CORS_ORIGIN: "http://localhost:3000",
@@ -158,7 +158,7 @@ describe("AppConfigService", () => {
         return testValues[key];
       });
 
-      const _result = service.getAllConfig();
+      const result = service.getAllConfig();
 
       expect(result).toEqual({
         app: {
