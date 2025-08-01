@@ -16,7 +16,7 @@ describe("FoodsService", () => {
   let openFoodFactsService: OpenFoodFactsService;
   let foodCacheService: FoodCacheService;
 
-  const _mockFoodsRepository = {
+  const mockFoodsRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
@@ -25,7 +25,7 @@ describe("FoodsService", () => {
     delete: jest.fn(),
   };
 
-  const _mockFoodEntriesRepository = {
+  const mockFoodEntriesRepository = {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
@@ -33,12 +33,12 @@ describe("FoodsService", () => {
     delete: jest.fn(),
   };
 
-  const _mockOpenFoodFactsService = {
+  const mockOpenFoodFactsService = {
     searchByName: jest.fn(),
     searchByBarcode: jest.fn(),
   };
 
-  const _mockFoodCacheService = {
+  const mockFoodCacheService = {
     shouldCacheFood: jest.fn(),
   };
 
@@ -79,7 +79,7 @@ describe("FoodsService", () => {
 
   describe("searchByName", () => {
     it("should return local results when sufficient foods found", async () => {
-      const _localFoods = [
+      const localFoods = [
         fixtures.foods.apple,
         fixtures.foods.chickenBreast,
         fixtures.foods.brownRice,
@@ -89,7 +89,7 @@ describe("FoodsService", () => {
 
       mockFoodsRepository.find.mockResolvedValue(localFoods);
 
-      const _result = await service.searchByName("apple");
+      const result = await service.searchByName("apple");
 
       expect(result).toHaveLength(5);
       expect(result[0].isFromCache).toBe(true);
@@ -97,8 +97,8 @@ describe("FoodsService", () => {
     });
 
     it("should search external API when local results insufficient", async () => {
-      const _localFoods = [fixtures.foods.apple];
-      const _externalResults = [
+      const localFoods = [fixtures.foods.apple];
+      const externalResults = [
         {
           name: "Apple Pie",
           brand: "Generic",
@@ -131,7 +131,7 @@ describe("FoodsService", () => {
         Promise.resolve(food),
       );
 
-      const _result = await service.searchByName("apple");
+      const result = await service.searchByName("apple");
 
       expect(result.length).toBeGreaterThan(1);
       expect(mockOpenFoodFactsService.searchByName).toHaveBeenCalledWith(
@@ -141,22 +141,22 @@ describe("FoodsService", () => {
     });
 
     it("should return only local results when external API fails", async () => {
-      const _localFoods = [fixtures.foods.apple, fixtures.foods.chickenBreast];
+      const localFoods = [fixtures.foods.apple, fixtures.foods.chickenBreast];
 
       mockFoodsRepository.find.mockResolvedValue(localFoods);
       mockOpenFoodFactsService.searchByName.mockRejectedValue(
         new Error("API Error"),
       );
 
-      const _result = await service.searchByName("food");
+      const result = await service.searchByName("food");
 
       expect(result).toHaveLength(2);
       expect(result[0].isFromCache).toBe(true);
     });
 
     it("should deduplicate results from local and external sources", async () => {
-      const _localFoods = [fixtures.foods.apple];
-      const _externalResults = [
+      const localFoods = [fixtures.foods.apple];
+      const externalResults = [
         {
           ...fixtures.foods.apple,
           barcode: fixtures.foods.apple.barcode, // Same barcode
@@ -168,7 +168,7 @@ describe("FoodsService", () => {
       mockOpenFoodFactsService.searchByName.mockResolvedValue(externalResults);
       mockFoodCacheService.shouldCacheFood.mockReturnValue(false);
 
-      const _result = await service.searchByName("apple");
+      const result = await service.searchByName("apple");
 
       expect(result).toHaveLength(1); // Deduplicated
       expect(result[0].isFromCache).toBe(true); // Local result preferred
@@ -177,10 +177,10 @@ describe("FoodsService", () => {
 
   describe("searchByBarcode", () => {
     it("should return food from local cache", async () => {
-      const _mockFood = fixtures.foods.apple;
+      const mockFood = fixtures.foods.apple;
       mockFoodsRepository.findOne.mockResolvedValueOnce(mockFood);
 
-      const _result = await service.searchByBarcode("1111111111");
+      const result = await service.searchByBarcode("1111111111");
 
       expect(result).toBeDefined();
       expect(result.isFromCache).toBe(true);
@@ -189,7 +189,7 @@ describe("FoodsService", () => {
     });
 
     it("should search external API when not in cache", async () => {
-      const _externalFood = fixtures.foods.yogurt;
+      const externalFood = fixtures.foods.yogurt;
 
       // First call to check cache - return null
       mockFoodsRepository.findOne.mockResolvedValueOnce(null);
@@ -207,7 +207,7 @@ describe("FoodsService", () => {
       mockFoodsRepository.create.mockReturnValueOnce(externalFood);
       mockFoodsRepository.save.mockResolvedValueOnce(externalFood);
 
-      const _result = await service.searchByBarcode("4444444444");
+      const result = await service.searchByBarcode("4444444444");
 
       expect(result).toBeDefined();
       expect(result.isFromCache).toBe(false);
@@ -221,7 +221,7 @@ describe("FoodsService", () => {
       mockFoodsRepository.findOne.mockResolvedValueOnce(null);
       mockOpenFoodFactsService.searchByBarcode.mockResolvedValueOnce(null);
 
-      const _result = await service.searchByBarcode("9999999999");
+      const result = await service.searchByBarcode("9999999999");
 
       expect(result).toBeNull();
     });
@@ -229,10 +229,10 @@ describe("FoodsService", () => {
 
   describe("findAll", () => {
     it("should return all foods", async () => {
-      const _allFoods = Object.values(fixtures.foods);
+      const allFoods = Object.values(fixtures.foods);
       mockFoodsRepository.find.mockResolvedValue(allFoods);
 
-      const _result = await service.findAll();
+      const result = await service.findAll();
 
       expect(result).toEqual(allFoods);
       expect(mockFoodsRepository.find).toHaveBeenCalled();
@@ -241,10 +241,10 @@ describe("FoodsService", () => {
 
   describe("findOne", () => {
     it("should return a food by id", async () => {
-      const _mockFood = fixtures.foods.apple;
+      const mockFood = fixtures.foods.apple;
       mockFoodsRepository.findOne.mockResolvedValue(mockFood);
 
-      const _result = await service.findOne("1");
+      const result = await service.findOne("1");
 
       expect(result).toEqual(mockFood);
       expect(mockFoodsRepository.findOne).toHaveBeenCalledWith({
@@ -261,7 +261,7 @@ describe("FoodsService", () => {
 
   describe("create", () => {
     it("should create a new food", async () => {
-      const _createDto = {
+      const createDto = {
         name: "New Food",
         brand: "New Brand",
         calories: 100,
@@ -275,11 +275,11 @@ describe("FoodsService", () => {
         servingUnit: "g",
       };
 
-      const _mockFood = { id: "new-id", ...createDto };
+      const mockFood = { id: "new-id", ...createDto };
       mockFoodsRepository.create.mockReturnValue(mockFood);
       mockFoodsRepository.save.mockResolvedValue(mockFood);
 
-      const _result = await service.create(createDto);
+      const result = await service.create(createDto);
 
       expect(result).toEqual(mockFood);
       expect(mockFoodsRepository.create).toHaveBeenCalledWith(createDto);
@@ -289,20 +289,20 @@ describe("FoodsService", () => {
 
   describe("update", () => {
     it("should update an existing food", async () => {
-      const _updateDto = {
+      const updateDto = {
         name: "Updated Apple",
         calories: 55,
       };
 
-      const _existingFood = fixtures.foods.apple;
-      const _updatedFood = { ...existingFood, ...updateDto };
+      const existingFood = fixtures.foods.apple;
+      const updatedFood = { ...existingFood, ...updateDto };
 
       mockFoodsRepository.findOne
         .mockResolvedValueOnce(existingFood)
         .mockResolvedValueOnce(updatedFood);
       mockFoodsRepository.update.mockResolvedValue({ affected: 1 });
 
-      const _result = await service.update("1", updateDto);
+      const result = await service.update("1", updateDto);
 
       expect(result).toEqual(updatedFood);
       expect(mockFoodsRepository.update).toHaveBeenCalledWith("1", updateDto);
@@ -330,20 +330,20 @@ describe("FoodsService", () => {
   describe("Food Entries Management", () => {
     describe("addFoodToMeal", () => {
       it("should add food entry to meal", async () => {
-        const _createDto = {
+        const createDto = {
           foodId: "1",
           quantity: 150,
           unit: "g",
         };
 
-        const _mockFood = fixtures.foods.apple;
-        const _mockEntry = { id: "entry-1", mealId: "meal-1", ...createDto };
+        const mockFood = fixtures.foods.apple;
+        const mockEntry = { id: "entry-1", mealId: "meal-1", ...createDto };
 
         mockFoodsRepository.findOne.mockResolvedValue(mockFood);
         mockFoodEntriesRepository.create.mockReturnValue(mockEntry);
         mockFoodEntriesRepository.save.mockResolvedValue(mockEntry);
 
-        const _result = await service.addFoodToMeal("meal-1", createDto);
+        const result = await service.addFoodToMeal("meal-1", createDto);
 
         expect(result).toEqual(mockEntry);
         expect(mockFoodEntriesRepository.create).toHaveBeenCalledWith({
@@ -363,16 +363,16 @@ describe("FoodsService", () => {
 
     describe("updateFoodEntry", () => {
       it("should update food entry", async () => {
-        const _updateDto = { quantity: 200 };
-        const _existingEntry = { id: "entry-1", foodId: "1", quantity: 150 };
-        const _updatedEntry = { ...existingEntry, ...updateDto };
+        const updateDto = { quantity: 200 };
+        const existingEntry = { id: "entry-1", foodId: "1", quantity: 150 };
+        const updatedEntry = { ...existingEntry, ...updateDto };
 
         mockFoodEntriesRepository.findOne
           .mockResolvedValueOnce(existingEntry)
           .mockResolvedValueOnce(updatedEntry);
         mockFoodEntriesRepository.update.mockResolvedValue({ affected: 1 });
 
-        const _result = await service.updateFoodEntry("entry-1", updateDto);
+        const result = await service.updateFoodEntry("entry-1", updateDto);
 
         expect(result).toEqual(updatedEntry);
         expect(mockFoodEntriesRepository.update).toHaveBeenCalledWith(
@@ -413,8 +413,8 @@ describe("FoodsService", () => {
 
   describe("Private Methods", () => {
     it("should cache high quality foods from external results", async () => {
-      const _localFoods = [];
-      const _externalResults = [
+      const localFoods = [];
+      const externalResults = [
         {
           name: "High Quality Food",
           brand: "Premium",
@@ -449,7 +449,7 @@ describe("FoodsService", () => {
         Promise.resolve(food),
       );
 
-      const _result = await service.searchByName("food");
+      const result = await service.searchByName("food");
 
       expect(mockFoodCacheService.shouldCacheFood).toHaveBeenCalledTimes(2);
       expect(mockFoodsRepository.save).toHaveBeenCalledTimes(1); // Only high quality cached

@@ -98,7 +98,11 @@ describe("NutritionService", () => {
 
       mockMealsRepository.findOne.mockResolvedValue(mockMeal);
 
+<<<<<<< HEAD
       const result = await service.getMealNutrition("1", "user-1");
+=======
+      const result = await service.getMealNutrition("1");
+>>>>>>> origin/main
 
       expect(result).toEqual({
         id: mockMeal.id,
@@ -145,7 +149,11 @@ describe("NutritionService", () => {
 
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
+<<<<<<< HEAD
       const result = await service.getDailyNutrition(date, "user-1");
+=======
+      const result = await service.getDailyNutrition(date);
+>>>>>>> origin/main
 
       expect(result.date).toBe(date);
       expect(result.mealCount).toBe(2);
@@ -164,7 +172,11 @@ describe("NutritionService", () => {
     it("should return empty nutrition for day with no meals", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
+<<<<<<< HEAD
       const result = await service.getDailyNutrition("2024-01-15", "user-1");
+=======
+      const result = await service.getDailyNutrition("2024-01-15");
+>>>>>>> origin/main
 
       expect(result.mealCount).toBe(0);
       expect(result.calories).toBe(0);
@@ -201,7 +213,11 @@ describe("NutritionService", () => {
 
       mockMealsRepository.find.mockResolvedValue(mockMeals);
 
+<<<<<<< HEAD
       const result = await service.getWeeklyNutrition(startDate, "user-1");
+=======
+      const result = await service.getWeeklyNutrition(startDate);
+>>>>>>> origin/main
 
       expect(result.startDate).toBe(format(start, "yyyy-MM-dd"));
       expect(result.endDate).toBe(format(end, "yyyy-MM-dd"));
@@ -213,7 +229,11 @@ describe("NutritionService", () => {
     it("should handle empty week", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
+<<<<<<< HEAD
       const result = await service.getWeeklyNutrition("2024-01-15", "user-1");
+=======
+      const result = await service.getWeeklyNutrition("2024-01-15");
+>>>>>>> origin/main
 
       expect(result.days).toHaveLength(7);
       expect(result.totals.calories).toBe(0);
@@ -240,7 +260,11 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
+<<<<<<< HEAD
       const result = await service.getMonthlyNutrition(1, 2024, "user-1");
+=======
+      const result = await service.getMonthlyNutrition(1, 2024);
+>>>>>>> origin/main
 
       expect(result).toHaveLength(31); // January has 31 days
       expect(service.getDailyNutrition).toHaveBeenCalledTimes(31);
@@ -275,7 +299,11 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
+<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals, "user-1");
+=======
+      const result = await service.compareToGoals("2024-01-15", goals);
+>>>>>>> origin/main
 
       expect(result.nutrition).toEqual(mockDailyNutrition);
       expect(result.goals).toEqual(goals);
@@ -310,7 +338,11 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
+<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals, "user-1");
+=======
+      const result = await service.compareToGoals("2024-01-15", goals);
+>>>>>>> origin/main
 
       expect(result.percentages.calories).toBe(50); // 1000/2000 * 100
       expect(result.status.calories).toBe("under");
@@ -342,7 +374,11 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
+<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals, "user-1");
+=======
+      const result = await service.compareToGoals("2024-01-15", goals);
+>>>>>>> origin/main
 
       expect(result.percentages.calories).toBe(125); // 2500/2000 * 100
       expect(result.status.calories).toBe("over");

@@ -29,6 +29,15 @@ describe("CustomThrottlerGuard", () => {
       providers: [
         CustomThrottlerGuard,
         {
+          provide: 'THROTTLER:MODULE_OPTIONS',
+          useValue: {
+            ttl: 60,
+            limit: 10,
+            ignoreUserAgents: [],
+            skipIf: () => false,
+          },
+        },
+        {
           provide: Reflector,
           useValue: {
             get: jest.fn(),
@@ -37,7 +46,7 @@ describe("CustomThrottlerGuard", () => {
         {
           provide: ThrottlerStorage,
           useValue: {
-            increment: jest.fn(),
+            increment: jest.fn().mockResolvedValue({ totalHits: 1, timeToExpire: 60000 }),
           },
         },
       ],

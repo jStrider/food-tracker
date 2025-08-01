@@ -1,4 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { NotFoundException } from "@nestjs/common";
 import { MealsController } from "./meals.controller";
 import { MealsService } from "./meals.service";
 import { NutritionIntegrationService } from "./nutrition-integration.service";
@@ -10,7 +11,7 @@ describe("MealsController", () => {
   let mealsService: MealsService;
   let nutritionService: NutritionIntegrationService;
 
-  const _mockMealsService = {
+  const mockMealsService = {
     findAll: jest.fn(),
     findOne: jest.fn(),
     findByDate: jest.fn(),
@@ -22,7 +23,7 @@ describe("MealsController", () => {
     getStats: jest.fn(),
   };
 
-  const _mockNutritionService = {
+  const mockNutritionService = {
     calculateNutritionProgress: jest.fn(),
     getDailyMacroDistribution: jest.fn(),
     getMealMacroDistribution: jest.fn(),
@@ -58,7 +59,7 @@ describe("MealsController", () => {
 
   describe("findAll", () => {
     it("should return paginated meals", async () => {
-      const _mockResult = {
+      const mockResult = {
         data: [fixtures.meals.breakfast, fixtures.meals.lunch],
         total: 2,
         page: 1,
@@ -68,15 +69,15 @@ describe("MealsController", () => {
 
       mockMealsService.findAll.mockResolvedValue(mockResult);
 
-      const _query = { page: 1, limit: 10 };
-      const _result = await controller.findAll(query);
+      const query = { page: 1, limit: 10 };
+      const result = await controller.findAll(query);
 
       expect(result).toEqual(mockResult);
       expect(mealsService.findAll).toHaveBeenCalledWith(query);
     });
 
     it("should pass all query parameters to service", async () => {
-      const _query = {
+      const query = {
         date: "2024-01-15",
         category: MealCategory.BREAKFAST,
         page: 2,
@@ -100,17 +101,17 @@ describe("MealsController", () => {
 
   describe("findOne", () => {
     it("should return a meal by id", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       mockMealsService.findOne.mockResolvedValue(mockMeal);
 
-      const _result = await controller.findOne("1", true);
+      const result = await controller.findOne("1", true);
 
       expect(result).toEqual(mockMeal);
       expect(mealsService.findOne).toHaveBeenCalledWith("1", true);
     });
 
     it("should default includeFoods to true", async () => {
-      const _mockMeal = fixtures.meals.breakfast;
+      const mockMeal = fixtures.meals.breakfast;
       mockMealsService.findOne.mockResolvedValue(mockMeal);
 
       await controller.findOne("1", undefined);
@@ -129,10 +130,10 @@ describe("MealsController", () => {
 
   describe("findByDate", () => {
     it("should return meals for a specific date", async () => {
-      const _mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
+      const mockMeals = [fixtures.meals.breakfast, fixtures.meals.lunch];
       mockMealsService.findByDate.mockResolvedValue(mockMeals);
 
-      const _result = await controller.findByDate("2024-01-15", {
+      const result = await controller.findByDate("2024-01-15", {
         includeFoods: true,
       });
 
@@ -157,7 +158,7 @@ describe("MealsController", () => {
 
   describe("getDailyNutrition", () => {
     it("should return daily nutrition summary", async () => {
-      const _mockSummary = {
+      const mockSummary = {
         date: "2024-01-15",
         meals: [fixtures.meals.breakfast],
         totalCalories: 300,
@@ -172,7 +173,7 @@ describe("MealsController", () => {
 
       mockMealsService.getDailyNutrition.mockResolvedValue(mockSummary);
 
-      const _result = await controller.getDailyNutrition("2024-01-15");
+      const result = await controller.getDailyNutrition("2024-01-15");
 
       expect(result).toEqual(mockSummary);
       expect(mealsService.getDailyNutrition).toHaveBeenCalledWith("2024-01-15");
@@ -181,14 +182,14 @@ describe("MealsController", () => {
 
   describe("findByDateRange", () => {
     it("should return meals within date range", async () => {
-      const _mockMeals = [
+      const mockMeals = [
         fixtures.meals.breakfast,
         fixtures.meals.lunch,
         fixtures.meals.dinner,
       ];
       mockMealsService.findByDateRange.mockResolvedValue(mockMeals);
 
-      const _result = await controller.findByDateRange(
+      const result = await controller.findByDateRange(
         "2024-01-01",
         "2024-01-31",
         true,
@@ -217,7 +218,7 @@ describe("MealsController", () => {
 
   describe("create", () => {
     it("should create a new meal", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         category: MealCategory.LUNCH,
         date: "2024-01-15",
@@ -225,17 +226,17 @@ describe("MealsController", () => {
         notes: "Test notes",
       };
 
-      const _mockMeal = { id: "1", ...createDto };
+      const mockMeal = { id: "1", ...createDto };
       mockMealsService.create.mockResolvedValue(mockMeal);
 
-      const _result = await controller.create(createDto);
+      const result = await controller.create(createDto);
 
       expect(result).toEqual(mockMeal);
       expect(mealsService.create).toHaveBeenCalledWith(createDto);
     });
 
     it("should create meal with food entries", async () => {
-      const _createDto = {
+      const createDto = {
         name: "Test Meal",
         category: MealCategory.LUNCH,
         date: "2024-01-15",
@@ -243,10 +244,10 @@ describe("MealsController", () => {
         foods: [{ foodId: "1", quantity: 100, unit: "g" }],
       };
 
-      const _mockMeal = { id: "1", ...createDto };
+      const mockMeal = { id: "1", ...createDto };
       mockMealsService.create.mockResolvedValue(mockMeal);
 
-      const _result = await controller.create(createDto);
+      const result = await controller.create(createDto);
 
       expect(result).toEqual(mockMeal);
       expect(mealsService.create).toHaveBeenCalledWith(createDto);
@@ -255,15 +256,15 @@ describe("MealsController", () => {
 
   describe("update", () => {
     it("should update an existing meal", async () => {
-      const _updateDto = {
+      const updateDto = {
         name: "Updated Meal",
         notes: "Updated notes",
       };
 
-      const _mockMeal = { id: "1", ...fixtures.meals.breakfast, ...updateDto };
+      const mockMeal = { id: "1", ...fixtures.meals.breakfast, ...updateDto };
       mockMealsService.update.mockResolvedValue(mockMeal);
 
-      const _result = await controller.update("1", updateDto);
+      const result = await controller.update("1", updateDto);
 
       expect(result).toEqual(mockMeal);
       expect(mealsService.update).toHaveBeenCalledWith("1", updateDto);
@@ -296,7 +297,7 @@ describe("MealsController", () => {
 
   describe("getStats", () => {
     it("should return meal statistics", async () => {
-      const _mockStats = {
+      const mockStats = {
         totalMeals: 10,
         averageCalories: 500,
         averageProtein: 25,
@@ -311,8 +312,8 @@ describe("MealsController", () => {
 
       mockMealsService.getStats.mockResolvedValue(mockStats);
 
-      const _query = { startDate: "2024-01-01", endDate: "2024-01-31" };
-      const _result = await controller.getStats(query);
+      const query = { startDate: "2024-01-01", endDate: "2024-01-31" };
+      const result = await controller.getStats(query);
 
       expect(result).toEqual(mockStats);
       expect(mealsService.getStats).toHaveBeenCalledWith(query);
@@ -322,7 +323,7 @@ describe("MealsController", () => {
   describe("Nutrition Integration Endpoints", () => {
     describe("calculateNutritionProgress", () => {
       it("should calculate nutrition progress", async () => {
-        const _goals = {
+        const goals = {
           calories: 2000,
           protein: 50,
           carbs: 250,
@@ -332,7 +333,7 @@ describe("MealsController", () => {
           sodium: 2300,
         };
 
-        const _mockProgress = {
+        const mockProgress = {
           date: "2024-01-15",
           goals,
           actual: {
@@ -360,7 +361,7 @@ describe("MealsController", () => {
           mockProgress,
         );
 
-        const _result = await controller.calculateNutritionProgress(
+        const result = await controller.calculateNutritionProgress(
           "2024-01-15",
           goals,
         );
@@ -374,7 +375,7 @@ describe("MealsController", () => {
 
     describe("getDailyMacroDistribution", () => {
       it("should return daily macro distribution", async () => {
-        const _mockDistribution = {
+        const mockDistribution = {
           date: "2024-01-15",
           calories: 2000,
           distribution: {
@@ -388,7 +389,7 @@ describe("MealsController", () => {
           mockDistribution,
         );
 
-        const _result =
+        const result =
           await controller.getDailyMacroDistribution("2024-01-15");
 
         expect(result).toEqual(mockDistribution);
@@ -400,7 +401,7 @@ describe("MealsController", () => {
 
     describe("getMealMacroDistribution", () => {
       it("should return meal macro distribution", async () => {
-        const _mockDistribution = {
+        const mockDistribution = {
           mealId: "1",
           calories: 500,
           distribution: {
@@ -414,7 +415,7 @@ describe("MealsController", () => {
           mockDistribution,
         );
 
-        const _result = await controller.getMealMacroDistribution("1");
+        const result = await controller.getMealMacroDistribution("1");
 
         expect(result).toEqual(mockDistribution);
         expect(nutritionService.getMealMacroDistribution).toHaveBeenCalledWith(
@@ -425,7 +426,7 @@ describe("MealsController", () => {
 
     describe("getNutritionTrends", () => {
       it("should return nutrition trends", async () => {
-        const _mockTrends = {
+        const mockTrends = {
           dateRange: { start: "2024-01-01", end: "2024-01-31" },
           trends: {
             calories: { average: 1950, trend: "stable" },
@@ -439,7 +440,7 @@ describe("MealsController", () => {
           mockTrends,
         );
 
-        const _result = await controller.getNutritionTrends(
+        const result = await controller.getNutritionTrends(
           "2024-01-01",
           "2024-01-31",
         );
@@ -454,7 +455,7 @@ describe("MealsController", () => {
 
     describe("getMealOptimization", () => {
       it("should return meal optimization suggestions", async () => {
-        const _mockSuggestions = {
+        const mockSuggestions = {
           date: "2024-01-15",
           currentNutrition: {
             calories: 1500,
@@ -475,7 +476,7 @@ describe("MealsController", () => {
           mockSuggestions,
         );
 
-        const _result = await controller.getMealOptimization("2024-01-15");
+        const result = await controller.getMealOptimization("2024-01-15");
 
         expect(result).toEqual(mockSuggestions);
         expect(nutritionService.suggestMealOptimization).toHaveBeenCalledWith(
