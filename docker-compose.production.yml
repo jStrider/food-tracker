@@ -1,0 +1,306 @@
+# Docker Compose configuration for Production Environment
+# Extends the base docker-compose.yml with production-specific settings
+
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: foodtracker_production
+      POSTGRES_USER: ${PRODUCTION_POSTGRES_USER:-foodtracker_prod}
+      POSTGRES_PASSWORD: ${PRODUCTION_POSTGRES_PASSWORD}
+    volumes:
+      - postgres_production_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PRODUCTION_POSTGRES_USER:-foodtracker_prod} -d foodtracker_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  backend:
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=foodtracker_production
+      - DATABASE_USER=${PRODUCTION_POSTGRES_USER:-foodtracker_prod}
+      - DATABASE_PASSWORD=${PRODUCTION_POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=24h
+      - CORS_ORIGIN=${PRODUCTION_FRONTEND_URL}
+      - FRONTEND_URL=${PRODUCTION_FRONTEND_URL}
+      - OPENFOODFACTS_API_URL=https://world.openfoodfacts.org/api/v0
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=100
+      - LOG_LEVEL=warn
+      - HEALTH_CHECK_ENDPOINT=/health
+      - DISABLE_RATE_LIMITING=false
+      - DB_LOGGING=false
+      # Production security settings
+      - NODE_OPTIONS=--max-old-space-size=1024
+      - UV_THREADPOOL_SIZE=128
+    labels:
+      # Traefik labels for production reverse proxy
+      - "traefik.enable=true"
+      - "traefik.http.routers.foodtracker-api-prod.rule=Host(`${PRODUCTION_API_DOMAIN}`)"
+      - "traefik.http.routers.foodtracker-api-prod.tls=true"
+      - "traefik.http.routers.foodtracker-api-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.foodtracker-api-prod.loadbalancer.server.port=3001"
+      # Production security middleware
+      - "traefik.http.routers.foodtracker-api-prod.middlewares=prod-security,prod-rate-limit"
+      - "traefik.http.middlewares.prod-security.headers.customFrameOptionsValue=DENY"
+      - "traefik.http.middlewares.prod-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.prod-security.headers.sslRedirect=true"
+      - "traefik.http.middlewares.prod-rate-limit.ratelimit.average=100"
+      - "traefik.http.middlewares.prod-rate-limit.ratelimit.period=1m"
+    volumes:
+      - production_backend_data:/app/data
+      - production_backend_logs:/app/logs
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "10"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+      replicas: 2  # Run 2 instances for high availability
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+
+  frontend:
+    environment:
+      - NODE_ENV=production
+    labels:
+      # Traefik labels for production reverse proxy
+      - "traefik.enable=true"
+      - "traefik.http.routers.foodtracker-prod.rule=Host(`${PRODUCTION_DOMAIN}`)"
+      - "traefik.http.routers.foodtracker-prod.tls=true"
+      - "traefik.http.routers.foodtracker-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.foodtracker-prod.loadbalancer.server.port=80"
+      # Production security headers
+      - "traefik.http.routers.foodtracker-prod.middlewares=prod-frontend-security"
+      - "traefik.http.middlewares.prod-frontend-security.headers.customFrameOptionsValue=DENY"
+      - "traefik.http.middlewares.prod-frontend-security.headers.customRequestHeaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.prod-frontend-security.headers.sslRedirect=true"
+      - "traefik.http.middlewares.prod-frontend-security.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.prod-frontend-security.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.prod-frontend-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.prod-frontend-security.headers.browserXssFilter=true"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+      replicas: 2  # Run 2 instances for high availability
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+
+  # Production Redis with persistence and clustering
+  redis:
+    image: redis:7-alpine
+    container_name: foodtracker-redis-production
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --save 900 1 --save 300 10
+    volumes:
+      - redis_production_data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Production monitoring stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: foodtracker-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: foodtracker-grafana
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+
+  # Log aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: foodtracker-loki
+    restart: always
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/tmp/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Backup service
+  backup:
+    image: postgres:16-alpine
+    container_name: foodtracker-backup
+    environment:
+      - PGPASSWORD=${PRODUCTION_POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    command: ["/bin/sh", "-c", "while true; do sleep 86400; /backup.sh; done"]
+    depends_on:
+      - postgres
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+
+volumes:
+  postgres_production_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/postgres-data
+  redis_production_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/redis-data
+  production_backend_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/backend-data
+  production_backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/foodtracker/backend
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/prometheus-data
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/grafana-data
+  loki_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/foodtracker/loki-data
+
+networks:
+  default:
+    name: foodtracker-production
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  monitoring:
+    name: foodtracker-monitoring
+    driver: bridge

@@ -1,0 +1,295 @@
+name: 🔍 PR Quality Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===============================
+  # QUICK PR VALIDATION
+  # ===============================
+  quick-checks:
+    name: ⚡ Quick Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+          cd ../shared && npm ci
+
+      - name: 🔍 TypeScript checking
+        run: |
+          echo "🏗️ Checking backend TypeScript..."
+          cd backend && npx tsc --noEmit
+          echo "🎨 Checking frontend TypeScript..."
+          cd ../frontend && npm run typecheck
+          echo "📦 Checking shared TypeScript..."
+          cd ../shared && npx tsc --noEmit
+
+      - name: 🧹 Linting
+        run: |
+          echo "🏗️ Linting backend..."
+          cd backend && npm run lint
+          echo "🎨 Linting frontend..."
+          cd ../frontend && npm run lint
+
+      - name: 🔒 Security audit
+        run: |
+          echo "🏗️ Backend security audit..."
+          cd backend && npm audit --audit-level high --only=prod || echo "Audit completed with warnings"
+          echo "🎨 Frontend security audit..."
+          cd ../frontend && npm audit --audit-level high --only=prod || echo "Audit completed with warnings"
+
+  # ===============================
+  # UNIT TESTS ONLY
+  # ===============================
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: [quick-checks]
+    if: github.event.pull_request.draft == false
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: foodtracker_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: 🔧 Setup backend test environment
+        run: |
+          cd backend
+          cp .env.example .env.test
+          echo "DATABASE_URL=postgresql://testuser:testpass@localhost:5432/foodtracker_test" >> .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "JWT_SECRET=test-secret-key-for-ci" >> .env.test
+
+      - name: 🗄️ Run database migrations
+        run: |
+          cd backend
+          NODE_ENV=test npm run db:migrate
+
+      - name: 🧪 Backend unit tests
+        run: |
+          cd backend
+          npm run test:ci
+        env:
+          NODE_ENV: test
+
+      - name: 🧪 Frontend unit tests
+        run: |
+          cd frontend
+          npm run test:coverage
+
+      - name: 📊 Upload backend coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend,pr
+          name: backend-pr-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: 📊 Upload frontend coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend,pr
+          name: frontend-pr-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ===============================
+  # BUILD VERIFICATION
+  # ===============================
+  build-check:
+    name: 🏗️ Build Verification
+    runs-on: ubuntu-latest
+    needs: [quick-checks]
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+          cd ../shared && npm ci
+
+      - name: 🏗️ Build shared package
+        run: |
+          cd shared
+          npm run build
+
+      - name: 🏗️ Build backend
+        run: |
+          cd backend
+          npm run build
+
+      - name: 🏗️ Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: 📊 Bundle size analysis
+        run: |
+          cd frontend
+          if [ -d "dist" ]; then
+            echo "📦 Bundle sizes:"
+            find dist -name "*.js" -exec ls -lh {} \; | awk '{print $5 " " $9}'
+            find dist -name "*.css" -exec ls -lh {} \; | awk '{print $5 " " $9}'
+            
+            # Check bundle size limits
+            JS_SIZE=$(find dist -name "*.js" -exec du -bc {} + | tail -1 | cut -f1)
+            CSS_SIZE=$(find dist -name "*.css" -exec du -bc {} + | tail -1 | cut -f1)
+            
+            echo "📊 JavaScript bundle size: $(echo $JS_SIZE | numfmt --to=iec-i)B"
+            echo "📊 CSS bundle size: $(echo $CSS_SIZE | numfmt --to=iec-i)B"
+            
+            # Warn if bundles are too large (500KB JS, 100KB CSS)
+            if [ $JS_SIZE -gt 500000 ]; then
+              echo "⚠️ JavaScript bundle is large (>500KB). Consider code splitting."
+            fi
+            if [ $CSS_SIZE -gt 100000 ]; then
+              echo "⚠️ CSS bundle is large (>100KB). Consider optimization."
+            fi
+          fi
+
+  # ===============================
+  # PR SUMMARY
+  # ===============================
+  pr-summary:
+    name: 📋 PR Summary
+    runs-on: ubuntu-latest
+    needs: [quick-checks, unit-tests, build-check]
+    if: always() && github.event.pull_request.draft == false
+
+    steps:
+      - name: 📊 Generate PR summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              quickChecks: '${{ needs.quick-checks.result }}',
+              unitTests: '${{ needs.unit-tests.result }}',
+              buildCheck: '${{ needs.build-check.result }}'
+            };
+            
+            let summary = '## 🔍 PR Quality Check Results\n\n';
+            
+            // Status icons
+            const getIcon = (status) => {
+              switch(status) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'cancelled': return '⏹️';
+                case 'skipped': return '⏭️';
+                default: return '⏳';
+              }
+            };
+            
+            summary += `| Check | Status | Details |\n`;
+            summary += `|-------|--------|----------|\n`;
+            summary += `| Quick Validation | ${getIcon(results.quickChecks)} ${results.quickChecks} | TypeScript, ESLint, Security Audit |\n`;
+            summary += `| Unit Tests | ${getIcon(results.unitTests)} ${results.unitTests} | Backend & Frontend Test Suites |\n`;
+            summary += `| Build Verification | ${getIcon(results.buildCheck)} ${results.buildCheck} | Production Build & Bundle Analysis |\n\n`;
+            
+            const allPassed = Object.values(results).every(r => r === 'success');
+            
+            if (allPassed) {
+              summary += '🎉 **All checks passed!** This PR is ready for review.\n\n';
+            } else {
+              summary += '⚠️ **Some checks failed.** Please review the failed jobs above.\n\n';
+            }
+            
+            summary += '### Next Steps\n';
+            if (allPassed) {
+              summary += '- ✅ Quality checks completed\n';
+              summary += '- 🔄 Full CI/CD pipeline will run after merge approval\n';
+              summary += '- 🎭 E2E tests will run on the main CI/CD pipeline\n';
+            } else {
+              summary += '- 🔧 Fix any failing checks\n';
+              summary += '- 📝 Push new commits to trigger re-run\n';
+              summary += '- 💬 Request help if needed\n';
+            }
+            
+            summary += '\n---\n*Generated by GitHub Actions • [View full workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*';
+            
+            // Post comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: ✅ Success status
+        if: needs.quick-checks.result == 'success' && needs.unit-tests.result == 'success' && needs.build-check.result == 'success'
+        run: |
+          echo "🎉 All PR checks passed successfully!"
+          echo "✅ Quick validation: passed"
+          echo "✅ Unit tests: passed" 
+          echo "✅ Build verification: passed"
+
+      - name: ❌ Failure status
+        if: needs.quick-checks.result == 'failure' || needs.unit-tests.result == 'failure' || needs.build-check.result == 'failure'
+        run: |
+          echo "❌ PR checks failed!"
+          echo "🔍 Quick validation: ${{ needs.quick-checks.result }}"
+          echo "🧪 Unit tests: ${{ needs.unit-tests.result }}"
+          echo "🏗️ Build verification: ${{ needs.build-check.result }}"
+          exit 1

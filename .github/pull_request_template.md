@@ -1,82 +1,112 @@
-## 📝 Description
-<!-- Provide a brief description of the changes in this PR -->
+## 📋 Pull Request Summary
 
-## 🎯 Type of Change
-<!-- Mark the relevant option with an "x" -->
+<!-- Provide a brief summary of the changes in this PR -->
+
+### 🎯 Type of Change
+<!-- Check the relevant option -->
 - [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
 - [ ] ✨ New feature (non-breaking change which adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] 📚 Documentation update
 - [ ] 🔧 Configuration change
-- [ ] ♻️ Code refactoring
+- [ ] 🧹 Code refactoring (no functional changes)
 - [ ] ⚡ Performance improvement
-- [ ] 🧪 Test update
+- [ ] 🧪 Test improvements
+- [ ] 🔒 Security fix
 
-## 🧪 Testing Performed
-<!-- Mark all tests that have been completed -->
-- [ ] ✅ Unit tests pass (`npm run test`)
-- [ ] ✅ TypeScript compilation (`npm run typecheck`)
-- [ ] ✅ Linting passes (`npm run lint`)
-- [ ] ✅ E2E tests pass (`npm run test:e2e`)
-- [ ] ✅ Manual testing completed
-- [ ] 📱 Responsive testing (mobile/tablet/desktop)
-- [ ] ♿ Accessibility checked (keyboard nav, screen reader)
-- [ ] 🚀 Performance validated (no regressions)
+### 🔗 Related Issues
+<!-- Link to related issues using "Closes #123" or "Fixes #123" -->
+- Closes #
 
-## 📋 PR Checklist
-<!-- Ensure all items are completed before submitting -->
-- [ ] 🏃 I have run `./scripts/pr-validate.sh` and all checks pass
-- [ ] 🔍 I have performed a self-review of my code
-- [ ] 💬 I have added comments to complex code sections
-- [ ] 📚 I have updated the documentation (if needed)
-- [ ] 🧪 I have added/updated tests for my changes
-- [ ] ⚠️ My changes generate no new warnings
-- [ ] 🔐 I have not committed any secrets or sensitive data
-- [ ] 📝 I have updated the CHANGELOG.md (if user-facing changes)
+### 📝 Description
+<!-- Describe your changes in detail -->
 
-## 🖼️ Screenshots
-<!-- If UI changes, add before/after screenshots -->
-<!-- You can paste images directly or drag and drop -->
+### ✅ Checklist
+<!-- Check all that apply -->
 
-## 🏗️ Database Changes
-<!-- If this PR includes database changes -->
-- [ ] Migration files created
-- [ ] Seed data updated (if needed)
-- [ ] Backward compatible
+#### Code Quality
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] My changes generate no new warnings or errors
 
-## 🌐 API Changes
-<!-- If this PR includes API changes -->
-- [ ] Swagger/OpenAPI docs updated
-- [ ] Breaking changes documented
-- [ ] Backward compatible (or version bumped)
+#### Testing
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] I have verified the functionality manually (if applicable)
 
-## 🚀 Performance Impact
-<!-- Describe any performance implications -->
+#### Documentation
+- [ ] I have made corresponding changes to the documentation
+- [ ] I have updated the API documentation (if applicable)
+- [ ] I have updated the README.md (if applicable)
+
+#### Database & Breaking Changes
+- [ ] I have added database migrations (if applicable)
+- [ ] I have verified that my changes don't break existing functionality
+- [ ] I have updated environment variable documentation (if applicable)
+
+#### Security & Performance
+- [ ] I have considered security implications of my changes
+- [ ] I have tested for performance impact (if applicable)
+- [ ] I have not introduced any secrets or sensitive data
+
+### 🧪 Testing Strategy
+<!-- Describe how you tested your changes -->
+
+#### Manual Testing
+- [ ] Tested on desktop browsers (Chrome, Firefox, Safari)
+- [ ] Tested on mobile devices (if applicable)
+- [ ] Tested with different user roles/permissions (if applicable)
+
+#### Automated Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] E2E tests added/updated (if applicable)
+
+### 📸 Screenshots/Recordings
+<!-- Add screenshots or recordings if your changes affect the UI -->
+
+### 🔄 Database Changes
+<!-- If your changes include database modifications -->
+- [ ] No database changes
+- [ ] Database migration included
+- [ ] Backwards compatible
+- [ ] Requires data migration
+
+### 📈 Performance Impact
+<!-- If your changes affect performance -->
 - [ ] No performance impact
-- [ ] Performance improved (describe how)
-- [ ] Performance degraded (justify why acceptable)
+- [ ] Performance improvements
+- [ ] Potential performance regression (explained below)
 
-## 🔗 Related Issues
-<!-- Link any related issues -->
-Closes #<!-- issue number -->
+### 🚀 Deployment Notes
+<!-- Any special instructions for deployment -->
+- [ ] No special deployment requirements
+- [ ] Requires environment variable updates
+- [ ] Requires database migration
+- [ ] Requires cache clearing
+- [ ] Other: <!-- Specify -->
 
-## 👀 Review Focus Areas
-<!-- Guide reviewers on what to focus on -->
-<!-- Example: "Please pay special attention to the error handling in the new API endpoint" -->
-
-## 🚦 Post-Deployment Tasks
-<!-- List any tasks that need to be done after deployment -->
-- [ ] Monitor error rates
-- [ ] Check performance metrics
-- [ ] Verify in production
-- [ ] Update documentation site
+### 📚 Additional Context
+<!-- Add any other context, concerns, or questions for reviewers -->
 
 ---
-<!-- Do not edit below this line -->
-<details>
-<summary>PR Validation Results</summary>
 
-```
-Run ./scripts/pr-validate.sh locally to validate
-```
-</details>
+### 🔍 Review Guidelines for Reviewers
+- [ ] Code follows project standards and best practices
+- [ ] Changes are well-tested and documented
+- [ ] No obvious security vulnerabilities
+- [ ] Performance implications are acceptable
+- [ ] Database changes are safe and reversible
+- [ ] Breaking changes are properly documented
+
+### 🤖 Automated Checks
+The following automated checks will run:
+- ✅ TypeScript compilation
+- ✅ ESLint code quality
+- ✅ Unit test suite
+- ✅ Security vulnerability scan
+- ✅ Build verification
+- ✅ Test coverage thresholds
+
+**Note**: All automated checks must pass before merge.

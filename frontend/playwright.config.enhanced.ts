@@ -1,198 +1,172 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Enhanced Playwright Configuration for FoodTracker
- * Features:
- * - Multi-browser testing (Chrome, Firefox, Safari)
- * - Mobile and tablet viewports
- * - Accessibility testing setup
- * - Performance monitoring
- * - Visual regression testing
- * - CI/CD optimized settings
+ * Enhanced Playwright configuration for comprehensive testing
+ * Includes performance, accessibility, visual regression, and cross-browser testing
  */
-
-const isCI = !!process.env.CI;
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3003';
-const apiURL = process.env.VITE_API_URL || 'http://localhost:3002';
-
 export default defineConfig({
   testDir: './e2e',
-  
-  // Test Organization
-  outputDir: './test-results',
+  /* Run tests in files in parallel */
   fullyParallel: true,
-  forbidOnly: isCI,
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
+  /* Retry on CI only */
+  retries: process.env.CI ? 2 : 0,
+  /* Opt out of parallel tests on CI for stability. */
+  workers: process.env.CI ? 2 : undefined,
   
-  // Retry Strategy
-  retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : 4,
-  
-  // Timeout Configuration
-  timeout: 30 * 1000, // 30 seconds per test
-  expect: {
-    timeout: 10 * 1000, // 10 seconds for assertions
-    toHaveScreenshot: {
-      mode: 'only-on-failure',
-      animations: 'disabled',
-      caret: 'hide',
-    },
-  },
-  
-  // Global Setup
+  /* Reporter configuration for CI/CD */
+  reporter: process.env.CI 
+    ? [
+        ['html', { outputFolder: 'playwright-report' }],
+        ['junit', { outputFile: 'test-results/junit.xml' }],
+        ['json', { outputFile: 'test-results/results.json' }],
+        ['github'],
+      ]
+    : [
+        ['html'],
+        ['list'],
+      ],
+
+  /* Global setup for test data and authentication */
   globalSetup: './e2e/global-setup.ts',
-  
-  // Reporting
-  reporter: [
-    ['list'],
-    ['json', { outputFile: 'test-results/results.json' }],
-    ['html', { 
-      open: 'never',
-      outputFolder: 'playwright-report' 
-    }],
-    ...(isCI ? [['github'] as const] : []),
-  ],
-  
-  // Global Test Configuration
+
+  /* Shared settings for all the projects below */
   use: {
-    baseURL,
-    
-    // Browser Context
-    actionTimeout: 10 * 1000,
-    navigationTimeout: 30 * 1000,
-    
-    // Screenshots and Videos
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'retain-on-failure',
-    
-    // Network
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-    
-    // Accessibility
-    colorScheme: 'light',
-    reducedMotion: 'reduce',
+    /* Base URL to use in actions like `await page.goto('/')`. */
+    baseURL: 'http://localhost:3003',
+
+    /* Collect trace when retrying the failed test */
+    trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
+
+    /* Screenshot configuration */
+    screenshot: process.env.CI ? 'only-on-failure' : 'only-on-failure',
+
+    /* Video recording */
+    video: process.env.CI ? 'retain-on-failure' : 'off',
+
+    /* Global test timeout */
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
   },
 
-  // Browser Projects
+  /* Output directories */
+  outputDir: 'test-results',
+
+  /* Configure projects for comprehensive testing */
   projects: [
-    // Setup project for authentication
+    /* Desktop Browsers */
     {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-    
-    // Desktop Chrome - Primary testing browser
-    {
-      name: 'chrome-desktop',
+      name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
+        // Enable additional browser features for testing
+        launchOptions: {
+          args: [
+            '--enable-features=NetworkService,NetworkServiceLogging',
+            '--enable-automation=false',
+            '--no-default-browser-check',
+          ],
+        },
       },
-      dependencies: ['setup'],
     },
-    
-    // Desktop Firefox
     {
-      name: 'firefox-desktop',
-      use: { 
-        ...devices['Desktop Firefox'],
-        viewport: { width: 1920, height: 1080 },
-      },
-      dependencies: ['setup'],
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
     },
-    
-    // Desktop Safari (macOS only)
     {
-      name: 'safari-desktop',
-      use: { 
-        ...devices['Desktop Safari'],
-        viewport: { width: 1920, height: 1080 },
-      },
-      dependencies: ['setup'],
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
     },
-    
-    // Mobile Chrome
+
+    /* Mobile Browsers */
     {
-      name: 'mobile-chrome',
-      use: { 
-        ...devices['Pixel 5'],
-      },
-      dependencies: ['setup'],
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
     },
-    
-    // Mobile Safari
     {
-      name: 'mobile-safari',
-      use: { 
-        ...devices['iPhone 12'],
-      },
-      dependencies: ['setup'],
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
     },
-    
-    // Tablet
-    {
-      name: 'tablet',
-      use: { 
-        ...devices['iPad Pro'],
-      },
-      dependencies: ['setup'],
-    },
-    
-    // Accessibility Testing Project
-    {
-      name: 'accessibility',
-      testMatch: /.*\.a11y\.spec\.ts/,
-      use: { 
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 720 },
-      },
-      dependencies: ['setup'],
-    },
-    
-    // Performance Testing Project
+
+    /* Performance Testing */
     {
       name: 'performance',
-      testMatch: /.*\.perf\.spec\.ts/,
-      use: { 
+      testMatch: '**/*.perf.spec.ts',
+      use: {
         ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
+        launchOptions: {
+          args: [
+            '--enable-features=NetworkService,NetworkServiceLogging',
+            '--disable-web-security',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+          ],
+        },
       },
-      dependencies: ['setup'],
     },
-    
-    // Visual Regression Testing
+
+    /* Accessibility Testing */
+    {
+      name: 'accessibility',
+      testMatch: '**/*.a11y.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Slow down interactions for better accessibility testing
+        actionTimeout: 15000,
+      },
+    },
+
+    /* Visual Regression Testing */
     {
       name: 'visual',
-      testMatch: /.*\.visual\.spec\.ts/,
-      use: { 
+      testMatch: '**/*.visual.spec.ts',
+      use: {
         ...devices['Desktop Chrome'],
+        // Consistent viewport for visual tests
         viewport: { width: 1280, height: 720 },
       },
-      dependencies: ['setup'],
+    },
+
+    /* API Testing */
+    {
+      name: 'api',
+      testMatch: '**/api/**/*.spec.ts',
+      use: {
+        // Skip browser for API tests
+        browserName: undefined,
+        baseURL: 'http://localhost:3001/api',
+      },
     },
   ],
-  
-  // Web Server Configuration
-  webServer: {
-    command: 'echo "Using external server setup"',
-    url: baseURL,
-    reuseExistingServer: !isCI,
-    timeout: 120 * 1000,
+
+  /* Run your local dev server before starting the tests */
+  webServer: process.env.CI 
+    ? {
+        // In CI, assume services are already running via Docker
+        command: 'echo "Using Docker containers for testing"',
+        url: 'http://localhost:3003',
+        reuseExistingServer: true,
+        timeout: 120 * 1000,
+      }
+    : {
+        // Local development setup
+        command: 'npm run dev',
+        port: 3003,
+        reuseExistingServer: !process.env.CI,
+      },
+
+  /* Test timeout */
+  timeout: 60000,
+
+  /* Expect timeout for assertions */
+  expect: {
+    timeout: 10000,
+    // Visual comparison threshold
+    threshold: 0.2,
   },
-  
-  // Test Match Patterns
-  testMatch: [
-    '**/*.spec.ts',
-    '**/*.test.ts',
-    '**/*.e2e.ts',
-  ],
-  
-  // Ignore Patterns
-  testIgnore: [
-    '**/node_modules/**',
-    '**/dist/**',
-    '**/build/**',
-  ],
+
+  /* Global teardown */
+  globalTeardown: './e2e/global-teardown.ts',
 });

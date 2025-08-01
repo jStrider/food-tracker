@@ -1,0 +1,169 @@
+# Docker Compose configuration for Staging Environment
+# Extends the base docker-compose.yml with staging-specific settings
+
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: foodtracker_staging
+      POSTGRES_USER: ${STAGING_POSTGRES_USER:-foodtracker_staging}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:-staging_secure_password}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_POSTGRES_USER:-foodtracker_staging} -d foodtracker_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    environment:
+      - NODE_ENV=staging
+      - PORT=3001
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=foodtracker_staging
+      - DATABASE_USER=${STAGING_POSTGRES_USER:-foodtracker_staging}
+      - DATABASE_PASSWORD=${STAGING_POSTGRES_PASSWORD:-staging_secure_password}
+      - JWT_SECRET=${JWT_SECRET:-staging_jwt_secret_32_chars_long}
+      - JWT_EXPIRES_IN=24h
+      - CORS_ORIGIN=${STAGING_FRONTEND_URL:-https://staging.foodtracker.com}
+      - FRONTEND_URL=${STAGING_FRONTEND_URL:-https://staging.foodtracker.com}
+      - OPENFOODFACTS_API_URL=https://world.openfoodfacts.org/api/v0
+      - THROTTLE_TTL=60000
+      - THROTTLE_LIMIT=1000
+      - LOG_LEVEL=debug
+      - HEALTH_CHECK_ENDPOINT=/health
+      - DISABLE_RATE_LIMITING=false
+      - DB_LOGGING=true
+    labels:
+      # Traefik labels for reverse proxy (if using Traefik)
+      - "traefik.enable=true"
+      - "traefik.http.routers.foodtracker-api-staging.rule=Host(`${STAGING_API_DOMAIN:-api-staging.foodtracker.com`)"
+      - "traefik.http.routers.foodtracker-api-staging.tls=true"
+      - "traefik.http.routers.foodtracker-api-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.foodtracker-api-staging.loadbalancer.server.port=3001"
+      # Health check labels
+      - "traefik.http.routers.foodtracker-api-staging.middlewares=api-staging-auth"
+      # Add basic auth middleware for staging API if needed
+      - "traefik.http.middlewares.api-staging-auth.basicauth.users=${STAGING_API_AUTH:-}"
+    volumes:
+      - staging_backend_data:/app/data
+      - staging_backend_logs:/app/logs
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  frontend:
+    environment:
+      - NODE_ENV=staging
+    labels:
+      # Traefik labels for reverse proxy
+      - "traefik.enable=true"
+      - "traefik.http.routers.foodtracker-staging.rule=Host(`${STAGING_DOMAIN:-staging.foodtracker.com`)"
+      - "traefik.http.routers.foodtracker-staging.tls=true"
+      - "traefik.http.routers.foodtracker-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.foodtracker-staging.loadbalancer.server.port=80"
+      # Security headers middleware
+      - "traefik.http.routers.foodtracker-staging.middlewares=staging-security-headers"
+      - "traefik.http.middlewares.staging-security-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.staging-security-headers.headers.customRequestHeaders.X-Forwarded-Proto=https"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # Optional: Redis for caching in staging
+  redis:
+    image: redis:7-alpine
+    container_name: foodtracker-redis-staging
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-staging_redis_password}
+    volumes:
+      - redis_staging_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # Monitoring: Prometheus Node Exporter for staging metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: foodtracker-node-exporter-staging
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+
+volumes:
+  postgres_staging_data:
+    driver: local
+  redis_staging_data:
+    driver: local
+  staging_backend_data:
+    driver: local
+  staging_backend_logs:
+    driver: local
+
+networks:
+  default:
+    name: foodtracker-staging
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

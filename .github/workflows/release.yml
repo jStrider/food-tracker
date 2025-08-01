@@ -1,0 +1,308 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ===============================
+  # RELEASE VALIDATION
+  # ===============================
+  validate:
+    name: 🔍 Validate Release
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Extract version info
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${VERSION}" >> $GITHUB_OUTPUT
+          
+          # Check if it's a prerelease (contains alpha, beta, rc)
+          if [[ "$VERSION" =~ (alpha|beta|rc) ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "📦 Releasing version: $VERSION"
+          echo "🔖 Tag: $VERSION"
+          echo "🚧 Prerelease: $(echo $VERSION | grep -E '(alpha|beta|rc)' && echo 'true' || echo 'false')"
+
+      - name: 📋 Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)\.[0-9]+)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3 or v1.2.3-alpha.1"
+            exit 1
+          fi
+          echo "✅ Version format is valid"
+
+  # ===============================
+  # BUILD RELEASE ARTIFACTS
+  # ===============================
+  build:
+    name: 🏗️ Build Release
+    runs-on: ubuntu-latest
+    needs: [validate]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Install dependencies
+        run: |
+          npm ci
+          cd backend && npm ci
+          cd ../frontend && npm ci
+          cd ../shared && npm ci
+
+      - name: 🏗️ Build all packages
+        run: |
+          echo "🏗️ Building shared package..."
+          cd shared && npm run build
+          echo "🏗️ Building backend..."
+          cd ../backend && npm run build
+          echo "🏗️ Building frontend..."
+          cd ../frontend && npm run build
+
+      - name: 🧪 Run tests
+        run: |
+          echo "🧪 Running backend tests..."
+          cd backend && npm run test:ci
+          echo "🧪 Running frontend tests..."
+          cd ../frontend && npm run test:coverage
+
+      - name: 📦 Create release archives
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Create backend archive
+          cd backend
+          tar -czf "../foodtracker-backend-${VERSION}.tar.gz" \
+            --exclude=node_modules \
+            --exclude=coverage \
+            --exclude=.env* \
+            --exclude=*.log \
+            .
+          
+          # Create frontend archive
+          cd ../frontend
+          tar -czf "../foodtracker-frontend-${VERSION}.tar.gz" \
+            --exclude=node_modules \
+            --exclude=test-results \
+            --exclude=playwright-report \
+            --exclude=.env* \
+            .
+          
+          # Create full source archive
+          cd ..
+          tar -czf "foodtracker-full-${VERSION}.tar.gz" \
+            --exclude=node_modules \
+            --exclude=*/node_modules \
+            --exclude=coverage \
+            --exclude=*/coverage \
+            --exclude=.env* \
+            --exclude=*/.env* \
+            --exclude=*.log \
+            --exclude=*/dist \
+            --exclude=*/build \
+            .
+
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts-${{ needs.validate.outputs.version }}
+          path: |
+            *.tar.gz
+          retention-days: 30
+
+  # ===============================
+  # DOCKER RELEASE IMAGES
+  # ===============================
+  docker:
+    name: 🐳 Docker Release
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-backend:${{ needs.validate.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🎨 Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-frontend:${{ needs.validate.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===============================
+  # CREATE GITHUB RELEASE
+  # ===============================
+  release:
+    name: 📝 Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, docker]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📤 Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts-${{ needs.validate.outputs.version }}
+
+      - name: 📋 Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Get previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREV_TAG" ]; then
+            echo "📅 Changes since $PREV_TAG:" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            
+            # Get commits since last tag
+            git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> CHANGELOG.md
+          else
+            echo "🎉 Initial release" > CHANGELOG.md
+          fi
+          
+          echo "" >> CHANGELOG.md
+          echo "## 🚀 Features" >> CHANGELOG.md
+          echo "- Complete nutrition tracking application" >> CHANGELOG.md
+          echo "- Modern React frontend with TypeScript" >> CHANGELOG.md
+          echo "- NestJS backend with comprehensive API" >> CHANGELOG.md
+          echo "- Calendar interface for meal management" >> CHANGELOG.md
+          echo "- OpenFoodFacts integration" >> CHANGELOG.md
+          echo "- Docker containerization" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## 🐳 Docker Images" >> CHANGELOG.md
+          echo "- \`${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-backend:$VERSION\`" >> CHANGELOG.md
+          echo "- \`${{ secrets.DOCKERHUB_USERNAME }}/foodtracker-frontend:$VERSION\`" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## 📦 Installation" >> CHANGELOG.md
+          echo "\`\`\`bash" >> CHANGELOG.md
+          echo "# Download and extract" >> CHANGELOG.md
+          echo "wget https://github.com/${{ github.repository }}/releases/download/$VERSION/foodtracker-full-$VERSION.tar.gz" >> CHANGELOG.md
+          echo "tar -xzf foodtracker-full-$VERSION.tar.gz" >> CHANGELOG.md
+          echo "cd foodtracker" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "# Using Docker Compose" >> CHANGELOG.md
+          echo "docker-compose up -d" >> CHANGELOG.md
+          echo "\`\`\`" >> CHANGELOG.md
+
+      - name: 🚀 Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          release_name: FoodTracker ${{ needs.validate.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+
+      - name: 📎 Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./foodtracker-full-${{ needs.validate.outputs.version }}.tar.gz
+          asset_name: foodtracker-full-${{ needs.validate.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
+
+  # ===============================
+  # POST-RELEASE NOTIFICATIONS
+  # ===============================
+  notify:
+    name: 📢 Post-Release Notifications
+    runs-on: ubuntu-latest
+    needs: [validate, build, docker, release]
+    if: always()
+
+    steps:
+      - name: 🎉 Success notification
+        if: needs.release.result == 'success'
+        run: |
+          echo "🎉 Release ${{ needs.validate.outputs.version }} completed successfully!"
+          echo "📦 GitHub Release: Created"
+          echo "🐳 Docker Images: Published"
+          echo "📋 Changelog: Generated"
+          echo ""
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.tag }}"
+
+      - name: ❌ Failure notification
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ Release ${{ needs.validate.outputs.version }} failed!"
+          echo "🔍 Build: ${{ needs.build.result }}"
+          echo "🐳 Docker: ${{ needs.docker.result }}"
+          echo "📝 Release: ${{ needs.release.result }}"
+          exit 1
