@@ -232,6 +232,7 @@ describe('RegisterPage', () => {
     // Test medium password (8+ chars with lowercase and numbers but no uppercase)
     await user.clear(passwordInput);
     await user.type(passwordInput, 'medium12');
+    await user.type(passwordInput, 'medium123');
     await waitFor(() => {
       expect(screen.getByText(/medium/i)).toBeInTheDocument();
     });
@@ -244,4 +245,30 @@ describe('RegisterPage', () => {
     });
   });
 
+  it('shows validation errors for all fields', async () => {
+    renderRegisterPage();
+
+    // Fill with invalid data to trigger validation
+    await user.type(screen.getByLabelText('Name'), 'a'); // Too short
+    await user.type(screen.getByLabelText('Email'), 'invalid'); // Invalid email
+    await user.type(screen.getByLabelText('Password'), '123'); // Too short
+    await user.type(screen.getByLabelText('Confirm Password'), '456'); // Doesn't match
+
+    // Clear fields to trigger required validation
+    await user.clear(screen.getByLabelText('Name'));
+    await user.clear(screen.getByLabelText('Email'));
+    await user.clear(screen.getByLabelText('Password'));
+    await user.clear(screen.getByLabelText('Confirm Password'));
+
+    // Submit empty form
+    await user.click(screen.getByRole('button', { name: /create account/i }));
+
+    // Check for all validation errors
+    await waitFor(() => {
+      expect(screen.getByText('Name is required')).toBeInTheDocument();
+      expect(screen.getByText('Email is required')).toBeInTheDocument();
+      expect(screen.getByText('Password is required')).toBeInTheDocument();
+      expect(screen.getByText('Please confirm your password')).toBeInTheDocument();
+    });
+  });
 });
