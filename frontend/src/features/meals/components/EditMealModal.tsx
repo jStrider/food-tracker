@@ -217,13 +217,13 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
                     const newTime = e.target.value;
                     handleChange('time', newTime);
                     // Update meal type preview when time changes
-                    if (!formData.category || formData.category === '') {
+                    if (!formData.category) {
                       setShowMealTypePreview(true);
                     }
                   }}
                   placeholder="HH:MM"
                 />
-                {showMealTypePreview && formData.time && (!formData.category || formData.category === '') && (
+                {showMealTypePreview && formData.time && !formData.category && (
                   <div className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
                     <span className="text-blue-700">
                       💡 Based on time ({formData.time}), this will be categorized as: <strong>{getMealTypeFromTime(formData.time)}</strong>
@@ -237,10 +237,10 @@ const EditMealModal: React.FC<EditMealModalProps> = ({
 
               <div className="space-y-2">
                 <Label htmlFor="meal-type-edit">Meal Type (Optional)</Label>
-                <Select value={formData.category} onValueChange={(value: MealType | '') => {
-                  handleChange('category', value);
+                <Select value={formData.category} onValueChange={(value) => {
+                  handleChange('category', value || undefined);
                   // Hide preview when user manually selects a type
-                  if (value !== '') {
+                  if (value) {
                     setShowMealTypePreview(false);
                   } else {
                     setShowMealTypePreview(true);

@@ -11,7 +11,7 @@ const getCurrentTime = (): string => {
 
 export interface MealFormData {
   name: string;
-  type: MealType | '';
+  type: MealType | undefined;
   time: string;
   date: Date | undefined;
   customMacros: {
@@ -48,7 +48,7 @@ export const useMealForm = (options: UseMealFormOptions = {}) => {
   // Form state
   const [formData, setFormData] = useState<MealFormData>({
     name: defaultValues.name || '',
-    type: defaultValues.type || '',
+    type: defaultValues.type || undefined,
     time: defaultValues.time || (autoFillTime ? getCurrentTime() : ''),
     date: defaultValues.date || new Date(),
     customMacros: {
@@ -61,7 +61,7 @@ export const useMealForm = (options: UseMealFormOptions = {}) => {
 
   // UI state
   const [showMealTypePreview, setShowMealTypePreview] = useState<boolean>(
-    showTimeBasedSuggestions && (!formData.type || formData.type === '') && !!formData.time
+    showTimeBasedSuggestions && !formData.type && !!formData.time
   );
   const [isDirty, setIsDirty] = useState<boolean>(false);
 
@@ -81,14 +81,14 @@ export const useMealForm = (options: UseMealFormOptions = {}) => {
       
       // Special handling for time changes
       if (field === 'time' && showTimeBasedSuggestions) {
-        if (!newData.type || newData.type === '') {
+        if (!newData.type) {
           setShowMealTypePreview(true);
         }
       }
       
       // Special handling for type changes
       if (field === 'type') {
-        setShowMealTypePreview(value === '');
+        setShowMealTypePreview(!value);
       }
       
       return newData;
