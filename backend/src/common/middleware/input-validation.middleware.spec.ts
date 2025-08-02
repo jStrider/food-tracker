@@ -205,9 +205,9 @@ describe('InputValidationMiddleware', () => {
   describe('Logging and Monitoring', () => {
     it('should log validation for sensitive endpoints', () => {
       const logSpy = jest.spyOn(middleware['logger'], 'log');
-      mockRequest.path = '/auth/login';
+      const testRequest = { ...mockRequest, path: '/auth/login' };
 
-      middleware.use(mockRequest as Request, mockResponse as Response, nextFunction);
+      middleware.use(testRequest as Request, mockResponse as Response, nextFunction);
 
       expect(logSpy).toHaveBeenCalledWith(
         expect.stringContaining('Security validation passed')

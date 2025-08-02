@@ -159,7 +159,7 @@ export class NutritionGoalsService {
   /**
    * Delete nutrition goals
    */
-  async deleteGoals(id: string): Promise<void> {
+  async deleteGoals(id: string, userId: string): Promise<void> {
     const result = await this.nutritionGoalsRepository.delete({
       id,
       userId,
@@ -251,6 +251,10 @@ export class NutritionGoalsService {
       description: `Auto-generated goals for ${templateDto.goalType}`,
       period: GoalPeriod.DAILY,
       goalType: templateDto.goalType,
+      calorieGoal: calculatedGoals.calorieGoal || 2000,
+      proteinGoal: calculatedGoals.proteinGoal || 150,
+      carbGoal: calculatedGoals.carbGoal || 250,
+      fatGoal: calculatedGoals.fatGoal || 65,
       ...calculatedGoals,
     };
 
