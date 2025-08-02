@@ -29,6 +29,15 @@ describe("CustomThrottlerGuard", () => {
       providers: [
         CustomThrottlerGuard,
         {
+          provide: 'THROTTLER:MODULE_OPTIONS',
+          useValue: {
+            throttlers: [],
+            storage: {},
+            ignoreUserAgents: [],
+            skipIf: () => false,
+          },
+        },
+        {
           provide: Reflector,
           useValue: {
             get: jest.fn(),
