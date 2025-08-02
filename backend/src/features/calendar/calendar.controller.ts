@@ -12,7 +12,8 @@ export class CalendarController {
   @ApiOperation({ summary: "Get calendar month view with nutrition data" })
   @ApiResponse({ status: 200, description: "Monthly calendar data" })
   getMonthView(@Query("month") month: string, @Query("year") year: string) {
-    return this.calendarService.getMonthView(parseInt(month), parseInt(year));
+    const userId = 'default-user'; // TODO: Get from auth context
+    return this.calendarService.getMonthView(parseInt(month), parseInt(year), userId);
   }
 
   @Post("month/with-goals")
@@ -26,9 +27,11 @@ export class CalendarController {
     @Query("year") year: string,
     @Body() goals: NutritionGoals,
   ) {
+    const userId = 'default-user'; // TODO: Get from auth context
     return this.calendarService.getMonthView(
       parseInt(month),
       parseInt(year),
+      userId,
       goals,
     );
   }
@@ -37,7 +40,8 @@ export class CalendarController {
   @ApiOperation({ summary: "Get calendar week view with nutrition data" })
   @ApiResponse({ status: 200, description: "Weekly calendar data" })
   getWeekView(@Query("startDate") startDate: string) {
-    return this.calendarService.getWeekView(startDate);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return this.calendarService.getWeekView(startDate, userId);
   }
 
   @Post("week/with-goals")
@@ -50,7 +54,8 @@ export class CalendarController {
     @Query("startDate") startDate: string,
     @Body() goals: NutritionGoals,
   ) {
-    return this.calendarService.getWeekView(startDate, goals);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return this.calendarService.getWeekView(startDate, userId, goals);
   }
 
   @Get("day")
@@ -59,7 +64,8 @@ export class CalendarController {
   })
   @ApiResponse({ status: 200, description: "Daily detailed data" })
   getDayView(@Query("date") date: string) {
-    return this.calendarService.getDayView(date);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return this.calendarService.getDayView(date, userId);
   }
 
   @Get("streaks")

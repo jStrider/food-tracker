@@ -1,13 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigController } from "./config.controller";
-import { ConfigService } from "./config.service";
+import { AppConfigService } from "./config.service";
 
 describe("ConfigController", () => {
   let controller: ConfigController;
-  let configService: ConfigService;
+  let configService: AppConfigService;
 
   const mockConfigService = {
-    getPublicConfig: jest.fn(),
+    getAllConfig: jest.fn(),
+    getJwtSecret: jest.fn(),
+    getDatabasePath: jest.fn(),
+    isDevelopment: jest.fn(),
+    isProduction: jest.fn(),
+    getNodeEnv: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -17,21 +22,21 @@ describe("ConfigController", () => {
       controllers: [ConfigController],
       providers: [
         {
-          provide: ConfigService,
+          provide: AppConfigService,
           useValue: mockConfigService,
         },
       ],
     }).compile();
 
     controller = module.get<ConfigController>(ConfigController);
-    configService = module.get<ConfigService>(ConfigService);
+    configService = module.get<AppConfigService>(AppConfigService);
   });
 
   it("should be defined", () => {
     expect(controller).toBeDefined();
   });
 
-  describe("getConfig", () => {
+  describe("getConfiguration", () => {
     it("should return public configuration", () => {
       const mockPublicConfig = {
         database: {
@@ -52,12 +57,15 @@ describe("ConfigController", () => {
         },
       };
 
-      mockConfigService.getPublicConfig.mockReturnValue(mockPublicConfig);
+      mockConfigService.getAllConfig.mockReturnValue(mockPublicConfig);
 
-      const result = controller.getConfig();
+      const result = controller.getConfiguration();
 
-      expect(configService.getPublicConfig).toHaveBeenCalled();
-      expect(result).toEqual(mockPublicConfig);
+      expect(configService.getAllConfig).toHaveBeenCalled();
+      expect(result).toHaveProperty('message', 'Configuration retrieved successfully');
+      expect(result).toHaveProperty('data');
+      expect(result).toHaveProperty('timestamp');
+      expect(result.data).toEqual(mockPublicConfig);
     });
 
     it("should not expose sensitive configuration", () => {
@@ -73,22 +81,25 @@ describe("ConfigController", () => {
         },
       };
 
-      mockConfigService.getPublicConfig.mockReturnValue(mockPublicConfig);
+      mockConfigService.getAllConfig.mockReturnValue(mockPublicConfig);
 
-      const result = controller.getConfig();
+      const result = controller.getConfiguration();
 
-      expect(result).not.toHaveProperty("jwt");
-      expect(result).not.toHaveProperty("secrets");
-      expect(result.database).not.toHaveProperty("password");
-      expect(result.database).not.toHaveProperty("username");
+      expect(result).toHaveProperty('data');
+      expect(result.data).not.toHaveProperty("jwt");
+      expect(result.data).not.toHaveProperty("secrets");
+      expect(result.data.database).not.toHaveProperty("password");
+      expect(result.data.database).not.toHaveProperty("username");
     });
 
     it("should handle empty configuration", () => {
-      mockConfigService.getPublicConfig.mockReturnValue({});
+      mockConfigService.getAllConfig.mockReturnValue({});
 
-      const result = controller.getConfig();
+      const result = controller.getConfiguration();
 
-      expect(result).toEqual({});
+      expect(result).toHaveProperty('message');
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual({});
     });
 
     it("should maintain configuration structure", () => {
@@ -107,15 +118,16 @@ describe("ConfigController", () => {
         },
       };
 
-      mockConfigService.getPublicConfig.mockReturnValue(mockPublicConfig);
+      mockConfigService.getAllConfig.mockReturnValue(mockPublicConfig);
 
-      const result = controller.getConfig();
+      const result = controller.getConfiguration();
 
-      expect(result).toHaveProperty("database");
-      expect(result).toHaveProperty("cors");
-      expect(result).toHaveProperty("rateLimit");
-      expect(result.database).toHaveProperty("type");
-      expect(result.database).toHaveProperty("logging");
+      expect(result).toHaveProperty('data');
+      expect(result.data).toHaveProperty("database");
+      expect(result.data).toHaveProperty("cors");
+      expect(result.data).toHaveProperty("rateLimit");
+      expect(result.data.database).toHaveProperty("type");
+      expect(result.data.database).toHaveProperty("logging");
     });
   });
 });

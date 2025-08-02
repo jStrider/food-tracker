@@ -87,6 +87,7 @@ export class CalendarService {
   async getMonthView(
     month: number,
     year: number,
+    userId: string,
     goals?: NutritionGoals,
   ): Promise<MonthData> {
     try {
@@ -138,7 +139,7 @@ export class CalendarService {
 
         if (dayMeals.length > 0) {
           const dayData =
-            await this.nutritionService.getDailyNutrition(dateKey);
+            await this.nutritionService.getDailyNutrition(dateKey, userId);
           dayNutrition = {
             calories: dayData.calories,
             protein: dayData.protein,
@@ -235,6 +236,7 @@ export class CalendarService {
 
   async getWeekView(
     startDate: string,
+    userId: string,
     goals?: NutritionGoals,
   ): Promise<WeekData> {
     const start = startOfWeek(new Date(startDate));
@@ -261,6 +263,7 @@ export class CalendarService {
     });
 
     const weeklyNutrition = await this.nutritionService.getWeeklyNutrition(
+      userId,
       format(start, "yyyy-MM-dd"),
     );
 
@@ -316,8 +319,8 @@ export class CalendarService {
     };
   }
 
-  async getDayView(date: string) {
-    return this.nutritionService.getDailyNutrition(date);
+  async getDayView(date: string, userId: string) {
+    return this.nutritionService.getDailyNutrition(date, userId);
   }
 
   /**

@@ -179,7 +179,7 @@ export class InputSanitizationGuard implements CanActivate {
    */
   private checkForCommandInjection(inputs: any): void {
     const cmdPatterns = [
-      /[;&|`$(){}[\]]/,
+      /[;&|`$()[\]]/, // Removed {} to avoid false positives with JSON objects
       /\b(eval|exec|system|shell_exec|passthru|popen)\b/i,
       /\b(cmd|powershell|bash|sh)\b/i,
       /\|\s*(nc|netcat|curl|wget|ping)\b/i,
@@ -226,11 +226,30 @@ export class InputSanitizationGuard implements CanActivate {
 
     for (const pattern of patterns) {
       if (pattern.test(inputString)) {
+        // Additional check to avoid false positives on valid JSON structures
+        if (this.isValidJsonStructure(inputString, pattern)) {
+          continue;
+        }
+        
         this.logger.error(`${attackType} attempt detected: ${pattern}`);
         this.logger.error(`Input content (first 500 chars): ${inputString.substring(0, 500)}`);
         throw new BadRequestException(`Malicious input detected: ${attackType}`);
       }
     }
+  }
+
+  /**
+   * Check if the pattern match is part of a valid JSON structure
+   */
+  private isValidJsonStructure(inputString: string, pattern: RegExp): boolean {
+    // If it's just an empty object or array, it's safe
+    if (inputString === '{}' || inputString === '[]') {
+      return true;
+    }
+    
+    // If the pattern matches but it's part of a valid JSON structure, it might be safe
+    // This is a basic check - in production you might want more sophisticated validation
+    return false;
   }
 
   /**

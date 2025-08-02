@@ -455,24 +455,26 @@ export class McpService {
 
         // Nutrition tracking
         case "get_daily_nutrition":
-          return this.nutritionService.getDailyNutrition(params.date);
+          return this.nutritionService.getDailyNutrition(params.date, 'default-user');
 
         case "get_meal_nutrition":
-          return this.nutritionService.getMealNutrition(params.mealId);
+          return this.nutritionService.getMealNutrition(params.mealId, 'default-user');
 
         case "get_weekly_nutrition":
-          return this.nutritionService.getWeeklyNutrition(params.startDate);
+          return this.nutritionService.getWeeklyNutrition(params.startDate, 'default-user');
 
         case "get_monthly_nutrition":
           return this.nutritionService.getMonthlyNutrition(
             params.month,
             params.year,
+            'default-user',
           );
 
         case "compare_to_goals":
           return this.nutritionService.compareToGoals(
             params.date,
             params.goals,
+            'default-user',
           );
 
         case "get_macro_breakdown":
@@ -558,18 +560,19 @@ export class McpService {
         case "nutrition":
           const today = new Date().toISOString().split("T")[0];
           if (subResource === "daily") {
-            return this.nutritionService.getDailyNutrition(today);
+            return this.nutritionService.getDailyNutrition(today, 'default-user');
           } else if (subResource === "weekly") {
-            return this.nutritionService.getWeeklyNutrition(today);
+            return this.nutritionService.getWeeklyNutrition(today, 'default-user');
           } else if (subResource === "monthly") {
             const now = new Date();
             return this.nutritionService.getMonthlyNutrition(
               now.getMonth() + 1,
               now.getFullYear(),
+              'default-user',
             );
           }
           // Default to weekly if no subResource
-          return this.nutritionService.getWeeklyNutrition(today);
+          return this.nutritionService.getWeeklyNutrition(today, 'default-user');
 
         case "system":
           if (subResource === "info") {

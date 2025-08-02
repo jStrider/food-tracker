@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, Index } from "typeorm";
+import { MigrationInterface, QueryRunner, Table, TableIndex } from "typeorm";
 
 export class AddNutritionGoals1754075800000 implements MigrationInterface {
   name = 'AddNutritionGoals1754075800000';
@@ -275,12 +275,18 @@ export class AddNutritionGoals1754075800000 implements MigrationInterface {
     // Create indexes
     await queryRunner.createIndex(
       "nutrition_goals",
-      new Index("IDX_nutrition_goals_userId_period", ["userId", "period"])
+      new TableIndex({
+        name: "IDX_nutrition_goals_userId_period",
+        columnNames: ["userId", "period"]
+      })
     );
 
     await queryRunner.createIndex(
       "nutrition_goals",
-      new Index("IDX_nutrition_goals_userId_isActive", ["userId", "isActive"])
+      new TableIndex({
+        name: "IDX_nutrition_goals_userId_isActive",
+        columnNames: ["userId", "isActive"]
+      })
     );
 
     // Create unique constraint for active goals per period per user

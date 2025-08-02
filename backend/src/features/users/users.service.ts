@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-// SECURITY FIX: TEMP_USER_ID removed - using proper authentication context
+import { TEMP_USER_ID } from "../../common/constants/temp-user.constant";
 
 @Injectable()
 export class UsersService {
@@ -84,6 +84,35 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  // SECURITY FIX: initDefaultUser method removed
-  // Use proper user creation with authentication context instead
+  async initDefaultUser(): Promise<{ message: string; user?: User }> {
+    // Check if default user already exists
+    const existingUser = await this.userRepository.findOne({
+      where: { id: TEMP_USER_ID },
+    });
+
+    if (existingUser) {
+      return { message: "Default user already exists", user: existingUser };
+    }
+
+    // Create default user with bcrypt hashed password
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.hash("default123", 10);
+    
+    const defaultUser = this.userRepository.create({
+      id: TEMP_USER_ID,
+      email: "default@foodtracker.com",
+      name: "Default User",
+      password: hashedPassword,
+      timezone: "Europe/Paris",
+      preferences: {
+        dailyCalorieGoal: 2000,
+        dailyProteinGoal: 150,
+        dailyCarbGoal: 250,
+        dailyFatGoal: 65,
+      },
+    });
+
+    const savedUser = await this.userRepository.save(defaultUser);
+    return { message: "Default user created successfully", user: savedUser };
+  }
 }

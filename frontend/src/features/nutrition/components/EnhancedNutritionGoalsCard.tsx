@@ -36,11 +36,7 @@ interface EnhancedNutritionGoalsCardProps {
   showCreateButton?: boolean;
 }
 
-const statusColors = {
-  under: 'bg-red-500',
-  met: 'bg-green-500',
-  over: 'bg-yellow-500',
-};
+
 
 const statusTextColors = {
   under: 'text-red-600',
@@ -125,9 +121,7 @@ const EnhancedNutritionGoalsCard: React.FC<EnhancedNutritionGoalsCardProps> = ({
     return Math.round((actual / goal) * 100);
   };
 
-  const getProgressColor = (status: 'under' | 'met' | 'over'): string => {
-    return statusColors[status];
-  };
+
 
   const ProgressBar: React.FC<{
     actual: number;

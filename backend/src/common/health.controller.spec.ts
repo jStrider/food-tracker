@@ -16,41 +16,43 @@ describe("HealthController", () => {
     expect(controller).toBeDefined();
   });
 
-  describe("health", () => {
+  describe("check", () => {
     it("should return health status", () => {
-      const result = controller.health();
+      const result = controller.check();
 
       expect(result).toEqual({
         status: "ok",
-        message: "FoodTracker backend is running",
         timestamp: expect.any(String),
-        uptime: expect.any(Number),
+        service: "foodtracker-backend",
+        environment: expect.any(String),
+        rateLimitingDisabled: expect.any(Boolean),
       });
     });
 
     it("should return current timestamp", () => {
-      const result = controller.health();
+      const result = controller.check();
       const timestamp = new Date(result.timestamp);
 
       expect(timestamp).toBeInstanceOf(Date);
       expect(timestamp.getTime()).toBeCloseTo(Date.now(), -2); // Within 100ms
     });
 
-    it("should return positive uptime", () => {
-      const result = controller.health();
+    it("should return environment", () => {
+      const result = controller.check();
 
-      expect(result.uptime).toBeGreaterThan(0);
-      expect(typeof result.uptime).toBe("number");
+      expect(result.environment).toBeDefined();
+      expect(typeof result.environment).toBe("string");
     });
 
     it("should return consistent structure", () => {
-      const result = controller.health();
+      const result = controller.check();
 
       expect(result).toHaveProperty("status");
-      expect(result).toHaveProperty("message");
+      expect(result).toHaveProperty("service");
       expect(result).toHaveProperty("timestamp");
-      expect(result).toHaveProperty("uptime");
-      expect(Object.keys(result)).toHaveLength(4);
+      expect(result).toHaveProperty("environment");
+      expect(result).toHaveProperty("rateLimitingDisabled");
+      expect(Object.keys(result)).toHaveLength(5);
     });
   });
 });

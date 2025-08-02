@@ -89,7 +89,6 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       if (!type) {
         setShowMealTypePreview(true);
         // Auto-suggest meal type based on time (but don't force it)
-        const suggestedType = getMealTypeFromTime(newTime);
         if (!defaultType) {
           // Only show preview, don't set the type automatically
         }
@@ -258,7 +257,7 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="meal-type">Meal Type (Optional)</Label>
                 <Select value={type} onValueChange={(value) => {
-                  setType((value || undefined) as MealType | undefined);
+                  setType(value as MealType | '');
                   // Hide preview when user manually selects a type
                   if (value) {
                     setShowMealTypePreview(false);

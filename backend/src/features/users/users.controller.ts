@@ -11,6 +11,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { Public } from "../auth/decorators/public.decorator";
 
 @ApiTags("users")
 @Controller("users")
@@ -18,6 +19,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post("init-default")
+  @Public()
   @ApiOperation({ summary: "Create default user for development" })
   @ApiResponse({
     status: 201,

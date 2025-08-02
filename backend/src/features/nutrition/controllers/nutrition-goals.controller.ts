@@ -36,7 +36,8 @@ export class NutritionGoalsController {
   @ApiOperation({ summary: 'Get all nutrition goals for user' })
   @ApiResponse({ status: 200, description: 'Goals retrieved successfully' })
   async getGoals(@Query() query: NutritionGoalsQueryDto) {
-    return await this.goalsService.getGoals(query);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.getGoals(query, userId);
   }
 
   @Get('templates')
@@ -51,7 +52,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 200, description: 'Active goal retrieved successfully' })
   @ApiResponse({ status: 404, description: 'No active goal found for period' })
   async getActiveGoal(@Param('period') period: GoalPeriod) {
-    return await this.goalsService.getActiveGoal(period);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.getActiveGoal(period, userId);
   }
 
   @Get(':id')
@@ -59,7 +61,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 200, description: 'Goal retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Goal not found' })
   async getGoalById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.goalsService.getGoalById(id);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.getGoalById(id, userId);
   }
 
   @Get(':id/progress/:date')
@@ -69,7 +72,8 @@ export class NutritionGoalsController {
     @Param('id', ParseUUIDPipe) goalId: string,
     @Param('date') date: string,
   ) {
-    return await this.goalsService.getGoalProgress(goalId, date);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.getGoalProgress(goalId, date, userId);
   }
 
   @Get(':id/progress/range')
@@ -80,7 +84,8 @@ export class NutritionGoalsController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
-    return await this.goalsService.getGoalProgressRange(goalId, startDate, endDate);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.getGoalProgressRange(goalId, startDate, endDate, userId);
   }
 
   @Post()
@@ -89,7 +94,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 400, description: 'Invalid goal data' })
   @ApiResponse({ status: 409, description: 'Active goal already exists for period' })
   async createGoals(@Body() createDto: CreateNutritionGoalsDto) {
-    return await this.goalsService.createGoals(createDto);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.createGoals(createDto, userId);
   }
 
   @Post('from-template')
@@ -97,7 +103,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 201, description: 'Goals created from template successfully' })
   @ApiResponse({ status: 400, description: 'Invalid template data' })
   async createFromTemplate(@Body() templateDto: GoalTemplateDto) {
-    return await this.goalsService.createFromTemplate(templateDto);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.createFromTemplate(templateDto, userId);
   }
 
   @Put(':id')
@@ -109,7 +116,8 @@ export class NutritionGoalsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDto: UpdateNutritionGoalsDto,
   ) {
-    return await this.goalsService.updateGoals(id, updateDto);
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.updateGoals(id, updateDto, userId);
   }
 
   @Put(':id/activate')
@@ -118,7 +126,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 404, description: 'Goal not found' })
   @HttpCode(HttpStatus.OK)
   async activateGoal(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.goalsService.updateGoals(id, { isActive: true });
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.updateGoals(id, { isActive: true }, userId);
   }
 
   @Put(':id/deactivate')
@@ -127,7 +136,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 404, description: 'Goal not found' })
   @HttpCode(HttpStatus.OK)
   async deactivateGoal(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.goalsService.updateGoals(id, { isActive: false });
+    const userId = 'default-user'; // TODO: Get from auth context
+    return await this.goalsService.updateGoals(id, { isActive: false }, userId);
   }
 
   @Delete(':id')
@@ -136,7 +146,8 @@ export class NutritionGoalsController {
   @ApiResponse({ status: 404, description: 'Goal not found' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteGoals(@Param('id', ParseUUIDPipe) id: string) {
-    await this.goalsService.deleteGoals(id);
+    const userId = 'default-user'; // TODO: Get from auth context
+    await this.goalsService.deleteGoals(id, userId);
   }
 
   @Get('analytics/summary')

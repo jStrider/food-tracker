@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import {
   nutritionGoalsApi,
-  NutritionGoalsEntity,
+
   CreateNutritionGoalsDto,
   UpdateNutritionGoalsDto,
   NutritionGoalsQuery,

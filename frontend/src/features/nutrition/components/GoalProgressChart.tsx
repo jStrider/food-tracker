@@ -15,7 +15,7 @@ export const GoalProgressChart: React.FC<GoalProgressChartProps> = ({ goalId }) 
   const chartData = useMemo(() => {
     if (!weekProgress?.progressData) return null;
 
-    const days = weekProgress.progressData.map((progress, index) => {
+    const days = weekProgress.progressData.map((progress) => {
       const date = new Date(progress.date);
       const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
       
@@ -175,7 +175,7 @@ export const GoalProgressChart: React.FC<GoalProgressChartProps> = ({ goalId }) 
           <div className="space-y-4">
             {/* Progress bars for each day */}
             <div className="grid grid-cols-7 gap-2">
-              {chartData.map((day, index) => (
+              {chartData.map((day) => (
                 <div key={day.date} className="text-center space-y-2">
                   <div className="text-xs font-medium text-gray-600">
                     {day.dayName}

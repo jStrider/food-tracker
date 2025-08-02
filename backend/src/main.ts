@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { getCorsConfig } from "./config/cors.config";
-import * as helmet from "helmet";
+import helmet from "helmet";
 import * as compression from "compression";
 
 async function bootstrap() {
