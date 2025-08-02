@@ -1,30 +1,37 @@
 module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
-  testRegex: '.*\\.spec\\.ts$',
+  rootDir: '.',
+  
+  // Test patterns
+  testMatch: [
+    '<rootDir>/src/**/*.spec.ts',
+    '<rootDir>/test/**/*.e2e-spec.ts'
+  ],
+  
+  // Transform configuration
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
+  
+  // Coverage configuration
   collectCoverageFrom: [
-    '**/*.(t|j)s',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
+    'src/**/*.(t|j)s',
+    '!src/**/*.spec.ts',
+    '!src/**/*.e2e-spec.ts',
+    '!src/main.ts',
+    '!src/**/*.module.ts',
+    '!src/**/index.ts',
     '!**/migrations/**',
-    '!**/dist/**',
-    '!main.ts',
     '!**/*.interface.ts',
     '!**/*.enum.ts',
     '!**/*.dto.ts',
   ],
-  coverageDirectory: '../coverage',
-  coverageReporters: [
-    'text',
-    'text-summary',
-    'lcov',
-    'html',
-    'json',
-    'json-summary',
-  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'text-summary', 'lcov', 'html', 'json', 'json-summary'],
+  
+  // Coverage thresholds
   coverageThreshold: {
     global: {
       branches: 80,
@@ -33,14 +40,26 @@ module.exports = {
       statements: 80,
     },
   },
-  testEnvironment: 'node',
-  setupFilesAfterEnv: ['<rootDir>/../jest.setup.js'],
-  // Parallel test execution
+  
+  // Setup files
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  
+  // Module resolution
+  moduleNameMapper: {
+    '^src/(.*)$': '<rootDir>/src/$1',
+    '^test/(.*)$': '<rootDir>/test/$1',
+  },
+  
+  // Jest configuration for better error handling
+  verbose: true,
+  forceExit: true,
+  detectOpenHandles: true,
+  
+  // Performance settings
   maxWorkers: '50%',
-  // Test timeout
   testTimeout: 10000,
-  // Collect coverage on CI
   collectCoverage: process.env.CI === 'true',
+  
   // Reporters for CI
   reporters: process.env.CI
     ? [
@@ -65,12 +84,26 @@ module.exports = {
         ],
       ]
     : ['default'],
-  // Clear mocks between tests
+  
+  // Mock settings
   clearMocks: true,
-  // Restore mocks after each test
   restoreMocks: true,
-  // Module name mapping for absolute imports
-  moduleNameMapping: {
-    '^src/(.*)$': '<rootDir>/$1',
-  },
+  
+  // Projects configuration for unit and e2e tests
+  projects: [
+    {
+      displayName: 'unit',
+      testMatch: ['<rootDir>/src/**/*.spec.ts'],
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    },
+    {
+      displayName: 'e2e',
+      testMatch: ['<rootDir>/test/**/*.e2e-spec.ts'],
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    }
+  ]
 };

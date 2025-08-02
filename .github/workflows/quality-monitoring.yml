@@ -1,0 +1,281 @@
+name: Quality Monitoring
+
+on:
+  schedule:
+    # Run quality checks daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Install dependencies
+        run: npm run install:all
+        
+      - name: Check for vulnerabilities
+        run: |
+          echo "🔍 Checking backend dependencies..."
+          cd backend
+          npm audit --audit-level critical --json > ../backend-audit.json || true
+          
+          echo "🔍 Checking frontend dependencies..."
+          cd ../frontend
+          npm audit --audit-level critical --json > ../frontend-audit.json || true
+          
+      - name: Generate security report
+        run: |
+          node -e "
+            const fs = require('fs');
+            const backendAudit = JSON.parse(fs.readFileSync('backend-audit.json', 'utf8'));
+            const frontendAudit = JSON.parse(fs.readFileSync('frontend-audit.json', 'utf8'));
+            
+            console.log('🛡️ Security Report');
+            console.log('==================');
+            
+            if (backendAudit.metadata) {
+              console.log(\`Backend vulnerabilities: \${backendAudit.metadata.vulnerabilities.total}\`);
+              console.log(\`  Critical: \${backendAudit.metadata.vulnerabilities.critical}\`);
+              console.log(\`  High: \${backendAudit.metadata.vulnerabilities.high}\`);
+              console.log(\`  Moderate: \${backendAudit.metadata.vulnerabilities.moderate}\`);
+              console.log(\`  Low: \${backendAudit.metadata.vulnerabilities.low}\`);
+            }
+            
+            if (frontendAudit.metadata) {
+              console.log(\`Frontend vulnerabilities: \${frontendAudit.metadata.vulnerabilities.total}\`);
+              console.log(\`  Critical: \${frontendAudit.metadata.vulnerabilities.critical}\`);
+              console.log(\`  High: \${frontendAudit.metadata.vulnerabilities.high}\`);
+              console.log(\`  Moderate: \${frontendAudit.metadata.vulnerabilities.moderate}\`);
+              console.log(\`  Low: \${frontendAudit.metadata.vulnerabilities.low}\`);
+            }
+            
+            const totalCritical = (backendAudit.metadata?.vulnerabilities.critical || 0) + 
+                                 (frontendAudit.metadata?.vulnerabilities.critical || 0);
+            const totalHigh = (backendAudit.metadata?.vulnerabilities.high || 0) + 
+                             (frontendAudit.metadata?.vulnerabilities.high || 0);
+            
+            if (totalCritical > 0 || totalHigh > 0) {
+              console.log('❌ Critical or high vulnerabilities found!');
+              process.exit(1);
+            } else {
+              console.log('✅ No critical or high vulnerabilities found');
+            }
+          "
+
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm run install:all
+        
+      - name: Build and analyze bundle size
+        run: |
+          echo "📦 Building frontend..."
+          cd frontend
+          npm run build
+          
+          echo "📊 Analyzing bundle size..."
+          du -sh dist/ || echo "Build directory not found"
+          
+          # Check if bundle size exceeds thresholds
+          BUNDLE_SIZE=$(du -s dist/ | cut -f1)
+          THRESHOLD=5000  # 5MB in KB
+          
+          echo "Bundle size: ${BUNDLE_SIZE}KB"
+          echo "Threshold: ${THRESHOLD}KB"
+          
+          if [ "$BUNDLE_SIZE" -gt "$THRESHOLD" ]; then
+            echo "❌ Bundle size (${BUNDLE_SIZE}KB) exceeds threshold (${THRESHOLD}KB)"
+            exit 1
+          else
+            echo "✅ Bundle size within acceptable limits"
+          fi
+          
+      - name: Backend performance check
+        run: |
+          echo "🔧 Starting backend performance check..."
+          cd backend
+          
+          # Check if build completes within reasonable time
+          timeout 300s npm run build || {
+            echo "❌ Backend build took too long (>5 minutes)"
+            exit 1
+          }
+          
+          echo "✅ Backend build completed within time limit"
+
+  code-quality-drift:
+    name: Code Quality Drift Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for comparison
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm run install:all
+        
+      - name: Run ESLint with metrics
+        run: |
+          echo "🔍 Running ESLint analysis..."
+          
+          # Backend linting
+          cd backend
+          npm run lint -- --format json --output-file ../backend-lint-results.json || true
+          
+          # Frontend linting
+          cd ../frontend
+          npm run lint -- --format json --output-file ../frontend-lint-results.json || true
+          
+          cd ..
+          
+      - name: Analyze code quality trends
+        run: |
+          node -e "
+            const fs = require('fs');
+            
+            try {
+              const backendResults = JSON.parse(fs.readFileSync('backend-lint-results.json', 'utf8'));
+              const frontendResults = JSON.parse(fs.readFileSync('frontend-lint-results.json', 'utf8'));
+              
+              const backendErrors = backendResults.reduce((sum, file) => sum + file.errorCount, 0);
+              const backendWarnings = backendResults.reduce((sum, file) => sum + file.warningCount, 0);
+              const frontendErrors = frontendResults.reduce((sum, file) => sum + file.errorCount, 0);
+              const frontendWarnings = frontendResults.reduce((sum, file) => sum + file.warningCount, 0);
+              
+              console.log('📊 Code Quality Metrics');
+              console.log('========================');
+              console.log(\`Backend - Errors: \${backendErrors}, Warnings: \${backendWarnings}\`);
+              console.log(\`Frontend - Errors: \${frontendErrors}, Warnings: \${frontendWarnings}\`);
+              
+              const totalErrors = backendErrors + frontendErrors;
+              const totalWarnings = backendWarnings + frontendWarnings;
+              
+              console.log(\`Total - Errors: \${totalErrors}, Warnings: \${totalWarnings}\`);
+              
+              // Fail if too many linting issues
+              if (totalErrors > 0) {
+                console.log('❌ ESLint errors found - code quality drift detected');
+                process.exit(1);
+              }
+              
+              if (totalWarnings > 50) {
+                console.log('⚠️  Too many ESLint warnings (>50) - consider cleanup');
+              } else {
+                console.log('✅ Code quality within acceptable limits');
+              }
+            } catch (error) {
+              console.log('⚠️  Could not analyze lint results:', error.message);
+            }
+          "
+
+  test-stability-check:
+    name: Test Stability Check
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: foodtracker_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm run install:all
+        
+      - name: Run tests multiple times to check stability
+        run: |
+          echo "🧪 Running stability tests..."
+          
+          FAILURES=0
+          TOTAL_RUNS=3
+          
+          for i in $(seq 1 $TOTAL_RUNS); do
+            echo "Test run $i of $TOTAL_RUNS"
+            
+            if ! npm run test:all; then
+              FAILURES=$((FAILURES + 1))
+              echo "❌ Test run $i failed"
+            else
+              echo "✅ Test run $i passed"
+            fi
+          done
+          
+          FAILURE_RATE=$((FAILURES * 100 / TOTAL_RUNS))
+          echo "Test failure rate: ${FAILURE_RATE}%"
+          
+          if [ "$FAILURE_RATE" -gt 10 ]; then
+            echo "❌ Test stability issue detected (${FAILURE_RATE}% failure rate)"
+            exit 1
+          else
+            echo "✅ Tests are stable (${FAILURE_RATE}% failure rate)"
+          fi
+        env:
+          NODE_ENV: test
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: foodtracker_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          JWT_SECRET: test-jwt-secret
+          REDIS_URL: redis://localhost:6379
