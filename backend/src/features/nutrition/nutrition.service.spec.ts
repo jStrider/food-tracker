@@ -1,11 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-<<<<<<< HEAD
 import { startOfWeek, endOfWeek, format } from "date-fns";
-=======
-import { startOfWeek, endOfWeek, format } from "date-fns";
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 import { NutritionService } from "./nutrition.service";
 import { Meal } from "../meals/entities/meal.entity";
 import { FoodEntry } from "../foods/entities/food-entry.entity";
@@ -35,41 +31,19 @@ describe("NutritionService", () => {
 
   // Helper to create mock meal with calculated nutrition
   const createMockMealWithNutrition = (meal: any, foodEntries: any[]) => {
-<<<<<<< HEAD
-    const mockFoods = foodEntries.map((entry) => ({
-      ...entry,
-      calculatedCalories:
-        entry.calories || (entry.food.calories * entry.quantity) / 100,
-      calculatedProtein:
-        entry.protein || (entry.food.protein * entry.quantity) / 100,
-      calculatedCarbs:
-        entry.carbs || (entry.food.carbs * entry.quantity) / 100,
-      calculatedFat: entry.fat || (entry.food.fat * entry.quantity) / 100,
-      food: entry.food,
-    }));
-
-    // Calculate totals for the getters
-    const totalCalories = mockFoods.reduce((sum, food) => sum + food.calculatedCalories, 0);
-    const totalProtein = mockFoods.reduce((sum, food) => sum + food.calculatedProtein, 0);
-    const totalCarbs = mockFoods.reduce((sum, food) => sum + food.calculatedCarbs, 0);
-    const totalFat = mockFoods.reduce((sum, food) => sum + food.calculatedFat, 0);
-    const totalFiber = mockFoods.reduce((sum, food) => sum + (food.food.fiber * food.quantity) / 100, 0);
-    const totalSugar = mockFoods.reduce((sum, food) => sum + (food.food.sugar * food.quantity) / 100, 0);
-    const totalSodium = mockFoods.reduce((sum, food) => sum + (food.food.sodium * food.quantity) / 100, 0);
-
-=======
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
     return {
       ...meal,
-      foods: mockFoods,
-      // Mock the getters that the service uses
-      get totalCalories() { return totalCalories; },
-      get totalProtein() { return totalProtein; },
-      get totalCarbs() { return totalCarbs; },
-      get totalFat() { return totalFat; },
-      get totalFiber() { return totalFiber; },
-      get totalSugar() { return totalSugar; },
-      get totalSodium() { return totalSodium; },
+      foods: foodEntries.map((entry) => ({
+        ...entry,
+        calculatedCalories:
+          entry.calories || (entry.food.calories * entry.quantity) / 100,
+        calculatedProtein:
+          entry.protein || (entry.food.protein * entry.quantity) / 100,
+        calculatedCarbs:
+          entry.carbs || (entry.food.carbs * entry.quantity) / 100,
+        calculatedFat: entry.fat || (entry.food.fat * entry.quantity) / 100,
+        food: entry.food,
+      })),
     };
   };
 
@@ -105,15 +79,7 @@ describe("NutritionService", () => {
 
       mockMealsRepository.findOne.mockResolvedValue(mockMeal);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getMealNutrition("1");
-=======
-      const result = await service.getMealNutrition("1");
->>>>>>> origin/main
-=======
-      const result = await service.getMealNutrition("1");
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result).toEqual({
         id: mockMeal.id,
@@ -133,7 +99,7 @@ describe("NutritionService", () => {
     it("should throw error when meal not found", async () => {
       mockMealsRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getMealNutrition("999", "user-1")).rejects.toThrow(
+      await expect(service.getMealNutrition("999")).rejects.toThrow(
         "Meal not found",
       );
     });
@@ -160,15 +126,7 @@ describe("NutritionService", () => {
 
       mockQueryBuilder.getMany.mockResolvedValue(mockMeals);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getDailyNutrition(date);
-=======
-      const result = await service.getDailyNutrition(date);
->>>>>>> origin/main
-=======
-      const result = await service.getDailyNutrition(date);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.date).toBe(date);
       expect(result.mealCount).toBe(2);
@@ -187,15 +145,7 @@ describe("NutritionService", () => {
     it("should return empty nutrition for day with no meals", async () => {
       mockQueryBuilder.getMany.mockResolvedValue([]);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getDailyNutrition("2024-01-15");
-=======
-      const result = await service.getDailyNutrition("2024-01-15");
->>>>>>> origin/main
-=======
-      const result = await service.getDailyNutrition("2024-01-15");
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.mealCount).toBe(0);
       expect(result.calories).toBe(0);
@@ -232,15 +182,7 @@ describe("NutritionService", () => {
 
       mockMealsRepository.find.mockResolvedValue(mockMeals);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getWeeklyNutrition(startDate);
-=======
-      const result = await service.getWeeklyNutrition(startDate);
->>>>>>> origin/main
-=======
-      const result = await service.getWeeklyNutrition(startDate);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.startDate).toBe(format(start, "yyyy-MM-dd"));
       expect(result.endDate).toBe(format(end, "yyyy-MM-dd"));
@@ -252,15 +194,7 @@ describe("NutritionService", () => {
     it("should handle empty week", async () => {
       mockMealsRepository.find.mockResolvedValue([]);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getWeeklyNutrition("2024-01-15");
-=======
-      const result = await service.getWeeklyNutrition("2024-01-15");
->>>>>>> origin/main
-=======
-      const result = await service.getWeeklyNutrition("2024-01-15");
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.days).toHaveLength(7);
       expect(result.totals.calories).toBe(0);
@@ -287,15 +221,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.getMonthlyNutrition(1, 2024);
-=======
-      const result = await service.getMonthlyNutrition(1, 2024);
->>>>>>> origin/main
-=======
-      const result = await service.getMonthlyNutrition(1, 2024);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result).toHaveLength(31); // January has 31 days
       expect(service.getDailyNutrition).toHaveBeenCalledTimes(31);
@@ -330,15 +256,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals);
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> origin/main
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.nutrition).toEqual(mockDailyNutrition);
       expect(result.goals).toEqual(goals);
@@ -373,15 +291,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals);
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> origin/main
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.percentages.calories).toBe(50); // 1000/2000 * 100
       expect(result.status.calories).toBe("under");
@@ -413,15 +323,7 @@ describe("NutritionService", () => {
         .spyOn(service, "getDailyNutrition")
         .mockResolvedValue(mockDailyNutrition);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
       const result = await service.compareToGoals("2024-01-15", goals);
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> origin/main
-=======
-      const result = await service.compareToGoals("2024-01-15", goals);
->>>>>>> bf05537 (feat: implement testing infrastructure Phase 2 - Framework Updates)
 
       expect(result.percentages.calories).toBe(125); // 2500/2000 * 100
       expect(result.status.calories).toBe("over");
