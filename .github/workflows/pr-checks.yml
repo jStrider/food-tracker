@@ -127,7 +127,7 @@ jobs:
           npm run test:coverage
 
       - name: 📊 Upload backend coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./backend/coverage/lcov.info
           flags: backend,pr
@@ -136,7 +136,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: 📊 Upload frontend coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./frontend/coverage/lcov.info
           flags: frontend,pr
