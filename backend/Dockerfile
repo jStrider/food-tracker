@@ -1,6 +1,6 @@
 # Backend Production Dockerfile
 # Multi-stage build for optimized production image
-FROM node:18-alpine AS base
+FROM node:24-alpine AS base
 
 # Install system dependencies and security updates
 RUN apk update && apk upgrade && \
@@ -53,7 +53,7 @@ RUN npm run build && \
     (npm rebuild bcrypt --build-from-source || npm install bcrypt@latest --force)
 
 # Production runtime image
-FROM node:18-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 # Install security updates and build dependencies for sqlite3
