@@ -1,5 +1,13 @@
 # 📊 FoodTracker
 
+[![CI Pipeline](https://github.com/username/foodtracker/workflows/🚀%20CI%2FCD%20Pipeline/badge.svg)](https://github.com/username/foodtracker/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/username/foodtracker/workflows/🔐%20Security%20Scan/badge.svg)](https://github.com/username/foodtracker/actions/workflows/security.yml)
+[![Backend Coverage](https://codecov.io/gh/username/foodtracker/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/username/foodtracker)
+[![Frontend Coverage](https://codecov.io/gh/username/foodtracker/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/username/foodtracker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+
 A comprehensive macro-nutrients and calories tracking application with an intuitive calendar interface, built with modern TypeScript technologies.
 
 ## 🎯 Features
@@ -237,18 +245,46 @@ FRONTEND_URL=http://localhost:3000
 VITE_API_URL=http://localhost:3001
 ```
 
-## 🧪 Testing
+## 🧪 Testing & Quality
 
+### Test Coverage Requirements
+- **Backend**: Minimum 80% coverage (unit + integration tests)
+- **Frontend**: Minimum 80% coverage (unit + component tests)
+- **E2E Tests**: Critical user flows with Playwright
+
+### Running Tests
 ```bash
-# Backend tests
-cd backend && npm test
+# Backend tests with coverage
+cd backend
+npm run test:cov              # Coverage report
+npm run test:e2e             # Integration tests
+npm run test:watch           # Watch mode
 
-# Frontend tests (if configured)
-cd frontend && npm test
+# Frontend tests with coverage
+cd frontend
+npm run test:coverage        # Unit tests with coverage
+npm run test:e2e            # E2E tests with Playwright
+npm run test:e2e:ui         # Interactive E2E test runner
 
-# E2E tests (if configured)
-npm run test:e2e
+# Full test suite (from root)
+npm run test                # Run all tests
+npm run lint                # ESLint + TypeScript checks
 ```
+
+### Quality Gates
+Our CI/CD pipeline enforces these quality standards:
+- ✅ **TypeScript**: Strict type checking with no errors
+- ✅ **ESLint**: Code style and best practices
+- ✅ **Security**: Vulnerability scanning with Trivy & npm audit
+- ✅ **Coverage**: 80% minimum for both backend and frontend
+- ✅ **Performance**: Lighthouse performance scores >80
+- ✅ **Accessibility**: WCAG 2.1 AA compliance (90%+ score)
+
+### Performance & Lighthouse
+- **Core Web Vitals**: LCP <2.5s, CLS <0.1, TBT <300ms
+- **Bundle Size**: <500KB JavaScript, <100KB CSS
+- **Image Optimization**: Modern formats (WebP, AVIF)
+- **Network**: HTTP/2, compression, efficient caching
 
 ## 📦 Deployment
 

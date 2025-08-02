@@ -1,0 +1,51 @@
+name: 🏷️ Update Badges
+
+on:
+  workflow_run:
+    workflows: ["🚀 CI/CD Pipeline", "🔐 Security Scan"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  update-badges:
+    name: 🏷️ Update README Badges
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Update badges
+        run: |
+          # Get the latest workflow run status
+          CI_STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci.yml/runs?per_page=1" | \
+            jq -r '.workflow_runs[0].conclusion // "unknown"')
+          
+          SECURITY_STATUS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/security.yml/runs?per_page=1" | \
+            jq -r '.workflow_runs[0].conclusion // "unknown"')
+
+          echo "CI Status: $CI_STATUS"
+          echo "Security Status: $SECURITY_STATUS"
+
+          # Update README with current status
+          sed -i 's|!\[CI Pipeline\].*|![CI Pipeline](https://github.com/${{ github.repository }}/workflows/🚀%20CI%2FCD%20Pipeline/badge.svg)|g' README.md
+          sed -i 's|!\[Security Scan\].*|![Security Scan](https://github.com/${{ github.repository }}/workflows/🔐%20Security%20Scan/badge.svg)|g' README.md
+          
+      - name: 📤 Commit badge updates
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add README.md
+            git commit -m "🏷️ Update status badges [skip ci]"
+            git push
+          fi

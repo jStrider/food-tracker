@@ -1,0 +1,36 @@
+# Global owners for the entire repository
+* @foodtracker-team
+
+# Backend specific files
+/backend/ @backend-team @foodtracker-team
+/backend/src/features/ @backend-team @api-team
+/backend/src/database/ @backend-team @database-team
+/backend/src/mcp/ @backend-team @mcp-team
+
+# Frontend specific files
+/frontend/ @frontend-team @foodtracker-team
+/frontend/src/components/ @frontend-team @ui-team
+/frontend/src/features/ @frontend-team @feature-team
+/frontend/e2e/ @frontend-team @qa-team
+
+# Shared types and interfaces
+/shared/ @backend-team @frontend-team @foodtracker-team
+
+# Infrastructure and deployment
+Dockerfile* @devops-team @foodtracker-team
+docker-compose*.yml @devops-team @foodtracker-team
+.github/workflows/ @devops-team @foodtracker-team
+
+# Documentation
+*.md @docs-team @foodtracker-team
+/docs/ @docs-team @foodtracker-team
+
+# Configuration files
+package*.json @backend-team @frontend-team @foodtracker-team
+tsconfig*.json @backend-team @frontend-team @foodtracker-team
+*.config.js @devops-team @foodtracker-team
+*.config.ts @devops-team @foodtracker-team
+
+# Security and dependency management
+.github/dependabot.yml @security-team @devops-team
+.github/workflows/security.yml @security-team @devops-team

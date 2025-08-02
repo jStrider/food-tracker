@@ -86,11 +86,11 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
       setTime(newTime);
       
       // Show meal type preview if auto-categorizing
-      if (!type || type === '') {
+      if (!type) {
         setShowMealTypePreview(true);
         // Auto-suggest meal type based on time (but don't force it)
         const suggestedType = getMealTypeFromTime(newTime);
-        if (!defaultType || defaultType === 'breakfast') {
+        if (!defaultType) {
           // Only show preview, don't set the type automatically
         }
       }
@@ -237,13 +237,13 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
                     const newTime = e.target.value;
                     setTime(newTime);
                     // Update meal type preview when time changes
-                    if (!type || type === '') {
+                    if (!type) {
                       setShowMealTypePreview(true);
                     }
                   }}
                   placeholder="HH:MM"
                 />
-                {showMealTypePreview && time && (!type || type === '') && (
+                {showMealTypePreview && time && !type && (
                   <div className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
                     <span className="text-blue-700">
                       💡 Based on time ({time}), this will be categorized as: <strong>{getMealTypeFromTime(time)}</strong>
@@ -257,10 +257,10 @@ const CreateMealModal: React.FC<CreateMealModalProps> = ({
 
               <div className="space-y-2">
                 <Label htmlFor="meal-type">Meal Type (Optional)</Label>
-                <Select value={type} onValueChange={(value: MealType | '') => {
-                  setType(value);
+                <Select value={type} onValueChange={(value) => {
+                  setType((value || undefined) as MealType | undefined);
                   // Hide preview when user manually selects a type
-                  if (value !== '') {
+                  if (value) {
                     setShowMealTypePreview(false);
                   } else {
                     setShowMealTypePreview(true);

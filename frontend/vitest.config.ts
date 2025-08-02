@@ -1,55 +1,62 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+/// <reference types="vitest" />
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
-    environment: 'jsdom',
+    environment: 'happy-dom',
     setupFiles: ['./src/test/setup.ts'],
+    globals: true,
     css: true,
-    // Prevent memory leaks and orphan processes
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-        maxForks: 1,
-        minForks: 1,
-      },
-    },
-    // Limit concurrent tests to prevent stack overflow
-    maxConcurrency: 1,
-    // Force exit after tests complete
-    forceExit: true,
-    // Timeout configuration
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    teardownTimeout: 5000,
-    exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/cypress/**',
-      '**/.{idea,git,cache,output,temp}/**',
-      '**/e2e/**',
-      '**/playwright/**',
-    ],
+    // Parallel execution
+    threads: true,
+    maxThreads: 4,
+    minThreads: 1,
+    // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'text-summary', 'lcov', 'html', 'json', 'json-summary'],
+      reportsDirectory: './coverage',
       exclude: [
         'node_modules/',
         'src/test/',
         '**/*.d.ts',
         '**/*.config.*',
-        '**/mockData',
+        '**/vite.config.*',
+        '**/*.test.*',
+        '**/*.spec.*',
         'src/main.tsx',
+        'src/vite-env.d.ts',
+        'dist/',
+        'build/',
       ],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+      },
     },
+    // Test reporters for CI
+    reporter: process.env.CI 
+      ? ['default', 'junit', 'html']
+      : ['default'],
+    outputFile: {
+      junit: './test-results/junit.xml',
+      html: './test-results/test-report.html',
+    },
+    // Test timeout
+    testTimeout: 10000,
+    // Watch mode
+    watch: !process.env.CI,
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
-});
+})
