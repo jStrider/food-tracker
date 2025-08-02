@@ -595,7 +595,7 @@ jobs:
                
       - name: Email Notification
         if: always() && (steps.status.outputs.status == 'failure' || needs.validate.outputs.deploy_environment == 'production')
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v6
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
           server_port: ${{ secrets.SMTP_PORT }}
