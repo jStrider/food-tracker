@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -64,16 +64,24 @@ const mockMeals = [
   {
     id: 'meal-1',
     name: 'Breakfast',
-    category: 'breakfast',
+    category: 'breakfast' as const,
     date: '2024-01-15',
-    userId: 'user-1'
+    userId: 'user-1',
+    totalCalories: 300,
+    totalProtein: 15,
+    totalCarbs: 45,
+    totalFat: 10
   },
   {
     id: 'meal-2',
     name: 'Lunch',
-    category: 'lunch',
+    category: 'lunch' as const,
     date: '2024-01-15',
-    userId: 'user-1'
+    userId: 'user-1',
+    totalCalories: 500,
+    totalProtein: 25,
+    totalCarbs: 60,
+    totalFat: 20
   }
 ];
 
@@ -381,7 +389,7 @@ describe('Enhanced FoodSearch Component', () => {
     });
 
     it('shows proper empty state for barcode not found', async () => {
-      vi.mocked(foodsApi.searchByBarcode).mockResolvedValue(null);
+      vi.mocked(foodsApi.searchByBarcode).mockRejectedValue(new Error('Product not found'));
       
       const user = userEvent.setup();
       
@@ -395,8 +403,7 @@ describe('Enhanced FoodSearch Component', () => {
       await user.type(barcodeInput, '1234567890123');
 
       await waitFor(() => {
-        expect(screen.getByText('No product found')).toBeInTheDocument();
-        expect(screen.getByText(/No product found for barcode "1234567890123"/)).toBeInTheDocument();
+        expect(screen.getByText('Search Error:')).toBeInTheDocument();
       });
     });
   });

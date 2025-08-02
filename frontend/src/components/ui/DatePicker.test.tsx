@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
 import { DatePicker } from './DatePicker';
-import { formatDate, DATE_FORMATS } from '@/utils/date';
+
 import '@/test/mocks/ui-components';
 
 describe('DatePicker', () => {

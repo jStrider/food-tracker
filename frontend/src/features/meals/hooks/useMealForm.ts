@@ -169,9 +169,9 @@ export const useMealForm = (options: UseMealFormOptions = {}) => {
 
   // Reset form
   const resetForm = useCallback((newDefaults?: Partial<MealFormData>) => {
-    const resetData = {
+    const resetData: MealFormData = {
       name: newDefaults?.name || '',
-      type: newDefaults?.type || '',
+      type: newDefaults?.type || undefined,
       time: newDefaults?.time || (autoFillTime ? getCurrentTime() : ''),
       date: newDefaults?.date || new Date(),
       customMacros: {
@@ -184,7 +184,7 @@ export const useMealForm = (options: UseMealFormOptions = {}) => {
     
     setFormData(resetData);
     setIsDirty(false);
-    setShowMealTypePreview(showTimeBasedSuggestions && (!resetData.type || resetData.type === '') && !!resetData.time);
+    setShowMealTypePreview(showTimeBasedSuggestions && !resetData.type && !!resetData.time);
     setValidation({ isValid: true, errors: {} });
   }, [autoFillTime, showTimeBasedSuggestions]);
 

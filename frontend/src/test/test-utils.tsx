@@ -30,12 +30,7 @@ const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
+        <BrowserRouter>
           {children}
           <Toaster />
         </BrowserRouter>
