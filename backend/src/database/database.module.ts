@@ -7,6 +7,7 @@ import { Food } from "../features/foods/entities/food.entity";
 import { FoodEntry } from "../features/foods/entities/food-entry.entity";
 import { DailyNutrition } from "../features/nutrition/entities/daily-nutrition.entity";
 import { getOptimizedTypeOrmConfig } from "../config/typeorm.config";
+import { DatabaseInitService } from "./database-init.service";
 
 @Module({
   imports: [
@@ -15,6 +16,9 @@ import { getOptimizedTypeOrmConfig } from "../config/typeorm.config";
       useFactory: getOptimizedTypeOrmConfig,
       inject: [ConfigService],
     }),
+    ConfigModule,
   ],
+  providers: [DatabaseInitService],
+  exports: [DatabaseInitService],
 })
 export class DatabaseModule {}

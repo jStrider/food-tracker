@@ -94,11 +94,15 @@ export class UsersService {
       return { message: "Default user already exists", user: existingUser };
     }
 
-    // Create default user
+    // Create default user with bcrypt hashed password
+    const bcrypt = await import('bcrypt');
+    const hashedPassword = await bcrypt.hash("default123", 10);
+    
     const defaultUser = this.userRepository.create({
       id: TEMP_USER_ID,
       email: "default@foodtracker.com",
       name: "Default User",
+      password: hashedPassword,
       timezone: "Europe/Paris",
       preferences: {
         dailyCalorieGoal: 2000,

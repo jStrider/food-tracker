@@ -11,7 +11,8 @@ import RegisterPage from '@/pages/RegisterPage';
 import CalendarView from '@/features/calendar/components/CalendarView';
 import WeekView from '@/features/calendar/components/WeekView';
 import FoodSearch from '@/features/foods/components/FoodSearch';
-import { initializeApp } from '@/utils/initializeApp';
+// TODO: Re-enable when init-default endpoint is restored or replaced with proper auth flow
+// import { initializeApp } from '@/utils/initializeApp';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -26,7 +27,8 @@ const queryClient = new QueryClient({
 function App() {
   useEffect(() => {
     // Initialize app on mount
-    initializeApp().catch(console.error);
+    // TODO: Re-enable when init-default endpoint is restored or replaced with proper auth flow
+    // initializeApp().catch(console.error);
   }, []);
 
   return (
